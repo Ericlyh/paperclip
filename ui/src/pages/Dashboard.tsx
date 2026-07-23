@@ -29,6 +29,15 @@ import { PluginSlotOutlet } from "@/plugins/slots";
 
 const DASHBOARD_ACTIVITY_LIMIT = 10;
 
+// Auto-generated "Review productivity for OOP-*" issues carry this origin kind.
+// They are internal bookkeeping and should not clutter the dashboard surfaces.
+// Matches the server constant in server/src/services/issues.ts.
+const PRODUCTIVITY_REVIEW_ORIGIN_KIND = "issue_productivity_review";
+
+function isProductivityReviewIssue(issue: Issue): boolean {
+  return issue.originKind === PRODUCTIVITY_REVIEW_ORIGIN_KIND;
+}
+
 function getRecentIssues(issues: Issue[]): Issue[] {
   return [...issues]
     .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
@@ -88,7 +97,14 @@ export function Dashboard() {
     [companyMembers?.users],
   );
 
-  const recentIssues = issues ? getRecentIssues(issues) : [];
+  // Hide auto-generated productivity-review issues from dashboard issue surfaces
+  // (recent list + charts). Raw `issues` is still used for activity-feed labels.
+  const visibleIssues = useMemo(
+    () => (issues ?? []).filter((issue) => !isProductivityReviewIssue(issue)),
+    [issues],
+  );
+
+  const recentIssues = getRecentIssues(visibleIssues);
   const recentActivity = useMemo(() => (activity ?? []).slice(0, 10), [activity]);
 
   useEffect(() => {
@@ -296,10 +312,10 @@ export function Dashboard() {
               <RunActivityChart activity={data.runActivity} />
             </ChartCard>
             <ChartCard title="Issues by Priority" subtitle="Last 14 days">
-              <PriorityChart issues={issues ?? []} />
+              <PriorityChart issues={visibleIssues} />
             </ChartCard>
             <ChartCard title="Issues by Status" subtitle="Last 14 days">
-              <IssueStatusChart issues={issues ?? []} />
+              <IssueStatusChart issues={visibleIssues} />
             </ChartCard>
             <ChartCard title="Success Rate" subtitle="Last 14 days">
               <SuccessRateChart activity={data.runActivity} />
