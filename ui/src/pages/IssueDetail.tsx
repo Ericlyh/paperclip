@@ -155,6 +155,7 @@ import { PluginLauncherOutlet } from "@/plugins/launchers";
 import { Separator } from "@/components/ui/separator";
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { IssueLockGate } from "@/components/IssueLockGate";
 import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Avatar, AvatarFallback, AvatarGroup, AvatarImage } from "@/components/ui/avatar";
@@ -4978,6 +4979,17 @@ export function IssueDetail() {
           This task is hidden
         </div>
       )}
+      {/* MAT-112: issue-lock WebAuthn / Touch ID gate (variant A, UI-level). */}
+      <IssueLockGate
+        locked={!!issue.locked}
+        contentRedacted={!!issue.contentRedacted}
+        lockToggleBusy={updateIssue.isPending}
+        onToggleLock={(next) => updateIssue.mutate({ locked: next })}
+        onUnlocked={() => {
+          queryClient.invalidateQueries({ queryKey: queryKeys.issues.detail(issueId!) });
+          void refetchComments();
+        }}
+      />
       {activePauseHold && (
         <div className={cn("rounded-md border border-amber-500/35 bg-amber-500/10 p-3 text-sm text-amber-800 dark:text-amber-200", shellSectionClass)}>
           {activePauseHold.isRoot ? (
