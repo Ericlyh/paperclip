@@ -25,7 +25,10 @@ export const DEFAULT_PRODUCTIVITY_REVIEW_NO_COMMENT_STREAK_RUNS = 10;
 export const DEFAULT_PRODUCTIVITY_REVIEW_LONG_ACTIVE_HOURS = 6;
 export const DEFAULT_PRODUCTIVITY_REVIEW_HIGH_CHURN_HOURLY = 10;
 export const DEFAULT_PRODUCTIVITY_REVIEW_HIGH_CHURN_SIX_HOURS = 30;
-export const DEFAULT_PRODUCTIVITY_REVIEW_RESOLVED_SNOOZE_MS = 6 * 60 * 60 * 1000;
+// Snooze must be longer than the long-active threshold so a resolved review
+// does not immediately re-fire on an unchanged condition. Keeping this at 6h
+// (same as `longActiveMs`) made one false positive an infinite series.
+export const DEFAULT_PRODUCTIVITY_REVIEW_RESOLVED_SNOOZE_MS = 24 * 60 * 60 * 1000;
 export const DEFAULT_PRODUCTIVITY_REVIEW_REFRESH_INTERVAL_MS = 60 * 60 * 1000;
 export const DEFAULT_PRODUCTIVITY_REVIEW_MAX_REFRESH_COMMENTS = 3;
 export const DEFAULT_PRODUCTIVITY_REVIEW_CREATION_WINDOW_MS = 24 * 60 * 60 * 1000;
@@ -470,10 +473,32 @@ export function productivityReviewService(db: Db, deps?: { enqueueWakeup?: Enque
     const activeRunCount = latestRuns.filter((run) =>
       ACTIVE_RUN_STATUSES.includes(run.status as (typeof ACTIVE_RUN_STATUSES)[number]),
     ).length;
-    const activeStartedAt = sourceIssue.startedAt ?? sourceIssue.executionLockedAt ?? null;
-    const elapsedMs = sourceIssue.status === "in_progress" && activeStartedAt
-      ? Math.max(0, now.getTime() - activeStartedAt.getTime())
-      : null;
+    // For routine_execution issues, `issues.startedAt` is set once on the
+    // first in_progress transition and never reset per cron tick, so wall-
+    // clock elapsed grows toward the full inter-tick gap and trips the
+    // long-active threshold by construction for any healthy daily routine.
+    // Derive elapsed from the latest run instead: between ticks (latest run
+    // terminal, recent) the value is small; a hung tick (latest run has been
+    // running for hours) still trips the detector, preserving its purpose.
+    let activeStartedAt: Date | null = null;
+    let elapsedMs: number | null = null;
+    if (sourceIssue.status === "in_progress") {
+      if (sourceIssue.originKind === "routine_execution") {
+        const latestRun = latestRuns[0];
+        if (latestRun) {
+          const runStart = latestRun.startedAt ?? latestRun.createdAt;
+          activeStartedAt = coerceDate(runStart);
+          elapsedMs = activeStartedAt
+            ? Math.max(0, now.getTime() - activeStartedAt.getTime())
+            : null;
+        }
+      } else {
+        activeStartedAt = sourceIssue.startedAt ?? sourceIssue.executionLockedAt ?? null;
+        elapsedMs = activeStartedAt
+          ? Math.max(0, now.getTime() - activeStartedAt.getTime())
+          : null;
+      }
+    }
 
     const noComment = noCommentStreak >= thresholds.noCommentStreakRuns;
     const longActive = elapsedMs !== null && elapsedMs >= thresholds.longActiveMs;

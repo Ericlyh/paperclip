@@ -19,6 +19,7 @@ import {
   DEFAULT_PRODUCTIVITY_REVIEW_MAX_REFRESH_COMMENTS,
   DEFAULT_PRODUCTIVITY_REVIEW_NO_COMMENT_STREAK_RUNS,
   DEFAULT_PRODUCTIVITY_REVIEW_REFRESH_INTERVAL_MS,
+  DEFAULT_PRODUCTIVITY_REVIEW_RESOLVED_SNOOZE_MS,
   PRODUCTIVITY_REVIEW_REFRESH_COMMENT_PREFIX,
   PRODUCTIVITY_REVIEW_ORIGIN_KIND,
   productivityReviewService,
@@ -286,9 +287,13 @@ describeEmbeddedPostgres("productivity review service", () => {
       }),
     );
 
+    // OOP-2420: the default 24h snooze would catch this case before the cap
+    // path runs. Override the snooze so the test still exercises the rolling
+    // creation-window cap in isolation.
     const result = await productivityReviewService(db).reconcileProductivityReviews({
       now,
       companyId: seeded.companyId,
+      thresholds: { resolvedSnoozeMs: 60 * 60 * 1000 },
     });
 
     expect(result.created).toBe(0);
@@ -495,6 +500,111 @@ describeEmbeddedPostgres("productivity review service", () => {
 
     expect(result.snoozed).toBe(1);
     expect(reviews).toHaveLength(1);
+  });
+
+  it("does not create long-active reviews for routine_execution issues idle between cron ticks", async () => {
+    // OOP-2420 — a healthy daily-cron routine issue sits in `in_progress` with
+    // `startedAt` set 12h ago (first-ever tick), but its latest run completed
+    // minutes ago. The detector must look at the latest run, not the issue's
+    // original `startedAt`, otherwise every recurring routine trips the
+    // long-active threshold by construction.
+    const now = new Date("2026-04-28T12:00:00.000Z");
+    const routineStartedAt = new Date(now.getTime() - 12 * 60 * 60 * 1000);
+    const seeded = await seedAssignedIssue({
+      status: "in_progress",
+      startedAt: routineStartedAt,
+      originKind: "routine_execution",
+    });
+    // Latest run completed 5 minutes ago — issue is idle between ticks.
+    await insertRuns({
+      companyId: seeded.companyId,
+      agentId: seeded.coderId,
+      issueId: seeded.issueId,
+      count: 1,
+      now: new Date(now.getTime() - 5 * 60 * 1000),
+    });
+
+    const result = await productivityReviewService(db).reconcileProductivityReviews({
+      now,
+      companyId: seeded.companyId,
+    });
+
+    expect(result.created).toBe(0);
+    expect(result.skipped).toBe(1);
+    expect(await listProductivityReviews(seeded.companyId)).toHaveLength(0);
+  });
+
+  it("still creates long-active reviews for routine_execution issues whose latest run has been running past the threshold", async () => {
+    // OOP-2420 — a routine whose latest run has been hung for 7h is a real
+    // signal and must still trip the detector. This guards the new branch
+    // against regressing into "never review routines".
+    const now = new Date("2026-04-28T12:00:00.000Z");
+    const routineStartedAt = new Date(now.getTime() - 7 * 60 * 60 * 1000);
+    const seeded = await seedAssignedIssue({
+      status: "in_progress",
+      startedAt: routineStartedAt,
+      originKind: "routine_execution",
+    });
+    // Latest run is still active — started 7h ago.
+    const runs: Array<typeof heartbeatRuns.$inferInsert> = [
+      {
+        id: randomUUID(),
+        companyId: seeded.companyId,
+        agentId: seeded.coderId,
+        status: "running",
+        invocationSource: "cron",
+        triggerDetail: "system",
+        startedAt: routineStartedAt,
+        contextSnapshot: { issueId: seeded.issueId, taskId: seeded.issueId },
+        livenessState: "advanced",
+        createdAt: routineStartedAt,
+        updatedAt: routineStartedAt,
+      },
+    ];
+    await db.insert(heartbeatRuns).values(runs);
+
+    const result = await productivityReviewService(db).reconcileProductivityReviews({
+      now,
+      companyId: seeded.companyId,
+    });
+
+    expect(result.created).toBe(1);
+    const [review] = await listProductivityReviews(seeded.companyId);
+    expect(review?.description).toContain("Primary trigger: `long_active_duration`");
+  });
+
+  it("snoozes resolved productivity reviews for at least 24 hours", async () => {
+    // OOP-2420 — the snooze window must be strictly longer than the long-active
+    // threshold so a resolved review cannot immediately re-fire on an
+    // unchanged condition. Defaults: longActiveMs = 6h, resolvedSnoozeMs = 24h.
+    expect(DEFAULT_PRODUCTIVITY_REVIEW_RESOLVED_SNOOZE_MS).toBe(24 * 60 * 60 * 1000);
+
+    const now = new Date("2026-04-28T12:00:00.000Z");
+    const seeded = await seedAssignedIssue();
+    await insertRuns({
+      companyId: seeded.companyId,
+      agentId: seeded.coderId,
+      issueId: seeded.issueId,
+      count: 10,
+      now,
+    });
+    const service = productivityReviewService(db);
+    await service.reconcileProductivityReviews({ now, companyId: seeded.companyId });
+    const [review] = await listProductivityReviews(seeded.companyId);
+    await db
+      .update(issues)
+      .set({ status: "done", updatedAt: now })
+      .where(eq(issues.id, review!.id));
+
+    // 7h after — past the old 6h snooze, still inside the new 24h window.
+    const result = await service.reconcileProductivityReviews({
+      now: new Date(now.getTime() + 7 * 60 * 60 * 1000),
+      companyId: seeded.companyId,
+    });
+
+    expect(result.snoozed).toBe(1);
+    expect(result.created).toBe(0);
+    expect(await listProductivityReviews(seeded.companyId)).toHaveLength(1);
   });
 
   it("reports and logs soft-stop holds for open no-comment reviews", async () => {
