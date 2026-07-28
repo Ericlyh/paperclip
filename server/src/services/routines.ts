@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { and, asc, desc, eq, gt, inArray, isNotNull, isNull, lte, ne, not, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, isNotNull, isNull, lte, not, or, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import {
   agents,
@@ -80,7 +80,6 @@ import type { PluginWorkerManager } from "./plugin-worker-manager.js";
 
 const OPEN_ISSUE_STATUSES = ["backlog", "todo", "in_progress", "in_review", "blocked"];
 const LIVE_HEARTBEAT_RUN_STATUSES = ["queued", "running", "scheduled_retry"];
-const TERMINAL_ISSUE_STATUSES = new Set(["done", "cancelled"]);
 const MAX_CATCH_UP_RUNS = 25;
 const MAX_ROUTINE_REVISIONS = 100;
 const EXECUTION_ISSUE_TRANSIENT_FAILURE_CODE = "execution_issue_status";
@@ -800,7 +799,7 @@ export function routineService(
 
   async function getRoutineDescriptionDocument(
     routineId: string,
-    executor: Db | any = db,
+    executor: Db = db,
   ): Promise<RoutineDescriptionDocument | null> {
     const row = await executor
       .select({
@@ -826,12 +825,12 @@ export function routineService(
         eq(routineDocuments.routineId, routineId),
         eq(routineDocuments.key, ROUTINE_DESCRIPTION_DOCUMENT_KEY),
       ))
-      .then((rows: any[]) => rows[0] ?? null);
+      .then((rows) => rows[0] ?? null);
     return row ? mapRoutineDescriptionDocument(row) : null;
   }
 
   async function upsertRoutineDescriptionDocument(
-    executor: Db | any,
+    executor: Db,
     routine: RoutineRow,
     actor: Actor,
     options: { changeSummary?: string | null } = {},
@@ -1016,13 +1015,6 @@ export function routineService(
       routine: routineForDocument,
       revision: mapRoutineRevision(revision),
     };
-  }
-
-  async function assertRoutineAccess(companyId: string, routineId: string) {
-    const routine = await getRoutineById(routineId);
-    if (!routine) throw notFound("Routine not found");
-    if (routine.companyId !== companyId) throw forbidden("Routine must belong to same company");
-    return routine;
   }
 
   async function assertRestorableAssignee(

@@ -660,30 +660,6 @@ function defaultAdapterType(definition: BuiltInAgentDefinition) {
   return definition.defaultAdapterType ?? definition.allowedAdapterTypes?.[0] ?? "process";
 }
 
-function normalizeAdapterType(value: unknown) {
-  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
-}
-
-function selectPreferredAdapterType(
-  definition: BuiltInAgentDefinition,
-  usage: Array<{ adapterType: string; count: number }>,
-) {
-  const fallback = defaultAdapterType(definition);
-  const preference = definition.allowedAdapterTypes ?? [];
-  if (preference.length === 0) return fallback;
-
-  const rank = new Map(preference.map((adapterType, index) => [adapterType, index]));
-  let selected: { adapterType: string; count: number; rank: number } | null = null;
-  for (const entry of usage) {
-    const adapterRank = rank.get(entry.adapterType);
-    if (adapterRank === undefined) continue;
-    if (!selected || entry.count > selected.count || (entry.count === selected.count && adapterRank < selected.rank)) {
-      selected = { ...entry, rank: adapterRank };
-    }
-  }
-  return selected?.adapterType ?? fallback;
-}
-
 function assertAdapterAllowed(definition: BuiltInAgentDefinition, adapterType: string) {
   if (definition.allowedAdapterTypes && !definition.allowedAdapterTypes.includes(adapterType)) {
     throw unprocessable(`Adapter type ${adapterType} is not allowed for built-in agent ${definition.key}`, {
