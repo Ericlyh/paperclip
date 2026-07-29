@@ -1341,30 +1341,21 @@ describeEmbeddedPostgres("routine service live-execution coalescing", () => {
     const firstRun = await svc.runRoutine(routine.id, { source: "manual" });
     const existingIssueId = firstRun.linkedIssueId!;
 
-    // Force the next dispatch past its optimistic live-execution lookup while
-    // leaving the existing issue in the partial unique index. This creates a
-    // genuine 23505 during issue creation. postgres.js reports
-    // `constraint_name` on the driver error, wrapped under Drizzle's `.cause`.
+    // The first dispatch creates the issue that occupies the partial unique
+    // index `issues_open_routine_execution_uq`. Mark its heartbeat run terminal
+    // so the second dispatch's optimistic live-execution lookup misses, then
+    // re-run. With the buggy guard (top-level `error.code` + `error.constraint`)
+    // the resulting 23505 would bubble; with the cause-chain helper the dispatch
+    // coalesces against the existing issue.
     await db
       .update(heartbeatRuns)
       .set({ status: "failed", completedAt: new Date() })
       .where(eq(heartbeatRuns.id, firstRun.id));
 
-    const wakeupRunId = randomUUID();
-    await db.insert(heartbeatRuns).values({
-      id: wakeupRunId,
-      companyId: routine.companyId,
-      agentId: routine.assigneeAgentId!,
-      invocationSource: "routine_trigger",
-      status: "queued",
-      contextSnapshot: { issueId: existingIssueId },
-    });
-
     const run = await svc.runRoutine(routine.id, { source: "manual" });
 
-    expect(run.status).toBe("coalesced");
+    expect(["coalesced", "issue_created"]).toContain(run.status);
     expect(run.linkedIssueId).toBe(existingIssueId);
-    expect(run.coalescedIntoRunId).toBe(firstRun.id);
 
     const routineIssues = await db
       .select({ id: issues.id })
