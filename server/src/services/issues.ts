@@ -83,6 +83,7 @@ import {
   RECOVERY_ORIGIN_KINDS,
 } from "./recovery/origins.js";
 import { classifyIssueGraphLiveness, type IssueLivenessFinding } from "./recovery/issue-graph-liveness.js";
+import { isRoutineExecutionUniqueViolation } from "./routine-execution-errors.js";
 
 const ALL_ISSUE_STATUSES = ["backlog", "todo", "in_progress", "in_review", "blocked", "done", "cancelled"];
 const MAX_ISSUE_COMMENT_PAGE_LIMIT = 500;
@@ -3622,12 +3623,60 @@ export function issueService(db: Db) {
     if (!stale) return null;
 
     const now = new Date();
-    const adopted = await db
+    // Try to claim both checkout + execution for the actor run. This can
+    // collide with `issues_open_routine_execution_uq` when the actor's run
+    // already holds an open routine-execution issue with the same
+    // (origin_kind, origin_id, origin_fingerprint) tuple — i.e. a fresh
+    // routine wake trying to close a stale instance of its own routine.
+    // In that case, fall through to a lock-clear so the caller's PATCH can
+    // proceed with whatever (likely terminal) status transition it wanted.
+    type AdoptedRow = {
+      id: string;
+      status: typeof issues.$inferSelect.status;
+      assigneeAgentId: string | null;
+      checkoutRunId: string | null;
+      executionRunId: string | null;
+    };
+    let adopted: AdoptedRow | null = null;
+    try {
+      adopted = await db
+        .update(issues)
+        .set({
+          checkoutRunId: input.actorRunId,
+          executionRunId: input.actorRunId,
+          executionLockedAt: now,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(issues.id, input.issueId),
+            eq(issues.status, "in_progress"),
+            eq(issues.assigneeAgentId, input.actorAgentId),
+            eq(issues.checkoutRunId, input.expectedCheckoutRunId),
+          ),
+        )
+        .returning({
+          id: issues.id,
+          status: issues.status,
+          assigneeAgentId: issues.assigneeAgentId,
+          checkoutRunId: issues.checkoutRunId,
+          executionRunId: issues.executionRunId,
+        })
+        .then((rows) => rows[0] ?? null);
+    } catch (error) {
+      if (!isRoutineExecutionUniqueViolation(error)) throw error;
+      adopted = null;
+    }
+
+    if (adopted) return adopted;
+
+    return db
       .update(issues)
       .set({
-        checkoutRunId: input.actorRunId,
-        executionRunId: input.actorRunId,
-        executionLockedAt: now,
+        checkoutRunId: null,
+        executionRunId: null,
+        executionAgentNameKey: null,
+        executionLockedAt: null,
         updatedAt: now,
       })
       .where(
@@ -3646,8 +3695,6 @@ export function issueService(db: Db) {
         executionRunId: issues.executionRunId,
       })
       .then((rows) => rows[0] ?? null);
-
-    return adopted;
   }
 
   async function adoptUnownedCheckoutRun(input: {
@@ -3656,12 +3703,58 @@ export function issueService(db: Db) {
     actorRunId: string;
   }) {
     const now = new Date();
-    const adopted = await db
+    // Same partial-index collision shape as adoptStaleCheckoutRun: when the
+    // actor's run already owns another open routine-execution issue with
+    // the same dispatch tuple, claiming the lock here would 23505. Fall
+    // through to a lock-clear so the caller's PATCH can proceed.
+    type AdoptedRow = {
+      id: string;
+      status: typeof issues.$inferSelect.status;
+      assigneeAgentId: string | null;
+      checkoutRunId: string | null;
+      executionRunId: string | null;
+    };
+    let adopted: AdoptedRow | null = null;
+    try {
+      adopted = await db
+        .update(issues)
+        .set({
+          checkoutRunId: input.actorRunId,
+          executionRunId: input.actorRunId,
+          executionLockedAt: now,
+          updatedAt: now,
+        })
+        .where(
+          and(
+            eq(issues.id, input.issueId),
+            eq(issues.status, "in_progress"),
+            eq(issues.assigneeAgentId, input.actorAgentId),
+            isNull(issues.checkoutRunId),
+            or(isNull(issues.executionRunId), eq(issues.executionRunId, input.actorRunId)),
+          ),
+        )
+        .returning({
+          id: issues.id,
+          status: issues.status,
+          assigneeAgentId: issues.assigneeAgentId,
+          checkoutRunId: issues.checkoutRunId,
+          executionRunId: issues.executionRunId,
+        })
+        .then((rows) => rows[0] ?? null);
+    } catch (error) {
+      if (!isRoutineExecutionUniqueViolation(error)) throw error;
+      adopted = null;
+    }
+
+    if (adopted) return adopted;
+
+    return db
       .update(issues)
       .set({
-        checkoutRunId: input.actorRunId,
-        executionRunId: input.actorRunId,
-        executionLockedAt: now,
+        checkoutRunId: null,
+        executionRunId: null,
+        executionAgentNameKey: null,
+        executionLockedAt: null,
         updatedAt: now,
       })
       .where(
@@ -3681,8 +3774,6 @@ export function issueService(db: Db) {
         executionRunId: issues.executionRunId,
       })
       .then((rows) => rows[0] ?? null);
-
-    return adopted;
   }
 
   async function clearExecutionRunIfTerminal(issueId: string): Promise<boolean> {

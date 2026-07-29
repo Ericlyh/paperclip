@@ -1336,6 +1336,43 @@ describeEmbeddedPostgres("routine service live-execution coalescing", () => {
     expect(routineIssues).toHaveLength(0);
   });
 
+  it("recognizes the wrapped postgres.js 23505 and coalesces the colliding dispatch", async () => {
+    const { routine, svc } = await seedFixture();
+    const firstRun = await svc.runRoutine(routine.id, { source: "manual" });
+    const existingIssueId = firstRun.linkedIssueId!;
+
+    // Force the next dispatch past its optimistic live-execution lookup while
+    // leaving the existing issue in the partial unique index. This creates a
+    // genuine 23505 during issue creation. postgres.js reports
+    // `constraint_name` on the driver error, wrapped under Drizzle's `.cause`.
+    await db
+      .update(heartbeatRuns)
+      .set({ status: "failed", completedAt: new Date() })
+      .where(eq(heartbeatRuns.id, firstRun.id));
+
+    const wakeupRunId = randomUUID();
+    await db.insert(heartbeatRuns).values({
+      id: wakeupRunId,
+      companyId: routine.companyId,
+      agentId: routine.assigneeAgentId!,
+      invocationSource: "routine_trigger",
+      status: "queued",
+      contextSnapshot: { issueId: existingIssueId },
+    });
+
+    const run = await svc.runRoutine(routine.id, { source: "manual" });
+
+    expect(run.status).toBe("coalesced");
+    expect(run.linkedIssueId).toBe(existingIssueId);
+    expect(run.coalescedIntoRunId).toBe(firstRun.id);
+
+    const routineIssues = await db
+      .select({ id: issues.id })
+      .from(issues)
+      .where(eq(issues.originId, routine.id));
+    expect(routineIssues).toEqual([{ id: existingIssueId }]);
+  });
+
   it("accepts standard second-precision webhook timestamps for HMAC triggers", async () => {
     const { routine, svc } = await seedFixture();
     const { trigger, secretMaterial } = await svc.createTrigger(

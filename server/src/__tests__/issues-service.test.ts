@@ -3475,6 +3475,228 @@ describeEmbeddedPostgres("issueService.clearExecutionRunIfTerminal", () => {
   });
 });
 
+describeEmbeddedPostgres("issueService.assertCheckoutOwner routine-execution index fallback (OOP-2711)", () => {
+  let db!: ReturnType<typeof createDb>;
+  let svc!: ReturnType<typeof issueService>;
+  let tempDb: Awaited<ReturnType<typeof startEmbeddedPostgresTestDatabase>> | null = null;
+
+  beforeAll(async () => {
+    tempDb = await startEmbeddedPostgresTestDatabase("paperclip-issues-routine-exec-uq-");
+    db = createDb(tempDb.connectionString);
+    svc = issueService(db);
+    await ensureIssueRelationsTable(db);
+  }, 20_000);
+
+  afterEach(async () => {
+    await db.delete(issueComments);
+    await db.delete(issueRelations);
+    await db.delete(issueInboxArchives);
+    await db.delete(activityLog);
+    await db.delete(issues);
+    await db.delete(heartbeatRuns);
+    await db.delete(executionWorkspaces);
+    await db.delete(projectWorkspaces);
+    await db.delete(projects);
+    await db.delete(goals);
+    await db.delete(agents);
+    await db.delete(instanceSettings);
+    await db.delete(companies);
+  });
+
+  afterAll(async () => {
+    await tempDb?.cleanup();
+  });
+
+  it("clears the stale lock instead of throwing when the actor run already owns an open routine execution with the same dispatch tuple", async () => {
+    // Reproduces OOP-2711: a routine wake tries to close a stale in_progress
+    // instance of its own routine. The actor run already has an open routine
+    // execution issue sharing the (origin_kind, origin_id, origin_fingerprint)
+    // tuple, so a naive adoption of the stale issue would violate
+    // issues_open_routine_execution_uq. The fix is to clear the lock so the
+    // caller's terminal transition (PATCH status=done) can proceed.
+    const companyId = randomUUID();
+    const agentId = randomUUID();
+    const staleRunId = randomUUID();
+    const liveRunId = randomUUID();
+    const staleIssueId = randomUUID();
+    const liveIssueId = randomUUID();
+    const originId = randomUUID();
+    const dispatchFingerprint = "fp-shared-by-stale-and-live";
+
+    await db.insert(companies).values({
+      id: companyId,
+      name: "Paperclip",
+      issuePrefix: `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`,
+      requireBoardApprovalForNewAgents: false,
+    });
+    await db.insert(agents).values({
+      id: agentId,
+      companyId,
+      name: "RoutineRunner",
+      role: "engineer",
+      status: "active",
+      adapterType: "codex_local",
+      adapterConfig: {},
+      runtimeConfig: {},
+      permissions: {},
+    });
+
+    // Two heartbeat runs: the stale one is terminal, the live one is the
+    // actor that owns an existing open routine-execution issue.
+    await db.insert(heartbeatRuns).values([
+      {
+        id: staleRunId,
+        companyId,
+        agentId,
+        status: "failed",
+        invocationSource: "routine_trigger",
+      },
+      {
+        id: liveRunId,
+        companyId,
+        agentId,
+        status: "running",
+        invocationSource: "routine_trigger",
+      },
+    ]);
+
+    // The stale issue still pins the dead run's checkout id, but its
+    // execution lock was already released (execution_run_id IS NULL), so it
+    // sits outside the partial index — this is the real production shape
+    // (cf. OOP-2331). The live wake's issue holds an execution run id and so
+    // occupies the index slot for the shared (origin_kind, origin_id,
+    // origin_fingerprint) tuple. Adopting the stale issue writes
+    // execution_run_id = liveRunId, pulling it into the index and colliding —
+    // exactly the OOP-2711 shape. Seeding both rows with a non-null
+    // execution_run_id is impossible: the index would reject the insert.
+    await db.insert(issues).values([
+      {
+        id: staleIssueId,
+        companyId,
+        title: "Stale routine execution",
+        status: "in_progress",
+        priority: "medium",
+        assigneeAgentId: agentId,
+        checkoutRunId: staleRunId,
+        executionRunId: null,
+        originKind: "routine_execution",
+        originId,
+        originFingerprint: dispatchFingerprint,
+      },
+      {
+        id: liveIssueId,
+        companyId,
+        title: "Live routine execution",
+        status: "in_progress",
+        priority: "medium",
+        assigneeAgentId: agentId,
+        checkoutRunId: liveRunId,
+        executionRunId: liveRunId,
+        originKind: "routine_execution",
+        originId,
+        originFingerprint: dispatchFingerprint,
+      },
+    ]);
+
+    // Before the fix this raised a 23505 unique-violation surfacing as 500.
+    // After the fix the assertion succeeds by clearing the stale lock.
+    const ownership = await svc.assertCheckoutOwner(staleIssueId, agentId, liveRunId);
+    expect(ownership.adoptedFromRunId).toBe(staleRunId);
+
+    const staleAfter = await db
+      .select({
+        status: issues.status,
+        checkoutRunId: issues.checkoutRunId,
+        executionRunId: issues.executionRunId,
+      })
+      .from(issues)
+      .where(eq(issues.id, staleIssueId))
+      .then((rows) => rows[0]);
+    expect(staleAfter).toEqual({
+      status: "in_progress",
+      checkoutRunId: null,
+      executionRunId: null,
+    });
+
+    // The live issue is untouched — its (origin_kind, origin_id,
+    // origin_fingerprint) tuple still occupies the index.
+    const liveAfter = await db
+      .select({
+        checkoutRunId: issues.checkoutRunId,
+        executionRunId: issues.executionRunId,
+      })
+      .from(issues)
+      .where(eq(issues.id, liveIssueId))
+      .then((rows) => rows[0]);
+    expect(liveAfter).toEqual({
+      checkoutRunId: liveRunId,
+      executionRunId: liveRunId,
+    });
+  });
+
+  it("adopts the stale lock normally when no other open routine execution collides", async () => {
+    const companyId = randomUUID();
+    const agentId = randomUUID();
+    const staleRunId = randomUUID();
+    const liveRunId = randomUUID();
+    const staleIssueId = randomUUID();
+    const originId = randomUUID();
+    const dispatchFingerprint = "fp-stale-only";
+
+    await db.insert(companies).values({
+      id: companyId,
+      name: "Paperclip",
+      issuePrefix: `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`,
+      requireBoardApprovalForNewAgents: false,
+    });
+    await db.insert(agents).values({
+      id: agentId,
+      companyId,
+      name: "RoutineRunner",
+      role: "engineer",
+      status: "active",
+      adapterType: "codex_local",
+      adapterConfig: {},
+      runtimeConfig: {},
+      permissions: {},
+    });
+    await db.insert(heartbeatRuns).values([
+      {
+        id: staleRunId,
+        companyId,
+        agentId,
+        status: "succeeded",
+        invocationSource: "routine_trigger",
+      },
+      {
+        id: liveRunId,
+        companyId,
+        agentId,
+        status: "running",
+        invocationSource: "routine_trigger",
+      },
+    ]);
+    await db.insert(issues).values({
+      id: staleIssueId,
+      companyId,
+      title: "Stale routine execution (no sibling)",
+      status: "in_progress",
+      priority: "medium",
+      assigneeAgentId: agentId,
+      checkoutRunId: staleRunId,
+      executionRunId: staleRunId,
+      originKind: "routine_execution",
+      originId,
+      originFingerprint: dispatchFingerprint,
+    });
+
+    const ownership = await svc.assertCheckoutOwner(staleIssueId, agentId, liveRunId);
+    expect(ownership.adoptedFromRunId).toBe(staleRunId);
+    expect(ownership.checkoutRunId).toBe(liveRunId);
+    expect(ownership.executionRunId).toBe(liveRunId);
+  });
+});
+
 describeEmbeddedPostgres("accepted plan decomposition", () => {
   let db!: ReturnType<typeof createDb>;
   let svc!: ReturnType<typeof issueService>;
