@@ -206,13 +206,37 @@ function makeIssue(status: "todo" | "done" | "blocked" | "cancelled" | "in_progr
   };
 }
 
-function agentActor(agentId = "22222222-2222-4222-8222-222222222222") {
+function makeIssueWithActiveRun(
+  status: "todo" | "done" | "blocked" | "cancelled" | "in_progress",
+  executionRunId: string,
+  originKind: string | null = null,
+) {
+  return {
+    ...makeIssue(status, originKind),
+    executionRunId,
+  };
+}
+
+function agentActor(agentId = "22222222-2222-4222-8222-222222222222", runId = "run-1") {
   return {
     type: "agent",
     agentId,
     companyId: "company-1",
     source: "agent_key",
-    runId: "run-1",
+    runId,
+  };
+}
+
+// Host-token path: actor is a user, but a runId is attached (the harness run acting
+// through a board API key). Used to exercise the OOP-2794 self-skip path.
+function userActorWithRun(runId = "run-active", userId = "local-board") {
+  return {
+    type: "board",
+    userId,
+    companyIds: ["company-1"],
+    source: "local_implicit",
+    isInstanceAdmin: false,
+    runId,
   };
 }
 
@@ -745,6 +769,97 @@ describe.sequential("issue comment reopen routes", () => {
     }));
 
     const res = await request(await installActor(createApp()))
+      .patch("/api/issues/11111111-1111-4111-8111-111111111111")
+      .send({ comment: "Run SUMMARY processed=1 skipped=0 === DONE ===" });
+
+    expect(res.status).toBe(200);
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    expect(mockHeartbeatService.wakeup).not.toHaveBeenCalled();
+  });
+
+  it("suppresses issue_commented wakes when the host-token actor's runId matches the active run (OOP-2794 POST)", async () => {
+    // Host-token path: actor is a board user, but the harness runId is attached. The
+    // assignee's active run on this issue is the same runId, so the wake is self-noise.
+    const issue = makeIssueWithActiveRun("in_progress", "run-active");
+    mockIssueService.getById.mockResolvedValue(issue);
+
+    const res = await request(await installActor(createApp(), userActorWithRun("run-active")))
+      .post("/api/issues/11111111-1111-4111-8111-111111111111/comments")
+      .send({ body: "Run SUMMARY processed=1 skipped=0 === DONE ===" });
+
+    expect(res.status).toBe(201);
+    expect(mockIssueService.update).not.toHaveBeenCalled();
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    expect(mockHeartbeatService.wakeup).not.toHaveBeenCalled();
+  });
+
+  it("still wakes when the host-token actor's runId does NOT match the active run (OOP-2794 POST negative)", async () => {
+    // Different runId — the actor is a different run (or a fresh user action). Skip does not
+    // apply; the existing wake path runs.
+    const issue = makeIssueWithActiveRun("in_progress", "run-active");
+    mockIssueService.getById.mockResolvedValue(issue);
+
+    const res = await request(await installActor(createApp(), userActorWithRun("run-other")))
+      .post("/api/issues/11111111-1111-4111-8111-111111111111/comments")
+      .send({ body: "Steering note from a different run." });
+
+    expect(res.status).toBe(201);
+    await waitForWakeup(() => expect(mockHeartbeatService.wakeup).toHaveBeenCalledWith(
+      "22222222-2222-4222-8222-222222222222",
+      expect.objectContaining({ reason: "issue_commented" }),
+    ));
+  });
+
+  it("suppresses issue_commented wakes when an agent actor's runId matches the active run (OOP-2794 POST)", async () => {
+    // Agent posting through its own active run — the self-skip already covers same-actor
+    // runs, but if the assignee is a different agent that happens to share the run (e.g.,
+    // delegation), we still want the skip.
+    const issue = makeIssueWithActiveRun("in_progress", "run-active");
+    mockIssueService.getById.mockResolvedValue(issue);
+
+    const res = await request(await installActor(createApp(), agentActor("22222222-2222-4222-8222-222222222222", "run-active")))
+      .post("/api/issues/11111111-1111-4111-8111-111111111111/comments")
+      .send({ body: "Mid-batch progress note." });
+
+    expect(res.status).toBe(201);
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    expect(mockHeartbeatService.wakeup).not.toHaveBeenCalled();
+  });
+
+  it("honors resume:true even when actor.runId matches the active run (OOP-2794 escape hatch POST)", async () => {
+    // Even though the active run is commenting, an explicit resume:true must still reopen
+    // and wake — same escape-hatch shape as the OOP-2792 routine_execution path.
+    const issue = makeIssueWithActiveRun("done", "run-active");
+    mockIssueService.getById.mockResolvedValue(issue);
+    mockIssueService.update.mockImplementation(async (_id: string, patch: Record<string, unknown>) => ({
+      ...issue,
+      ...patch,
+    }));
+
+    const res = await request(await installActor(createApp(), userActorWithRun("run-active")))
+      .post("/api/issues/11111111-1111-4111-8111-111111111111/comments")
+      .send({ body: "Resume me to redo the pass.", resume: true });
+
+    expect(res.status).toBe(201);
+    expect(mockIssueService.update).toHaveBeenCalledWith(
+      "11111111-1111-4111-8111-111111111111",
+      expect.objectContaining({ status: "todo" }),
+    );
+    await waitForWakeup(() => expect(mockHeartbeatService.wakeup).toHaveBeenCalledWith(
+      "22222222-2222-4222-8222-222222222222",
+      expect.objectContaining({ reason: "issue_reopened_via_comment" }),
+    ));
+  });
+
+  it("suppresses issue_commented wakes when actor.runId matches the active run on the PATCH path (OOP-2794 PATCH)", async () => {
+    const issue = makeIssueWithActiveRun("in_progress", "run-active");
+    mockIssueService.getById.mockResolvedValue(issue);
+    mockIssueService.update.mockImplementation(async (_id: string, patch: Record<string, unknown>) => ({
+      ...issue,
+      ...patch,
+    }));
+
+    const res = await request(await installActor(createApp(), userActorWithRun("run-active")))
       .patch("/api/issues/11111111-1111-4111-8111-111111111111")
       .send({ comment: "Run SUMMARY processed=1 skipped=0 === DONE ===" });
 
