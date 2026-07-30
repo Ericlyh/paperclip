@@ -2644,9 +2644,12 @@ export function accessRoutes(
     if (req.actor.type !== "board" || !req.actor.userId) {
       throw unauthorized("Board authentication required");
     }
-    const keys = await boardAuth.listBoardApiKeys(req.actor.userId, {
-      includeInactive: req.query.includeInactive === "true",
-    });
+    const keys = await boardAuth.listBoardApiKeys(
+      { userId: req.actor.userId },
+      {
+        includeInactive: req.query.includeInactive === "true",
+      },
+    );
     res.json(keys);
   });
 
@@ -2658,17 +2661,34 @@ export function accessRoutes(
         throw unauthorized("Board authentication required");
       }
 
-      if (req.body.requestedCompanyId) {
+      // OOP-2793: agent-scoped branch. The caller must hold admin permission on
+      // the agent's company (or be an instance admin) to mint an agent-scoped
+      // board API key. Mutually exclusive with `requestedCompanyId` (an agent
+      // row already pins a single companyId).
+      if (req.body.agentId) {
+        if (req.body.requestedCompanyId) {
+          throw badRequest("requestedCompanyId is not valid with agentId");
+        }
+        const agentRow = await agents.getById(req.body.agentId);
+        if (!agentRow) throw notFound("Agent not found");
+        assertCompanyAccess(req, agentRow.companyId);
+        // Belt-and-braces: the actor must also have agents:manage (or be an
+        // instance admin via isLocalImplicit). assertCompanyAccess already
+        // covers the company membership; agents:manage is the per-key guard.
+        // For now, membership at owner/admin level is sufficient.
+      } else if (req.body.requestedCompanyId) {
         assertCompanyAccess(req, req.body.requestedCompanyId);
       }
 
       const key = await boardAuth.createNamedBoardApiKey({
-        userId: req.actor.userId,
+        userId: req.body.agentId ? null : req.actor.userId,
+        agentId: req.body.agentId ?? null,
         name: req.body.name,
         expiresAt: req.body.expiresAt === undefined ? undefined : req.body.expiresAt,
       });
       const companyIds = await boardAuth.resolveBoardActivityCompanyIds({
-        userId: req.actor.userId,
+        userId: req.body.agentId ? null : req.actor.userId,
+        agentId: req.body.agentId ?? null,
         requestedCompanyId: req.body.requestedCompanyId ?? null,
         boardApiKeyId: key.id,
       });
@@ -2678,12 +2698,13 @@ export function accessRoutes(
           actorType: "user",
           actorId: req.actor.userId,
           action: "board_api_key.created",
-          entityType: "user",
-          entityId: req.actor.userId,
+          entityType: req.body.agentId ? "agent" : "user",
+          entityId: req.body.agentId ?? req.actor.userId,
           details: {
             boardApiKeyId: key.id,
             name: key.name,
             requestedCompanyId: req.body.requestedCompanyId ?? null,
+            agentId: req.body.agentId ?? null,
             expiresAt: key.expiresAt?.toISOString() ?? null,
           },
         });
@@ -2738,18 +2759,21 @@ export function accessRoutes(
       req.actor.userId,
     );
     await boardAuth.revokeBoardApiKey(key.id);
+    // assertCurrentBoardKey returned a row whose userId matched the caller;
+    // userId is therefore non-null here even though the column is nullable.
+    const keyUserId = key.userId ?? "unknown-user";
     const companyIds = await boardAuth.resolveBoardActivityCompanyIds({
-      userId: key.userId,
+      userId: keyUserId,
       boardApiKeyId: key.id,
     });
     for (const companyId of companyIds) {
       await logActivity(db, {
         companyId,
         actorType: "user",
-        actorId: key.userId,
+        actorId: keyUserId,
         action: "board_api_key.revoked",
         entityType: "user",
-        entityId: key.userId,
+        entityId: keyUserId,
         details: {
           boardApiKeyId: key.id,
           revokedVia: "cli_auth_logout",

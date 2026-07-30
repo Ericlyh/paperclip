@@ -342,6 +342,7 @@ describe.sequential("cli auth routes", () => {
     });
     expect(mockBoardAuthService.createNamedBoardApiKey).toHaveBeenCalledWith({
       userId: "user-1",
+      agentId: null,
       name: "external-admin",
       expiresAt: new Date("2026-06-23T12:00:00.000Z"),
     });
@@ -391,7 +392,7 @@ describe.sequential("cli auth routes", () => {
     expect(listRes.status).toBe(200);
     expect(listRes.body[0]).toMatchObject({ id: keyId, name: "external-admin" });
     expect(mockBoardAuthService.listBoardApiKeys).toHaveBeenCalledWith(
-      "user-1",
+      { userId: "user-1" },
       { includeInactive: false },
     );
 

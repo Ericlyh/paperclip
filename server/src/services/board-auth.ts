@@ -2,6 +2,7 @@ import { createHash, randomBytes, timingSafeEqual } from "node:crypto";
 import { and, eq, gt, isNull, or, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import {
+  agents,
   authUsers,
   boardApiKeys,
   cliAuthChallenges,
@@ -9,7 +10,7 @@ import {
   companyMemberships,
   instanceUserRoles,
 } from "@paperclipai/db";
-import { conflict, forbidden, notFound } from "../errors.js";
+import { badRequest, conflict, forbidden, notFound } from "../errors.js";
 
 export const BOARD_API_KEY_TTL_MS = 30 * 24 * 60 * 60 * 1000;
 export const CLI_AUTH_CHALLENGE_TTL_MS = 10 * 60 * 1000;
@@ -91,11 +92,37 @@ export function boardAuthService(db: Db) {
     };
   }
 
+  // OOP-2793: agent-scoped board API keys resolve to a single companyId from
+  // the agent row. No memberships / no instance admin concept — an agent can
+  // only act on its own company.
+  async function resolveAgentBoardAccess(agentId: string) {
+    const agent = await db
+      .select({ id: agents.id, companyId: agents.companyId, name: agents.name, status: agents.status })
+      .from(agents)
+      .where(eq(agents.id, agentId))
+      .then((rows) => rows[0] ?? null);
+    if (!agent) return null;
+    return {
+      agent,
+      companyId: agent.companyId,
+      companyIds: [agent.companyId],
+    };
+  }
+
   async function resolveBoardActivityCompanyIds(input: {
-    userId: string;
+    userId?: string | null;
+    agentId?: string | null;
     requestedCompanyId?: string | null;
     boardApiKeyId?: string | null;
   }) {
+    // OOP-2793: agent-scoped keys have a single fixed companyId from the agent
+    // row. There is no membership, no instance admin fallback.
+    if (input.agentId) {
+      const access = await resolveAgentBoardAccess(input.agentId);
+      return access ? [access.companyId] : [];
+    }
+    if (!input.userId) return [];
+
     const access = await resolveBoardAccess(input.userId);
     const companyIds = new Set(access.companyIds);
 
@@ -161,15 +188,26 @@ export function boardAuthService(db: Db) {
   }
 
   async function createNamedBoardApiKey(input: {
-    userId: string;
+    userId?: string | null;
+    agentId?: string | null;
     name: string;
     expiresAt?: Date | null;
   }) {
+    // OOP-2793: exactly one of userId / agentId is required. The CHECK
+    // constraint `board_api_keys_one_owner_chk` enforces this at the DB level;
+    // we surface a clean 400 here instead of a constraint-violation 500.
+    const hasUser = typeof input.userId === "string" && input.userId.length > 0;
+    const hasAgent = typeof input.agentId === "string" && input.agentId.length > 0;
+    if (hasUser === hasAgent) {
+      throw badRequest("Exactly one of userId or agentId must be provided");
+    }
+
     const token = createBoardApiToken();
     const created = await db
       .insert(boardApiKeys)
       .values({
-        userId: input.userId,
+        userId: hasUser ? input.userId : null,
+        agentId: hasAgent ? input.agentId : null,
         name: input.name.trim(),
         keyHash: hashBearerToken(token),
         expiresAt: input.expiresAt === undefined ? boardApiKeyExpiresAt() : input.expiresAt,
@@ -181,6 +219,8 @@ export function boardAuthService(db: Db) {
       id: created.id,
       name: created.name,
       token,
+      userId: created.userId,
+      agentId: created.agentId,
       createdAt: created.createdAt,
       lastUsedAt: created.lastUsedAt,
       revokedAt: created.revokedAt,
@@ -189,10 +229,19 @@ export function boardAuthService(db: Db) {
   }
 
   async function listBoardApiKeys(
-    userId: string,
+    owner: { userId?: string; agentId?: string },
     opts: { includeInactive?: boolean } = {},
   ) {
-    const conditions = [eq(boardApiKeys.userId, userId)];
+    const hasUser = typeof owner.userId === "string" && owner.userId.length > 0;
+    const hasAgent = typeof owner.agentId === "string" && owner.agentId.length > 0;
+    if (hasUser === hasAgent) {
+      throw badRequest("Exactly one of userId or agentId must be provided");
+    }
+    const conditions = [
+      hasUser
+        ? eq(boardApiKeys.userId, owner.userId as string)
+        : eq(boardApiKeys.agentId, owner.agentId as string),
+    ];
     if (!opts.includeInactive) {
       const activeExpirationCondition = or(
         isNull(boardApiKeys.expiresAt),
@@ -222,6 +271,7 @@ export function boardAuthService(db: Db) {
       .select({
         id: boardApiKeys.id,
         userId: boardApiKeys.userId,
+        agentId: boardApiKeys.agentId,
         name: boardApiKeys.name,
         createdAt: boardApiKeys.createdAt,
         lastUsedAt: boardApiKeys.lastUsedAt,
@@ -230,6 +280,26 @@ export function boardAuthService(db: Db) {
       })
       .from(boardApiKeys)
       .where(and(eq(boardApiKeys.id, keyId), eq(boardApiKeys.userId, userId)))
+      .then((rows) => rows[0] ?? null);
+  }
+
+  // OOP-2793: agent-scoped lookup. Used by the harness / actor middleware when
+  // a key resolves to an agent identity. Mirrors getBoardApiKeyForUser but
+  // matches on agent_id instead of user_id.
+  async function getBoardApiKeyForAgent(keyId: string, agentId: string) {
+    return db
+      .select({
+        id: boardApiKeys.id,
+        userId: boardApiKeys.userId,
+        agentId: boardApiKeys.agentId,
+        name: boardApiKeys.name,
+        createdAt: boardApiKeys.createdAt,
+        lastUsedAt: boardApiKeys.lastUsedAt,
+        revokedAt: boardApiKeys.revokedAt,
+        expiresAt: boardApiKeys.expiresAt,
+      })
+      .from(boardApiKeys)
+      .where(and(eq(boardApiKeys.id, keyId), eq(boardApiKeys.agentId, agentId)))
       .then((rows) => rows[0] ?? null);
   }
 
@@ -418,12 +488,14 @@ export function boardAuthService(db: Db) {
 
   return {
     resolveBoardAccess,
+    resolveAgentBoardAccess,
     findBoardApiKeyByToken,
     touchBoardApiKey,
     revokeBoardApiKey,
     createNamedBoardApiKey,
     listBoardApiKeys,
     getBoardApiKeyForUser,
+    getBoardApiKeyForAgent,
     createCliAuthChallenge,
     getCliAuthChallengeBySecret,
     describeCliAuthChallenge,
