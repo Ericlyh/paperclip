@@ -89,6 +89,11 @@ export const createBoardApiKeySchema = z.object({
   name: z.string().trim().min(1).max(120).default("paperclipai cli"),
   expiresAt: z.coerce.date().optional().nullable(),
   requestedCompanyId: z.string().uuid().optional().nullable(),
+  // OOP-2793: when set, the key is agent-scoped. The route enforces that the
+  // caller has admin permission on the agent's company. Mutually exclusive
+  // with `requestedCompanyId` (a user-scoped key is a per-user artifact; an
+  // agent-scoped key is scoped to a single company already via the agent row).
+  agentId: z.string().uuid().optional().nullable(),
 });
 
 export type CreateBoardApiKey = z.infer<typeof createBoardApiKeySchema>;
