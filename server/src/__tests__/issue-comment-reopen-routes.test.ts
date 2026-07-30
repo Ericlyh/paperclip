@@ -191,7 +191,7 @@ async function normalizePolicy(input: {
   return normalizeIssueExecutionPolicy(input);
 }
 
-function makeIssue(status: "todo" | "done" | "blocked" | "cancelled" | "in_progress") {
+function makeIssue(status: "todo" | "done" | "blocked" | "cancelled" | "in_progress", originKind: string | null = null) {
   return {
     id: "11111111-1111-4111-8111-111111111111",
     companyId: "company-1",
@@ -199,6 +199,8 @@ function makeIssue(status: "todo" | "done" | "blocked" | "cancelled" | "in_progr
     assigneeAgentId: "22222222-2222-4222-8222-222222222222",
     assigneeUserId: null,
     createdByUserId: "local-board",
+    originKind,
+    originId: originKind === "routine_execution" ? "3983f8dd-352a-489b-adb1-5dac74ff097b" : null,
     identifier: "PAP-580",
     title: "Comment reopen default",
   };
@@ -679,6 +681,76 @@ describe.sequential("issue comment reopen routes", () => {
       expect.anything(),
       expect.objectContaining({ action: "issue.updated" }),
     );
+  });
+
+  it("does not implicitly reopen a done routine_execution issue on board-key comment (OOP-2792)", async () => {
+    mockIssueService.getById.mockResolvedValue(makeIssue("done", "routine_execution"));
+
+    const res = await request(await installActor(createApp()))
+      .post("/api/issues/11111111-1111-4111-8111-111111111111/comments")
+      .send({ body: "Run SUMMARY processed=1 skipped=0 === DONE ===" });
+
+    expect(res.status).toBe(201);
+    expect(mockIssueService.update).not.toHaveBeenCalled();
+    expect(mockLogActivity).not.toHaveBeenCalledWith(
+      expect.anything(),
+      expect.objectContaining({ action: "issue.updated", details: expect.objectContaining({ reopened: true }) }),
+    );
+    // Drain microtasks so any void IIFE wakeup has a chance to fire.
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    expect(mockHeartbeatService.wakeup).not.toHaveBeenCalled();
+  });
+
+  it("suppresses issue_commented wakes on routine_execution in_progress issues (OOP-2792)", async () => {
+    mockIssueService.getById.mockResolvedValue(makeIssue("in_progress", "routine_execution"));
+
+    const res = await request(await installActor(createApp()))
+      .post("/api/issues/11111111-1111-4111-8111-111111111111/comments")
+      .send({ body: "Run SUMMARY processed=1 skipped=0 === DONE ===" });
+
+    expect(res.status).toBe(201);
+    expect(mockIssueService.update).not.toHaveBeenCalled();
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    expect(mockHeartbeatService.wakeup).not.toHaveBeenCalled();
+  });
+
+  it("allows explicit resume:true to reopen a done routine_execution issue (OOP-2792 escape hatch)", async () => {
+    mockIssueService.getById.mockResolvedValue(makeIssue("done", "routine_execution"));
+    mockIssueService.update.mockImplementation(async (_id: string, patch: Record<string, unknown>) => ({
+      ...makeIssue("done", "routine_execution"),
+      ...patch,
+    }));
+
+    const res = await request(await installActor(createApp()))
+      .post("/api/issues/11111111-1111-4111-8111-111111111111/comments")
+      .send({ body: "Steering the routine for the cleanup pass.", resume: true });
+
+    expect(res.status).toBe(201);
+    expect(mockIssueService.update).toHaveBeenCalledWith(
+      "11111111-1111-4111-8111-111111111111",
+      expect.objectContaining({ status: "todo" }),
+    );
+    await waitForWakeup(() => expect(mockHeartbeatService.wakeup).toHaveBeenCalledWith(
+      "22222222-2222-4222-8222-222222222222",
+      expect.objectContaining({ reason: "issue_reopened_via_comment" }),
+    ));
+  });
+
+  it("does not implicitly reopen a done routine_execution issue on the PATCH comment path (OOP-2792)", async () => {
+    const issue = makeIssue("done", "routine_execution");
+    mockIssueService.getById.mockResolvedValue(issue);
+    mockIssueService.update.mockImplementation(async (_id: string, patch: Record<string, unknown>) => ({
+      ...issue,
+      ...patch,
+    }));
+
+    const res = await request(await installActor(createApp()))
+      .patch("/api/issues/11111111-1111-4111-8111-111111111111")
+      .send({ comment: "Run SUMMARY processed=1 skipped=0 === DONE ===" });
+
+    expect(res.status).toBe(200);
+    await new Promise((resolve) => setTimeout(resolve, 25));
+    expect(mockHeartbeatService.wakeup).not.toHaveBeenCalled();
   });
 
   it("keeps ordinary in-progress POST human comments in progress when no scheduled retry exists", async () => {

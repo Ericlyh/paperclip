@@ -665,8 +665,19 @@ function isClosedIssueStatus(status: string | null | undefined): status is "done
   return status === "done" || status === "cancelled";
 }
 
+// OOP-2792: routine_execution issues are driven entirely by their routine's cron schedule.
+// Comment traffic on them must never reopen them or dispatch an extra wake: the run summaries
+// the harness posts are frequently authored with a board API key (user identity, not the
+// assignee agent), so the self-comment skip does not fire and every summary re-wakes the
+// assignee, which posts the next summary. Observed amplification: ~50x (hourly cron -> 60-90s
+// wakes). Explicit `reopen: true` / `resume: true` still work as escape hatches.
+function isRoutineExecutionIssue(input: { originKind?: string | null }) {
+  return input.originKind === "routine_execution";
+}
+
 function shouldImplicitlyMoveCommentedIssueToTodo(input: {
   issueStatus: string | null | undefined;
+  issueOriginKind?: string | null;
   assigneeAgentId: string | null | undefined;
   actorType: "agent" | "user";
   actorId: string;
@@ -674,6 +685,8 @@ function shouldImplicitlyMoveCommentedIssueToTodo(input: {
   // Only human comments should implicitly reopen finished work.
   // Agent-authored comments remain communicative unless reopen was explicit.
   if (input.actorType !== "user") return false;
+  // Cron-driven routine executions are never implicitly resurrected by comments (OOP-2792).
+  if (isRoutineExecutionIssue({ originKind: input.issueOriginKind })) return false;
   if (!isClosedIssueStatus(input.issueStatus) && input.issueStatus !== "blocked") return false;
   if (typeof input.assigneeAgentId !== "string" || input.assigneeAgentId.length === 0) return false;
   return true;
@@ -4115,6 +4128,7 @@ export function issueRoutes(
       (!!commentBody &&
         shouldImplicitlyMoveCommentedIssueToTodo({
           issueStatus: existing.status,
+          issueOriginKind: existing.originKind,
           assigneeAgentId: requestedAssigneeAgentId,
           actorType: actor.actorType,
           actorId: actor.actorId,
@@ -4874,7 +4888,11 @@ export function issueRoutes(
         const assigneeId = issue.assigneeAgentId;
         const actorIsAgent = actor.actorType === "agent";
         const selfComment = actorIsAgent && actor.actorId === assigneeId;
-        const skipAssigneeCommentWake = selfComment || isClosed;
+        // OOP-2792: cron owns the cadence for routine_execution issues; comments never wake them
+        // unless the caller explicitly asked to resume/reopen.
+        const routineExecutionCommentWake =
+          isRoutineExecutionIssue(existing) && !reopened && resumeRequested !== true;
+        const skipAssigneeCommentWake = selfComment || isClosed || routineExecutionCommentWake;
 
         if (assigneeId && !assigneeChanged && (reopened || !skipAssigneeCommentWake)) {
           addWakeup(assigneeId, {
@@ -5785,6 +5803,7 @@ export function issueRoutes(
       explicitMoveToTodoRequested ||
       shouldImplicitlyMoveCommentedIssueToTodo({
         issueStatus: issue.status,
+        issueOriginKind: issue.originKind,
         assigneeAgentId: issue.assigneeAgentId,
         actorType: actor.actorType,
         actorId: actor.actorId,
@@ -5963,7 +5982,11 @@ export function issueRoutes(
       const assigneeId = currentIssue.assigneeAgentId;
       const actorIsAgent = actor.actorType === "agent";
       const selfComment = actorIsAgent && actor.actorId === assigneeId;
-      const skipWake = selfComment || isClosed;
+      // OOP-2792: cron owns the cadence for routine_execution issues; comments never wake them
+      // unless the caller explicitly asked to resume/reopen.
+      const routineExecutionCommentWake =
+        isRoutineExecutionIssue(issue) && !reopened && resumeRequested !== true;
+      const skipWake = selfComment || isClosed || routineExecutionCommentWake;
       if (assigneeId && (reopened || !skipWake)) {
         if (reopened) {
           wakeups.set(assigneeId, {
