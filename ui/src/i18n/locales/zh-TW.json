@@ -5,5 +5,62 @@
       "description": "從建立公司開始。",
       "newCompany": "新公司"
     }
+  },
+  "sidebar": {
+    "newTask": "新增任務",
+    "search": "搜尋",
+    "dashboard": "儀表板",
+    "inbox": "收件匣",
+    "decisions": "決策",
+    "conferenceRoom": "會議室",
+    "status": "狀態",
+    "workSection": "工作",
+    "tasks": "任務",
+    "cases": "案例",
+    "routines": "定期任務",
+    "pipelines": "管道",
+    "goals": "目標",
+    "artifacts": "成品",
+    "skills": "技能",
+    "workspaces": "工作區",
+    "projects": "專案",
+    "companySection": "公司",
+    "org": "組織",
+    "apps": "應用程式",
+    "timeline": "時間軸",
+    "costs": "成本",
+    "activity": "活動",
+    "settings": "設定",
+    "expandSidebar": "展開側邊欄",
+    "collapseSidebar": "收合側邊欄",
+    "keepSidebarExpanded": "保持側邊欄展開"
+  },
+  "accountMenu": {
+    "account": "帳號",
+    "local": "本機",
+    "signedIn": "已登入",
+    "localWorkspaceBoard": "本機工作區看板",
+    "viewProfile": "查看個人資料",
+    "viewProfileDescription": "開啟您的活動、任務與使用記錄。",
+    "editProfile": "編輯個人資料",
+    "editProfileDescription": "更新您的顯示名稱與頭像。",
+    "documentation": "文件",
+    "documentationDescription": "在新分頁開啟 Paperclip 文件。",
+    "feedback": "意見回饋",
+    "feedbackDescription": "分享意見或回報問題。",
+    "signOut": "登出",
+    "signOutDescription": "結束此瀏覽器工作階段。",
+    "signingOut": "正在登出...",
+    "openAccountMenu": "開啟帳號選單"
+  },
+  "languageToggle": {
+    "switchToChinese": "切換到 English",
+    "switchToEnglish": "切換到 繁體中文",
+    "toggleDescription": "切換介面語言。"
+  },
+  "themeToggle": {
+    "switchToLight": "切換到淺色主題",
+    "switchToDark": "切換到深色主題",
+    "toggleDescription": "切換介面主題。"
   }
 }

@@ -5,5 +5,62 @@
       "description": "Bắt đầu bằng cách tạo một công ty.",
       "newCompany": "Công ty mới"
     }
+  },
+  "sidebar": {
+    "newTask": "New Task",
+    "search": "Search",
+    "dashboard": "Dashboard",
+    "inbox": "Inbox",
+    "decisions": "Decisions",
+    "conferenceRoom": "Conference Room",
+    "status": "Status",
+    "workSection": "Work",
+    "tasks": "Tasks",
+    "cases": "Cases",
+    "routines": "Routines",
+    "pipelines": "Pipelines",
+    "goals": "Goals",
+    "artifacts": "Artifacts",
+    "skills": "Skills",
+    "workspaces": "Workspaces",
+    "projects": "Projects",
+    "companySection": "Company",
+    "org": "Org",
+    "apps": "Apps",
+    "timeline": "Timeline",
+    "costs": "Costs",
+    "activity": "Activity",
+    "settings": "Settings",
+    "expandSidebar": "Expand sidebar",
+    "collapseSidebar": "Collapse sidebar",
+    "keepSidebarExpanded": "Keep sidebar expanded"
+  },
+  "accountMenu": {
+    "account": "Account",
+    "local": "Local",
+    "signedIn": "Signed in",
+    "localWorkspaceBoard": "Local workspace board",
+    "viewProfile": "View profile",
+    "viewProfileDescription": "Open your activity, task, and usage ledger.",
+    "editProfile": "Edit profile",
+    "editProfileDescription": "Update your display name and avatar.",
+    "documentation": "Documentation",
+    "documentationDescription": "Open Paperclip docs in a new tab.",
+    "feedback": "Feedback",
+    "feedbackDescription": "Share feedback or report an issue.",
+    "signOut": "Sign out",
+    "signOutDescription": "End this browser session.",
+    "signingOut": "Signing out...",
+    "openAccountMenu": "Open account menu"
+  },
+  "languageToggle": {
+    "switchToChinese": "Switch to 繁體中文",
+    "switchToEnglish": "Switch to English",
+    "toggleDescription": "Toggle the interface language."
+  },
+  "themeToggle": {
+    "switchToLight": "Switch to light theme",
+    "switchToDark": "Switch to dark theme",
+    "toggleDescription": "Toggle the interface theme."
   }
 }

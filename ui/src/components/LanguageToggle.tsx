@@ -3,6 +3,7 @@ import { Languages } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useLanguage } from "../context/LanguageContext";
+import { useTranslation } from "../i18n";
 
 type LanguageToggleVariant = "icon" | "menu-action";
 
@@ -23,28 +24,20 @@ interface LanguageToggleProps {
   onAfterToggle?: () => void;
 }
 
-// Per-locale copy so the toggle label reads naturally in whichever
-// language the user is currently looking at. The label always points
-// at the language the user will land on after clicking.
-const MENU_ACTION_LABELS = {
-  en: { label: "Switch to 繁體中文", description: "Toggle the interface language." },
-  "zh-TW": { label: "切換到 English", description: "切換介面語言。" },
-} as const;
-
-const ICON_LABELS = {
-  en: "Switch to 繁體中文",
-  "zh-TW": "切換到 English",
-} as const;
-
 /**
  * Canonical language-toggle widget. Mounts both inside the signed-out
  * chrome and inside the in-app account menu so label, icon, and toggle
  * behaviour stay in sync as the localisation model evolves.
+ *
+ * The label always points at the language the user will land on after
+ * clicking — so in `en` it reads "Switch to 繁體中文", and in `zh-TW`
+ * it reads "切換到 English".
  */
 export function LanguageToggle({ className, variant = "icon", onAfterToggle }: LanguageToggleProps) {
   const { locale, toggleLocale } = useLanguage();
+  const { t } = useTranslation();
   const isChinese = locale === "zh-TW";
-  const ariaLabel = ICON_LABELS[locale];
+  const ariaLabel = isChinese ? t("languageToggle.switchToEnglish") : t("languageToggle.switchToChinese");
 
   function handleClick() {
     toggleLocale();
@@ -52,7 +45,6 @@ export function LanguageToggle({ className, variant = "icon", onAfterToggle }: L
   }
 
   if (variant === "menu-action") {
-    const copy = MENU_ACTION_LABELS[locale];
     return (
       <button
         type="button"
@@ -61,14 +53,14 @@ export function LanguageToggle({ className, variant = "icon", onAfterToggle }: L
           className,
         )}
         onClick={handleClick}
-        aria-label={copy.label}
+        aria-label={ariaLabel}
       >
         <span className="mt-0.5 rounded-lg border border-border bg-background/70 p-2 text-muted-foreground">
           <Languages className="size-4" />
         </span>
         <span className="min-w-0 flex-1">
-          <span className="block text-sm font-medium text-foreground">{copy.label}</span>
-          <span className="block text-xs text-muted-foreground">{copy.description}</span>
+          <span className="block text-sm font-medium text-foreground">{ariaLabel}</span>
+          <span className="block text-xs text-muted-foreground">{t("languageToggle.toggleDescription")}</span>
         </span>
       </button>
     );

@@ -15,6 +15,22 @@ vi.mock("../context/LanguageContext", () => ({
   }),
 }));
 
+// The toggle's aria-label always points at the *other* language — the label
+// the user will land on after clicking. We mock t() with a lookup table that
+// mirrors the i18n key catalog, so the tests don't depend on the bundle
+// having loaded the real locale files.
+const I18N_STRINGS: Record<string, string> = {
+  "languageToggle.switchToChinese": "Switch to 繁體中文",
+  "languageToggle.switchToEnglish": "切換到 English",
+  "languageToggle.toggleDescription": "Toggle the interface language.",
+};
+
+vi.mock("../i18n", () => ({
+  useTranslation: () => ({
+    t: (key: string) => I18N_STRINGS[key] ?? key,
+  }),
+}));
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
 
@@ -100,7 +116,7 @@ describe("LanguageToggle", () => {
     await flushReact();
 
     expect(container.textContent).toContain("切換到 English");
-    expect(container.textContent).toContain("切換介面語言。");
+    expect(container.textContent).toContain("Toggle the interface language.");
 
     await act(async () => root.unmount());
   });
