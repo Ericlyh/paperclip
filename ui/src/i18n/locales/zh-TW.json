@@ -796,5 +796,33 @@
     "noFinanceEventsYet": "尚無財務事件。",
     "noFinanceEventsHint": "尚無財務事件。在計費方發票或退款入帳後，新增公司層級的扣款。",
     "noProjectAttributed": "尚無歸屬於專案的執行成本。"
+  },
+  "activity": {
+    "scope": "活動範圍",
+    "allActions": "所有動作",
+    "agentActions": "代理動作",
+    "allActivity": "所有活動",
+    "agentAuditEnterpriseHint": "代理稽核是 Paperclip Enterprise 檢視",
+    "nothingHereYet": "這裡還沒有任何內容",
+    "loadMore": "載入更多",
+    "loading": "正在載入…",
+    "failedToLoad": "載入稽核日誌失敗。",
+    "noActionsMatchFilters": "沒有符合這些篩選條件的動作",
+    "tryWiderDateRange": "請嘗試更寬鬆的日期範圍或不同的篩選條件。",
+    "anyActivityHint": "您公司中任何人一旦有動作，就會顯示在這裡。",
+    "agentActivityHint": "您的代理一旦開始動作，其行為會顯示在此。",
+    "fromDate": "開始日期",
+    "toDate": "結束日期",
+    "allAgents": "所有代理",
+    "allEntities": "所有實體",
+    "allResponsibleUsers": "所有負責人",
+    "responsibleUser": "負責的使用者",
+    "exportCsv": "匯出 CSV",
+    "auditExported": "稽核已匯出",
+    "csvDownloadStarted": "您的 CSV 下載已開始。",
+    "exportFailed": "匯出失敗",
+    "couldNotExport": "無法匯出稽核日誌。",
+    "selectCompany": "請選擇一家公司以檢視活動。",
+    "breadcrumb": "活動"
   }
 }

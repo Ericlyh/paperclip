@@ -796,5 +796,33 @@
     "noFinanceEventsYet": "No finance events yet.",
     "noFinanceEventsHint": "No finance events yet. Add account-level charges once biller invoices or credits land.",
     "noProjectAttributed": "No project-attributed run costs yet."
+  },
+  "activity": {
+    "scope": "Activity scope",
+    "allActions": "All actions",
+    "agentActions": "Agent actions",
+    "allActivity": "All activity",
+    "agentAuditEnterpriseHint": "Agent audit is a Paperclip Enterprise view",
+    "nothingHereYet": "Nothing here yet",
+    "loadMore": "Load more",
+    "loading": "Loading…",
+    "failedToLoad": "Failed to load the audit log.",
+    "noActionsMatchFilters": "No actions match these filters",
+    "tryWiderDateRange": "Try a wider date range or different filters.",
+    "anyActivityHint": "As soon as anyone in your company does something, it shows up here.",
+    "agentActivityHint": "As soon as your agents start doing things, their actions show up here.",
+    "fromDate": "From date",
+    "toDate": "To date",
+    "allAgents": "All agents",
+    "allEntities": "All entities",
+    "allResponsibleUsers": "All responsible users",
+    "responsibleUser": "Responsible user",
+    "exportCsv": "Export CSV",
+    "auditExported": "Audit exported",
+    "csvDownloadStarted": "Your CSV download has started.",
+    "exportFailed": "Export failed",
+    "couldNotExport": "Could not export the audit log.",
+    "selectCompany": "Select a company to view activity.",
+    "breadcrumb": "Activity"
   }
 }

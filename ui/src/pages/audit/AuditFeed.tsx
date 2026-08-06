@@ -26,6 +26,7 @@ import { accessApi } from "@/api/access";
 import { ApiError } from "@/api/client";
 import { useToastActions } from "@/context/ToastContext";
 
+import { useTranslation } from "../../i18n";
 const PAGE_SIZE = 50;
 const ALL = "__all";
 
@@ -238,12 +239,13 @@ function AuditRow({
 
 /** The permission-denied / upsell state shown when the caller lacks the grant. */
 function AuditUpsell() {
+  const { t } = useTranslation();
   return (
     <Card>
       <CardContent className="flex flex-col items-center gap-3 py-14 text-center">
         <ShieldAlert className="h-10 w-10 text-muted-foreground/50" />
         <div>
-          <p className="text-sm font-medium text-foreground">Agent audit is a Paperclip Enterprise view</p>
+          <p className="text-sm font-medium text-foreground">{t("activity.agentAuditEnterpriseHint")}</p>
           <p className="mx-auto mt-1 max-w-md text-sm text-muted-foreground">
             The agent audit log gives you a searchable, exportable record of everything your agents
             did — every comment, task change, approval, and run — with the responsible person for
@@ -264,6 +266,7 @@ export function AuditFeed({
   mode,
   onModeChange,
 }: AuditFeedProps) {
+  const { t } = useTranslation();
   const { pushToast } = useToastActions();
   const [agent, setAgent] = useState<string>(ALL);
   const [responsibleUser, setResponsibleUser] = useState<string>(ALL);
@@ -447,7 +450,7 @@ export function AuditFeed({
       pushToast({ title: "Audit exported", body: "Your CSV download has started.", tone: "success" });
     } catch (error) {
       pushToast({
-        title: "Export failed",
+        title: t("activity.exportFailed"),
         body: error instanceof Error ? error.message : "Could not export the audit log.",
         tone: "error",
       });
@@ -465,7 +468,7 @@ export function AuditFeed({
       {!hideHeader ? (
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-lg font-semibold text-foreground">Activity</h1>
+            <h1 className="text-lg font-semibold text-foreground">{t("activity.breadcrumb")}</h1>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
               {resolvedMode === "agents"
                 ? "Every recorded agent action, newest first — with the responsible person and run behind each one."
@@ -477,9 +480,9 @@ export function AuditFeed({
 
       {showModeToggle ? (
         <Tabs value={resolvedMode} onValueChange={(value) => onModeChange?.(value as AuditFeedMode)}>
-          <TabsList aria-label="Activity scope">
-            <TabsTrigger value="all">All activity</TabsTrigger>
-            <TabsTrigger value="agents">Agent actions</TabsTrigger>
+          <TabsList aria-label={t("activity.scope")}>
+            <TabsTrigger value="all">{t("activity.allActivity")}</TabsTrigger>
+            <TabsTrigger value="agents">{t("activity.agentActions")}</TabsTrigger>
           </TabsList>
         </Tabs>
       ) : null}
@@ -492,7 +495,7 @@ export function AuditFeed({
                 <SelectValue placeholder="Agent" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>All agents</SelectItem>
+                <SelectItem value={ALL}>{t("activity.allAgents")}</SelectItem>
                 {(agents.data ?? []).map((a) => (
                   <SelectItem key={a.id} value={a.id}>
                     {a.name}
@@ -504,10 +507,10 @@ export function AuditFeed({
           <Select value={responsibleUser} onValueChange={setResponsibleUser}>
             {/* Wide enough for "All responsible users" — w-44 truncated it. */}
             <SelectTrigger className="w-52">
-              <SelectValue placeholder="Responsible user" />
+              <SelectValue placeholder={t("activity.responsibleUser")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL}>All responsible users</SelectItem>
+              <SelectItem value={ALL}>{t("activity.allResponsibleUsers")}</SelectItem>
               {(userDirectory.data?.users ?? []).map((u) => (
                 <SelectItem key={u.principalId} value={u.principalId}>
                   {u.user?.name ?? u.user?.email ?? u.principalId.slice(0, 8)}
@@ -541,7 +544,7 @@ export function AuditFeed({
           </Select>
           <Input
             type="date"
-            aria-label="From date"
+            aria-label={t("activity.fromDate")}
             value={dateFrom}
             max={dateTo || undefined}
             onChange={(e) => setDateFrom(e.target.value)}
@@ -549,7 +552,7 @@ export function AuditFeed({
           />
           <Input
             type="date"
-            aria-label="To date"
+            aria-label={t("activity.toDate")}
             value={dateTo}
             min={dateFrom || undefined}
             onChange={(e) => setDateTo(e.target.value)}
@@ -581,7 +584,7 @@ export function AuditFeed({
         </Card>
       ) : feed.isLoading ? (
         <Card>
-          <CardContent className="py-14 text-center text-sm text-muted-foreground">Loading…</CardContent>
+          <CardContent className="py-14 text-center text-sm text-muted-foreground">{t("activity.loading")}</CardContent>
         </Card>
       ) : feed.error ? (
         <Card>
