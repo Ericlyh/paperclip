@@ -650,6 +650,28 @@ export async function listUnfinalizedExecutionWorkspaceIds(
   return unfinalized;
 }
 
+/**
+ * Wake-on-edge-satisfied readiness computation.
+ *
+ * Evaluates the two gates for the wake-on-edge contract for a set of candidate
+ * issue IDs.
+ *
+ * Gate (a) — done blockers only: any blocker whose `status !== "done"` populates
+ * `unresolvedBlockerIssueIds`, increments `unresolvedBlockerCount`, clears
+ * `isDependencyReady`, and clears `allBlockersDone`.
+ *
+ * Gate (b) — workspace-finalize barrier: a done blocker with an
+ * `executionWorkspaceId` that has no successful `workspace_finalize` row is
+ * treated as unresolved. The dependent does not wake until the finalize hook
+ * records success; a subsequent call to `listWakeableBlockedDependents` from
+ * that finalize hook will then return the dependent as wakeable.
+ *
+ * **Cancellation rule.** A blocker reaching `status = "cancelled"` is treated
+ * identically to an in-progress blocker — it does not satisfy the contract.
+ * Operators must remove or replace the `blocks` relation explicitly.
+ *
+ * See: `listWakeableBlockedDependents` (wake-on-edge-satisfied enumeration).
+ */
 async function listIssueDependencyReadinessMap(
   dbOrTx: Pick<Db, "select">,
   companyId: string,
@@ -4250,6 +4272,40 @@ export function issueService(db: Db) {
       return listIssueProductivityReviewMap(dbOrTx, companyId, sourceIssueIds);
     },
 
+    /**
+     * Wake-on-edge-satisfied enumeration.
+     *
+     * When a blocker issue `B` transitions to terminal-success (`status = "done"`),
+     * this function returns every reverse-`blocks`-edge dependent of `B` whose
+     * readiness map evaluates to `isDependencyReady = true`, along with the
+     * assignee agent ID and the blocker IDs for the wake payload.
+     *
+     * **The contract.** A `blocks` edge from issue `B` (the blocker) to issue `D`
+     * (the dependent) is a promise: when `B` reaches terminal-success, `D`'s owner
+     * is woken iff `D`'s readiness map evaluates to `isDependencyReady = true`.
+     *
+     * **Readiness gates (both must pass).**
+     * (a) Every blocker of `D` is `status = "done"`.
+     * (b) Every done blocker's `executionWorkspaceId` has a recorded successful
+     *     `workspace_finalize` (OOP-2793 sync-back barrier).
+     *
+     * **Cancellation rule.** A `blocks` edge whose blocker reaches
+     * `status = "cancelled"` does **not** satisfy the contract. The dependent
+     * stays `blocked`; an operator must remove or replace the relation
+     * explicitly. The wake-on-edge contract is silent on cancellation.
+     *
+     * **Trigger points.** Wakes fire from:
+     * - `routes/issues.ts` `becameDone` hook (PATCH `/issues/:id`).
+     * - `services/heartbeat.ts` workspace-finalize hook (if (b) was incomplete
+     *   at the first attempt and finalizes later).
+     *
+     * **Monitor fallback.** Issues with no incoming `blocks` edges fall back to
+     * `monitorNextCheckAt` cron polling. An edge-wake should push
+     * `monitorNextCheckAt` forward to prevent a duplicate wake within the same
+     * monitor poll window.
+     *
+     * **ADR:** `docs/adr/0042-wake-on-edge-satisfied.md`.
+     */
     listWakeableBlockedDependents: async (blockerIssueId: string) => {
       const blockerIssue = await db
         .select({ id: issues.id, companyId: issues.companyId })
