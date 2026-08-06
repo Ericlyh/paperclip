@@ -47,6 +47,7 @@ import { cn, SIDEBAR_RAIL_HIDDEN_LABEL } from "../lib/utils";
 import { PluginSlotOutlet } from "@/plugins/slots";
 import { PluginLauncherOutlet } from "@/plugins/launchers";
 import { SidebarCompanyMenu } from "./SidebarCompanyMenu";
+import { LanguageToggle } from "./LanguageToggle";
 
 export function Sidebar() {
   const { openNewIssue } = useDialogActions();
@@ -125,13 +126,18 @@ export function Sidebar() {
           Search is the first nav item below instead. */}
       <div className="flex items-center gap-1 px-3 h-12 shrink-0">
         <SidebarCompanyMenu />
-        {/* In the collapsed rail the toggle doesn't fit beside the logo —
-            keeping it would overflow the 64px rail and squeeze the logo out of
-            alignment with the icon column below it. It returns as
+        {/* In the collapsed rail the toggles don't fit beside the logo —
+            keeping them would overflow the 64px rail and squeeze the logo out of
+            alignment with the icon column below it. They return as
             soon as the panel is expanded (pinned) or peeking. Expansion in the
             rail is still reachable via hover-peek + Pin and Cmd/Ctrl+B. */}
         {!rail ? (
           <>
+            {/* English ↔ Traditional Chinese toggle. Mirrors the discoverable
+                pattern of the account-menu `LanguageToggle` row but is
+                directly visible from the sidebar header so users don't have
+                to know to open the account popover to find it. */}
+            <LanguageToggle />
             {/* Desktop-only collapse/expand affordance. While peeking (hover flyout
                 over the collapsed rail) it becomes a Pin that promotes the peek to a
                 pinned-expanded sidebar; otherwise it toggles the pinned rail. Mobile
