@@ -1,87 +1,65 @@
-import { Users, UserMinus, UserCheck, type LucideIcon } from "lucide-react";
+import { UserCheck, UserMinus, type LucideIcon } from "lucide-react";
 import { ISSUE_REVIEW_POLICIES, type IssueReviewPolicy } from "@paperclipai/shared";
 
 /**
- * Copy + affordances for an issue's `reviewPolicy` (PAP-16506 P4).
+ * Copy for an issue's `reviewPolicy` (PAP-16506 P4).
  *
- * `in_review` means the work needs a review verdict before it is done — from
- * anyone. By default each person *and each agent* with write access can
- * approve, including the agent that did the work. `reviewPolicy` is the
- * per-issue opt-in constraint on that default, and there are exactly two:
+ * `in_review` means the work needs a verdict, and by default anyone with write
+ * access can give it — people and agents alike, including the agent that did the
+ * work. That default needs no UI at all: it is what every issue already does,
+ * and there is no control for changing it. Only an agent sets the column, and
+ * only the two opt-in constraints are worth showing:
  *
- * - `not_creator` — the reviewer must not be the one who asked for the review.
- * - `human_only` — only a person can approve.
+ * - `not_creator` — "Anyone else": the reviewer must not be the requester.
+ * - `human_only` — "Human only": an agent cannot give the verdict.
  *
- * A `null` column means "anyone", which is the default for every new *and*
- * existing issue — there is no backfill. Everything that renders the policy
- * routes through here so the settings control, the review card, and the
- * activity receipt never drift from each other or from the server's 403 copy
- * in `server/src/services/issue-review-policy.ts`.
+ * A `null` or `"anyone"` column renders nothing. Every surface that shows the
+ * policy routes through {@link issueReviewPolicyBadge} so the review card, the
+ * issue properties row, and the activity receipt cannot drift from each other or
+ * from the server's refusal copy in `server/src/services/issue-review-policy.ts`.
  */
 
-const DEFAULT_ISSUE_REVIEW_POLICY: IssueReviewPolicy = "anyone";
-
-export interface IssueReviewPolicyCopy {
+export interface IssueReviewPolicyBadge {
   value: IssueReviewPolicy;
-  /** Full label for the picker option. */
+  /** Badge text. */
   label: string;
-  /**
-   * Value shown on the settings row, which is narrow. A noun fragment that
-   * leans on the "Review policy" row label, so the three values read in
-   * parallel and none of them truncates at phone width (design review).
-   */
-  triggerLabel: string;
-  /** Mid-sentence wording for activity lines and change receipts. */
-  valueLabel: string;
-  /** One line explaining the rule, shown under the label in the picker. */
+  /** Tooltip — the rule the server enforces, spelled out. */
   description: string;
-  /** Who may give the verdict — the review card's line. */
-  approverCopy: string;
   Icon: LucideIcon;
 }
 
-const COPY: Record<IssueReviewPolicy, IssueReviewPolicyCopy> = {
-  anyone: {
-    value: "anyone",
-    label: "Anyone can approve",
-    triggerLabel: "Anyone",
-    valueLabel: "anyone",
-    description: "Each person and each agent with write access can approve, including the agent that did the work.",
-    approverCopy: "Anyone with write access can approve — people and agents alike.",
-    Icon: Users,
-  },
+/** Only the constrained policies are shown; `anyone` is the silent default. */
+const BADGES: Partial<Record<IssueReviewPolicy, IssueReviewPolicyBadge>> = {
   not_creator: {
     value: "not_creator",
-    label: "Not the requester",
-    triggerLabel: "Not the requester",
-    valueLabel: "not the requester",
-    description: "The reviewer must not be the one who asked for the review.",
-    approverCopy: "Requires a reviewer other than the requester.",
+    label: "Anyone else",
+    description: "Anyone except whoever asked for the review can approve it.",
     Icon: UserMinus,
   },
   human_only: {
     value: "human_only",
-    label: "People only",
-    triggerLabel: "People only",
-    valueLabel: "people only",
-    description: "Only a person can approve. Agents cannot give the verdict.",
-    approverCopy: "Requires a human. Agents cannot approve this review.",
+    label: "Human only",
+    description: "Only a person can approve this review. Agents cannot give the verdict.",
     Icon: UserCheck,
   },
 };
 
-/** `null`/unknown → the board's default, so callers never branch on absence. */
-export function resolveIssueReviewPolicy(
-  policy: IssueReviewPolicy | null | undefined,
-): IssueReviewPolicy {
-  if (policy && policy in COPY) return policy as IssueReviewPolicy;
-  return DEFAULT_ISSUE_REVIEW_POLICY;
-}
+/** Mid-sentence wording for activity lines and field-change receipts. */
+const VALUE_LABELS: Record<IssueReviewPolicy, string> = {
+  anyone: "anyone",
+  not_creator: "anyone else",
+  human_only: "human only",
+};
 
-export function issueReviewPolicyCopy(
+/**
+ * The badge for a policy, or `null` when there is nothing to show — which is the
+ * common case, since an unset column means the default "anyone can approve".
+ */
+export function issueReviewPolicyBadge(
   policy: IssueReviewPolicy | null | undefined,
-): IssueReviewPolicyCopy {
-  return COPY[resolveIssueReviewPolicy(policy)];
+): IssueReviewPolicyBadge | null {
+  if (typeof policy !== "string") return null;
+  return BADGES[policy as IssueReviewPolicy] ?? null;
 }
 
 /**
@@ -89,16 +67,15 @@ export function issueReviewPolicyCopy(
  * cleared column must read "anyone" rather than "none".
  */
 export function formatReviewPolicyValue(value: unknown): string {
-  if (typeof value === "string" && !(value in COPY)) {
-    // Forward-compatible: a policy this build does not know reads as itself.
-    return value.replace(/_/g, " ");
-  }
-  return issueReviewPolicyCopy(value as IssueReviewPolicy | null | undefined).valueLabel;
+  if (value === null || value === undefined) return VALUE_LABELS.anyone;
+  if (typeof value !== "string") return VALUE_LABELS.anyone;
+  // Forward-compatible: a policy this build does not know reads as itself.
+  return VALUE_LABELS[value as IssueReviewPolicy] ?? value.replace(/_/g, " ");
 }
 
 /**
  * Read the policy off an untyped `AttentionSubject.metadata` bag. Absent or
- * unrecognised → `null`, which every consumer resolves to the default.
+ * unrecognised → `null`, which every consumer treats as the default.
  */
 export function readIssueReviewPolicyMetadata(
   metadata: Record<string, unknown> | null | undefined,
@@ -109,7 +86,3 @@ export function readIssueReviewPolicyMetadata(
     ? (raw as IssueReviewPolicy)
     : null;
 }
-
-/** Picker options in "loosest first" order so the default reads as the baseline. */
-export const ISSUE_REVIEW_POLICY_OPTIONS: readonly IssueReviewPolicyCopy[] =
-  ISSUE_REVIEW_POLICIES.map((policy) => COPY[policy]);

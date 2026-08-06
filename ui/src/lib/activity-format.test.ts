@@ -127,9 +127,9 @@ describe("activity formatting", () => {
     expect(formatIssueActivityAction("issue.updated", { reviewPolicy: null }))
       .toBe("changed who can approve to anyone");
     expect(formatIssueActivityAction("issue.updated", { reviewPolicy: "human_only" }))
-      .toBe("changed who can approve to people only");
+      .toBe("changed who can approve to human only");
     expect(formatIssueActivityAction("issue.updated", { reviewPolicy: "not_creator" }))
-      .toBe("changed who can approve to not the requester");
+      .toBe("changed who can approve to anyone else");
   });
 
   it("uses plain next-step copy for successful-run handoff activity", () => {

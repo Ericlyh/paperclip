@@ -180,90 +180,88 @@ describe("AttentionQueueRow", () => {
     expect(el.textContent).toContain("Send back to work");
   });
 
-  // PAP-16506 P4: the card states who holds the verdict before offering the
-  // verbs, so nobody presses Approve on a review the server will 403.
-  it("states the default approver rule on a review with no policy set", () => {
+  // PAP-16506 P4: an opt-in policy warns before the card offers Approve, because
+  // the server refuses the verdict. The default earns no pixels.
+  const reviewItemWithPolicy = (reviewPolicy?: unknown) =>
+    buildItem({
+      sourceKind: "review" as AttentionSourceKind,
+      inlineResolvable: true,
+      subject: {
+        kind: "issue",
+        id: "issue-1",
+        companyId: "c1",
+        title: "PR ready for review",
+        identifier: null,
+        status: "in_review",
+        href: "/PAP/issues/PAP-1",
+        metadata: {
+          reviewAttentionState: "stalled",
+          ...(reviewPolicy === undefined ? {} : { reviewPolicy }),
+        },
+      },
+    });
+
+  it("says nothing about who can approve on a review with no policy set", () => {
     const el = render(
       <AttentionQueueRow
-        item={buildItem({
-          sourceKind: "review" as AttentionSourceKind,
-          inlineResolvable: true,
-          subject: {
-            kind: "issue",
-            id: "issue-1",
-            companyId: "c1",
-            title: "PR ready for review",
-            identifier: null,
-            status: "in_review",
-            href: "/PAP/issues/PAP-1",
-            metadata: { reviewAttentionState: "stalled" },
-          },
-        })}
+        item={reviewItemWithPolicy()}
         companyId="c1"
         expanded
         onToggleExpand={noop}
         onDismiss={noop}
       />,
     );
-    const copy = el.querySelector('[data-testid="review-policy-copy"]');
-    expect(copy?.getAttribute("data-review-policy")).toBe("anyone");
-    expect(copy?.textContent).toContain("Anyone with write access can approve");
+    expect(el.querySelector('[data-testid="review-policy-badge"]')).toBeNull();
+    expect(el.textContent).not.toContain("Anyone else");
+    expect(el.textContent).not.toContain("Human only");
+    // The verbs still render — suppressing the badge must not suppress the card.
+    expect(el.textContent).toContain("Send back to work");
   });
 
-  it("states the opt-in constraint when the issue carries one", () => {
+  it("badges the opt-in constraint when the issue carries one", () => {
     const el = render(
       <AttentionQueueRow
-        item={buildItem({
-          sourceKind: "review" as AttentionSourceKind,
-          inlineResolvable: true,
-          subject: {
-            kind: "issue",
-            id: "issue-1",
-            companyId: "c1",
-            title: "PR ready for review",
-            identifier: null,
-            status: "in_review",
-            href: "/PAP/issues/PAP-1",
-            metadata: { reviewAttentionState: "stalled", reviewPolicy: "human_only" },
-          },
-        })}
+        item={reviewItemWithPolicy("human_only")}
         companyId="c1"
         expanded
         onToggleExpand={noop}
         onDismiss={noop}
       />,
     );
-    const copy = el.querySelector('[data-testid="review-policy-copy"]');
-    expect(copy?.getAttribute("data-review-policy")).toBe("human_only");
-    expect(copy?.textContent).toContain("Requires a human");
+    const badge = el.querySelector('[data-testid="review-policy-badge"]');
+    expect(badge?.getAttribute("data-review-policy")).toBe("human_only");
+    expect(badge?.textContent).toContain("Human only");
+    expect(badge?.getAttribute("title")).toContain("Agents cannot");
   });
 
-  it("ignores a review policy the client does not recognise", () => {
+  it("badges a not_creator policy as 'Anyone else'", () => {
     const el = render(
       <AttentionQueueRow
-        item={buildItem({
-          sourceKind: "review" as AttentionSourceKind,
-          inlineResolvable: true,
-          subject: {
-            kind: "issue",
-            id: "issue-1",
-            companyId: "c1",
-            title: "PR ready for review",
-            identifier: null,
-            status: "in_review",
-            href: "/PAP/issues/PAP-1",
-            metadata: { reviewAttentionState: "stalled", reviewPolicy: "board_only" },
-          },
-        })}
+        item={reviewItemWithPolicy("not_creator")}
         companyId="c1"
         expanded
         onToggleExpand={noop}
         onDismiss={noop}
       />,
     );
-    expect(
-      el.querySelector('[data-testid="review-policy-copy"]')?.getAttribute("data-review-policy"),
-    ).toBe("anyone");
+    const badge = el.querySelector('[data-testid="review-policy-badge"]');
+    expect(badge?.getAttribute("data-review-policy")).toBe("not_creator");
+    expect(badge?.textContent).toContain("Anyone else");
+  });
+
+  it("shows no badge for an explicit default or an unrecognised policy", () => {
+    for (const policy of ["anyone", "board_only"]) {
+      const el = render(
+        <AttentionQueueRow
+          item={reviewItemWithPolicy(policy)}
+          companyId="c1"
+          expanded
+          onToggleExpand={noop}
+          onDismiss={noop}
+        />,
+      );
+      expect(el.querySelector('[data-testid="review-policy-badge"]')).toBeNull();
+    }
   });
 
   it("deep-links a covered review instead of inlining", () => {

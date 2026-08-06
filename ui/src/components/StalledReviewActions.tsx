@@ -5,8 +5,9 @@ import type { IssueReviewPolicy, StalledReviewDecisionAction } from "@paperclipa
 import { issuesApi } from "../api/issues";
 import { useToastActions } from "../context/ToastContext";
 import { queryKeys } from "../lib/queryKeys";
-import { issueReviewPolicyCopy } from "../lib/review-policy";
+import { issueReviewPolicyBadge } from "../lib/review-policy";
 import { cn } from "../lib/utils";
+import { Badge } from "./ui/badge";
 import { Button } from "./ui/button";
 import { Textarea } from "./ui/textarea";
 
@@ -18,9 +19,9 @@ interface StalledReviewActionsProps {
   /** Fired after a decision lands so the surface can navigate / close / refetch extras. */
   onResolved?: (action: StalledReviewDecisionAction) => void;
   /**
-   * The issue's `reviewPolicy` (PAP-16506). `null`/undefined ≡ "anyone", the
-   * default — the card then states that anyone with write access can approve
-   * rather than staying silent about who holds the verdict.
+   * The issue's `reviewPolicy` (PAP-16506). Only an opt-in constraint is shown;
+   * the default — `null`/`"anyone"` — renders nothing, because "anyone can
+   * approve" is what every issue already does.
    */
   reviewPolicy?: IssueReviewPolicy | null;
   className?: string;
@@ -81,20 +82,25 @@ export function StalledReviewActions({
   const noteEmpty = note.trim().length === 0;
   const runningFor = (action: StalledReviewDecisionAction) =>
     pending && decide.variables === action;
-  const policy = issueReviewPolicyCopy(reviewPolicy);
+  const policyBadge = issueReviewPolicyBadge(reviewPolicy);
 
   return (
     <div className={cn("flex flex-col gap-3", className)}>
-      {/* Who holds the verdict, before the verbs — the server enforces the same
-          rule, so the card must not imply an approval the PATCH would 403. */}
-      <p
-        className="flex min-w-0 items-start gap-1.5 text-xs text-muted-foreground"
-        data-testid="review-policy-copy"
-        data-review-policy={policy.value}
-      >
-        <policy.Icon className="mt-0.5 size-3 shrink-0" aria-hidden />
-        <span className="min-w-0">{policy.approverCopy}</span>
-      </p>
+      {/* Only a constrained policy gets a badge: the server refuses a verdict
+          from the wrong actor, so the card has to warn before offering Approve.
+          The default needs no line — anyone with write access can approve. */}
+      {policyBadge ? (
+        <Badge
+          variant="outline"
+          className="max-w-full min-w-0 self-start font-normal"
+          data-testid="review-policy-badge"
+          data-review-policy={policyBadge.value}
+          title={policyBadge.description}
+        >
+          <policyBadge.Icon aria-hidden />
+          <span className="min-w-0 truncate">{policyBadge.label}</span>
+        </Badge>
+      ) : null}
       <Textarea
         value={note}
         onChange={(event) => setNote(event.target.value)}

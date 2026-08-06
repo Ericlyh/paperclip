@@ -40,8 +40,8 @@ describe("formatIssueChangeValue", () => {
   // receipt must not report the default as an absent value.
   it("reads a cleared review policy as 'anyone', not 'none'", () => {
     expect(formatIssueChangeValue(null, { field: "reviewPolicy" })).toBe("anyone");
-    expect(formatIssueChangeValue("human_only", { field: "reviewPolicy" })).toBe("people only");
-    expect(formatIssueChangeValue("not_creator", { field: "reviewPolicy" })).toBe("not the requester");
+    expect(formatIssueChangeValue("human_only", { field: "reviewPolicy" })).toBe("human only");
+    expect(formatIssueChangeValue("not_creator", { field: "reviewPolicy" })).toBe("anyone else");
   });
 
   it("renders booleans and numbers plainly", () => {

@@ -2692,10 +2692,14 @@ describe("IssueProperties", () => {
 
     act(() => root.unmount());
   });
-  // PAP-16506 P4: `in_review` means someone must give a verdict, and by default
-  // that is anyone with write access — including the agent that did the work.
-  // The row has to say so on a NULL column instead of reading "None".
-  it("shows the default review policy on an issue that has never set one", async () => {
+  // PAP-16506 P4: only an agent sets `reviewPolicy`, so the panel shows it and
+  // never offers a control. The default — a NULL column, meaning anyone with
+  // write access can approve — is what every issue already does, so it shows
+  // nothing at all rather than a row reading "Anyone" or "None".
+  const findApprovalsRow = () =>
+    container.querySelector('[data-property-label="Approvals"]')?.closest('[data-property-row="true"]') ?? null;
+
+  it("shows no approvals row on an issue that has never set a policy", async () => {
     const root = renderProperties(container, {
       issue: createIssue({ reviewPolicy: null }),
       childIssues: [],
@@ -2704,56 +2708,27 @@ describe("IssueProperties", () => {
     });
     await flush();
 
-    const trigger = findRowTrigger(container, "Review policy");
-    expect(trigger).toBeTruthy();
-    // The row shows the short noun fragment; the full label is in the picker.
-    expect(trigger?.textContent).toContain("Anyone");
-    expect(trigger?.textContent).not.toContain("None");
-    expect(trigger?.querySelector("[title]")?.getAttribute("title")).toContain("Anyone can approve");
+    expect(findApprovalsRow()).toBeNull();
+    expect(container.textContent).not.toContain("Review policy");
 
     act(() => root.unmount());
   });
 
-  it("shows the opt-in constraint when the issue sets one", async () => {
+  it("shows no approvals row when the policy is the explicit default", async () => {
     const root = renderProperties(container, {
-      issue: createIssue({ reviewPolicy: "human_only" }),
+      issue: createIssue({ reviewPolicy: "anyone" }),
       childIssues: [],
       onUpdate: vi.fn(),
       inline: true,
     });
     await flush();
 
-    expect(findRowTrigger(container, "Review policy")?.textContent).toContain("People only");
+    expect(findApprovalsRow()).toBeNull();
 
     act(() => root.unmount());
   });
 
-  it("PATCHes the chosen review policy and clears back to NULL for the default", async () => {
-    const onUpdate = vi.fn();
-    const root = renderProperties(container, {
-      issue: createIssue({ reviewPolicy: null }),
-      childIssues: [],
-      onUpdate,
-      inline: true,
-    });
-    await flush();
-
-    await act(async () => {
-      findRowTrigger(container, "Review policy")!.click();
-    });
-    await flush();
-
-    const option = container.querySelector<HTMLButtonElement>('[data-testid="review-policy-option-not_creator"]');
-    expect(option).toBeTruthy();
-    await act(async () => {
-      option!.click();
-    });
-    expect(onUpdate).toHaveBeenCalledWith({ reviewPolicy: "not_creator" });
-
-    act(() => root.unmount());
-  });
-
-  it("writes NULL rather than the literal default so the issue tracks the board default", async () => {
+  it("badges an opt-in constraint read-only, with no control to change it", async () => {
     const onUpdate = vi.fn();
     const root = renderProperties(container, {
       issue: createIssue({ reviewPolicy: "human_only" }),
@@ -2763,15 +2738,25 @@ describe("IssueProperties", () => {
     });
     await flush();
 
-    await act(async () => {
-      findRowTrigger(container, "Review policy")!.click();
+    const row = findApprovalsRow();
+    expect(row?.textContent).toContain("Human only");
+    // Read-only: the row is a chip, not a picker — nothing here can PATCH.
+    expect(row?.querySelector("button")).toBeNull();
+    expect(onUpdate).not.toHaveBeenCalled();
+
+    act(() => root.unmount());
+  });
+
+  it("badges a not_creator policy as 'Anyone else'", async () => {
+    const root = renderProperties(container, {
+      issue: createIssue({ reviewPolicy: "not_creator" }),
+      childIssues: [],
+      onUpdate: vi.fn(),
+      inline: true,
     });
     await flush();
 
-    await act(async () => {
-      container.querySelector<HTMLButtonElement>('[data-testid="review-policy-option-anyone"]')!.click();
-    });
-    expect(onUpdate).toHaveBeenCalledWith({ reviewPolicy: null });
+    expect(findApprovalsRow()?.textContent).toContain("Anyone else");
 
     act(() => root.unmount());
   });
