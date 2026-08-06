@@ -89,7 +89,9 @@
     "add": "新增",
     "view": "查看",
     "all": "全部",
-    "none": "無"
+    "none": "無",
+    "archive": "封存",
+    "archived": "已封存"
   },
   "dashboard": {
     "welcomeTitle": "歡迎使用 Paperclip",
@@ -124,5 +126,63 @@
     "tasksByStatus": "依狀態",
     "successRate": "成功率",
     "last14Days": "最近 14 天"
+  },
+  "inbox": {
+    "empty": {
+      "noCompany": "請選擇一家公司以檢視收件匣。",
+      "noItems": "沒有新項目。",
+      "noRecent": "近期沒有收件匣項目。",
+      "zero": "收件匣已清空。",
+      "noSearchResults": "沒有符合搜尋條件的收件匣項目。",
+      "noFilterResults": "沒有符合篩選條件的收件匣項目。",
+      "otherResults": "其他結果",
+      "archived": "已封存"
+    },
+    "category": {
+      "all": "所有類別",
+      "myRecentTasks": "我最近的任務",
+      "joinRequests": "加入請求",
+      "approvals": "審核項目",
+      "failedRuns": "執行失敗",
+      "alerts": "警報"
+    },
+    "approvalStatus": {
+      "all": "所有審核狀態",
+      "needsAction": "需要處理",
+      "resolved": "已解決",
+      "label": "審核狀態"
+    },
+    "column": {
+      "chooseVisible": "選擇要顯示的收件匣欄位"
+    },
+    "action": {
+      "markAllAsRead": "全部標記為已讀",
+      "markAsRead": "標記為已讀",
+      "dismiss": "從收件匣移除"
+    },
+    "search": {
+      "placeholder": "搜尋收件匣…"
+    },
+    "dialog": {
+      "markAllAsReadConfirm": "確定要全部標記為已讀嗎？",
+      "markAllAsReadPending": "標記中…"
+    },
+    "nesting": {
+      "enable": "啟用父子任務巢狀",
+      "disable": "停用父子任務巢狀"
+    },
+    "error": {
+      "approveFailed": "核准失敗",
+      "rejectFailed": "駁回失敗",
+      "archiveFailed": "封存任務失敗",
+      "undoArchiveFailed": "取消封存失敗",
+      "runExitedWithError": "執行失敗。",
+      "retrySkipped": "已略過重試。",
+      "approveJoinRequestFailed": "核准加入請求失敗",
+      "rejectJoinRequestFailed": "駁回加入請求失敗"
+    },
+    "joinRequest": {
+      "label": "人工加入請求"
+    }
   }
 }

@@ -89,7 +89,9 @@
     "add": "Add",
     "view": "View",
     "all": "All",
-    "none": "None"
+    "none": "None",
+    "archive": "Archive",
+    "archived": "Archived"
   },
   "dashboard": {
     "welcomeTitle": "Welcome to Paperclip",
@@ -124,5 +126,63 @@
     "tasksByStatus": "Tasks by Status",
     "successRate": "Success Rate",
     "last14Days": "Last 14 days"
+  },
+  "inbox": {
+    "error": {
+      "approveFailed": "Failed to approve",
+      "rejectFailed": "Failed to reject",
+      "archiveFailed": "Failed to archive task",
+      "undoArchiveFailed": "Failed to undo inbox archive",
+      "runExitedWithError": "Run exited with an error.",
+      "retrySkipped": "Retry was skipped.",
+      "approveJoinRequestFailed": "Failed to approve join request",
+      "rejectJoinRequestFailed": "Failed to reject join request"
+    },
+    "nesting": {
+      "enable": "Enable parent-child nesting",
+      "disable": "Disable parent-child nesting"
+    },
+    "category": {
+      "all": "All categories",
+      "myRecentTasks": "My recent tasks",
+      "joinRequests": "Join requests",
+      "approvals": "Approvals",
+      "failedRuns": "Failed runs",
+      "alerts": "Alerts"
+    },
+    "search": {
+      "placeholder": "Search inbox…"
+    },
+    "column": {
+      "chooseVisible": "Choose which inbox columns stay visible"
+    },
+    "empty": {
+      "noCompany": "Select a company to view inbox.",
+      "noItems": "No new inbox items.",
+      "noRecent": "No recent inbox items.",
+      "zero": "Inbox zero.",
+      "noSearchResults": "No inbox items match your search.",
+      "noFilterResults": "No inbox items match these filters.",
+      "otherResults": "Other results",
+      "archived": "Archived"
+    },
+    "action": {
+      "markAllAsRead": "Mark all as read",
+      "markAsRead": "Mark as read",
+      "dismiss": "Dismiss from inbox"
+    },
+    "approvalStatus": {
+      "all": "All approval statuses",
+      "needsAction": "Needs action",
+      "resolved": "Resolved",
+      "label": "Approval status"
+    },
+    "dialog": {
+      "markAllAsReadConfirm": "Mark all as read?",
+      "markAllAsReadPending": "Marking…"
+    },
+    "joinRequest": {
+      "label": "Human join request"
+    }
   }
 }
