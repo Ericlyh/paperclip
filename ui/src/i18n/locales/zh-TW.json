@@ -352,5 +352,41 @@
       "pleaseTryAgain": "請再試一次。",
       "unknownError": "未知錯誤"
     }
+  },
+  "settings": {
+    "company": {
+      "name": "公司設定",
+      "nameLabel": "公司名稱",
+      "namePlaceholder": "這是您公司的顯示名稱。",
+      "descriptionLabel": "選填的描述，顯示在公司資料中。",
+      "brandColor": "品牌色彩",
+      "brandColorHelp": "設定公司圖示的色調。留空將自動產生色彩。",
+      "logoUploadFailed": "標誌上傳失敗",
+      "uploadingLogo": "正在上傳標誌...",
+      "removeLogo": "移除標誌",
+      "uploadLogoHint": "上傳 PNG、JPEG、WEBP、GIF 或 SVG 標誌圖片。",
+      "archiveCompany": "封存公司",
+      "alreadyArchived": "已封存",
+      "failedToArchive": "封存公司失敗",
+      "removing": "移除中..."
+    },
+    "governance": {
+      "defaultPolicy": "預設政策",
+      "boardOnly": "僅限看板",
+      "boardOrAgents": "看板或代理人",
+      "requireBoardApproval": "新進代理需由看板審核",
+      "newHiresPending": "新代理加入需待看板審核後才能啟用。",
+      "checkboxConfirmations": "核取方塊確認",
+      "askUserQuestions": "向使用者提問",
+      "itemVerdicts": "項目裁決",
+      "suggestedTasks": "建議的任務",
+      "attachmentSizeLimit": "附件大小限制",
+      "failedToSave": "儲存失敗",
+      "failedToSaveGovernance": "儲存互動治理失敗"
+    },
+    "action": {
+      "saveChanges": "儲存變更",
+      "saving": "儲存中..."
+    }
   }
 }

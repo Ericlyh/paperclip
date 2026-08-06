@@ -1,9 +1,9 @@
 {
   "app": {
     "noCompanies": {
-      "title": "Opprett ditt første selskap",
-      "description": "Kom i gang ved å opprette et selskap.",
-      "newCompany": "Nytt selskap"
+      "title": "Create your first company",
+      "description": "Get started by creating a company.",
+      "newCompany": "New Company"
     }
   },
   "sidebar": {
@@ -351,6 +351,42 @@
       "unableToCreateIsolatedReissue": "Unable to create an isolated re-issue.",
       "pleaseTryAgain": "Please try again.",
       "unknownError": "Unknown error"
+    }
+  },
+  "settings": {
+    "company": {
+      "name": "Company Settings",
+      "nameLabel": "Company name",
+      "namePlaceholder": "The display name for your company.",
+      "descriptionLabel": "Optional description shown in the company profile.",
+      "brandColor": "Brand color",
+      "brandColorHelp": "Sets the hue for the company icon. Leave empty for auto-generated color.",
+      "logoUploadFailed": "Logo upload failed",
+      "uploadingLogo": "Uploading logo...",
+      "removeLogo": "Remove logo",
+      "uploadLogoHint": "Upload a PNG, JPEG, WEBP, GIF, or SVG logo image.",
+      "archiveCompany": "Archive company",
+      "alreadyArchived": "Already archived",
+      "failedToArchive": "Failed to archive company",
+      "removing": "Removing..."
+    },
+    "governance": {
+      "defaultPolicy": "Default policy",
+      "boardOnly": "Board only",
+      "boardOrAgents": "Board or agents",
+      "requireBoardApproval": "Require board approval for new hires",
+      "newHiresPending": "New agent hires stay pending until approved by board.",
+      "checkboxConfirmations": "Checkbox confirmations",
+      "askUserQuestions": "Ask user questions",
+      "itemVerdicts": "Item verdicts",
+      "suggestedTasks": "Suggested tasks",
+      "attachmentSizeLimit": "Attachment size limit",
+      "failedToSave": "Failed to save",
+      "failedToSaveGovernance": "Failed to save interaction governance"
+    },
+    "action": {
+      "saveChanges": "Save changes",
+      "saving": "Saving..."
     }
   }
 }
