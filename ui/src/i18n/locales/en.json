@@ -883,5 +883,12 @@
     "couldNotUpdateFolder": "Paperclip could not update the folder.",
     "couldNotUpdateRoutine": "Paperclip could not update the routine.",
     "moveFailed": "Move failed"
+  },
+  "goals": {
+    "selectCompany": "Select a company to view goals.",
+    "noGoalsYet": "No goals yet.",
+    "addGoal": "Add Goal",
+    "newGoal": "New Goal",
+    "breadcrumb": "Goals"
   }
 }

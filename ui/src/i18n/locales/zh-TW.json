@@ -883,5 +883,12 @@
     "couldNotUpdateFolder": "Paperclip 無法更新資料夾。",
     "couldNotUpdateRoutine": "Paperclip 無法更新定期任務。",
     "moveFailed": "移動失敗"
+  },
+  "goals": {
+    "selectCompany": "請選擇一家公司以檢視目標。",
+    "noGoalsYet": "尚無目標。",
+    "addGoal": "新增目標",
+    "newGoal": "新增目標",
+    "breadcrumb": "目標"
   }
 }
