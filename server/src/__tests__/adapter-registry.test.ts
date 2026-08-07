@@ -1,6 +1,9 @@
-import { describe, expect, it, beforeEach, afterEach, vi } from "vitest";
+import { describe, expect, it, beforeAll, afterAll, beforeEach, afterEach, vi } from "vitest";
 import { buildSandboxNpmInstallCommand } from "@paperclipai/adapter-utils";
 import type { ServerAdapterModule } from "../adapters/index.js";
+import fs from "node:fs/promises";
+import os from "node:os";
+import path from "node:path";
 
 const hermesExecuteMock = vi.hoisted(() =>
   vi.fn(async () => ({
@@ -35,6 +38,7 @@ import {
   unregisterServerAdapter,
 } from "../adapters/index.js";
 import {
+  resolveDurablePaperclipApiKey,
   resolveExternalAdapterRegistration,
   setOverridePaused,
 } from "../adapters/registry.js";
@@ -547,5 +551,77 @@ describe("resolveExternalAdapterRegistration", () => {
     const resolved = resolveExternalAdapterRegistration(adapter);
 
     expect(resolved.sessionManagement).toBeUndefined();
+  });
+});
+
+describe("resolveDurablePaperclipApiKey (OOP-2910)", () => {
+  const DISK_TOKEN = "pcp_board_disk_fallback_value";
+  let tempDir: string;
+  let originalEnv: string | undefined;
+
+  beforeAll(async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "oop-2910-host-token-"));
+  });
+
+  afterAll(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  beforeEach(() => {
+    originalEnv = process.env.PAPERCLIP_HOST_AGENT_TOKEN_FILE;
+  });
+
+  afterEach(() => {
+    if (originalEnv === undefined) delete process.env.PAPERCLIP_HOST_AGENT_TOKEN_FILE;
+    else process.env.PAPERCLIP_HOST_AGENT_TOKEN_FILE = originalEnv;
+  });
+
+  it("prefers an explicit existingEnv PAPERCLIP_API_KEY over the JWT and disk", () => {
+    const result = resolveDurablePaperclipApiKey({
+      existingApiKey: "explicit-user-key",
+      authToken: "wake-time-jwt",
+    });
+    expect(result).toBe("explicit-user-key");
+  });
+
+  it("falls back to the wake-time JWT when no explicit key is set", () => {
+    const result = resolveDurablePaperclipApiKey({
+      existingApiKey: undefined,
+      authToken: "wake-time-jwt",
+    });
+    expect(result).toBe("wake-time-jwt");
+  });
+
+  it("falls back to the on-disk host-agent token when both the explicit key and JWT are missing", async () => {
+    const filePath = path.join(tempDir, ".host-agent-token");
+    await fs.writeFile(filePath, `${DISK_TOKEN}\n`, "utf8");
+    process.env.PAPERCLIP_HOST_AGENT_TOKEN_FILE = filePath;
+    const result = resolveDurablePaperclipApiKey({
+      existingApiKey: undefined,
+      authToken: undefined,
+    });
+    expect(result).toBe(DISK_TOKEN);
+  });
+
+  it("treats whitespace-only disk files as missing", async () => {
+    const filePath = path.join(tempDir, ".host-agent-token-blank");
+    await fs.writeFile(filePath, "   \n", "utf8");
+    process.env.PAPERCLIP_HOST_AGENT_TOKEN_FILE = filePath;
+    expect(
+      resolveDurablePaperclipApiKey({
+        existingApiKey: undefined,
+        authToken: undefined,
+      }),
+    ).toBeNull();
+  });
+
+  it("returns null when no source is available", () => {
+    process.env.PAPERCLIP_HOST_AGENT_TOKEN_FILE = path.join(tempDir, "does-not-exist");
+    expect(
+      resolveDurablePaperclipApiKey({
+        existingApiKey: undefined,
+        authToken: undefined,
+      }),
+    ).toBeNull();
   });
 });

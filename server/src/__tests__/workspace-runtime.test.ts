@@ -6,7 +6,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { parse as parseEnvContents } from "dotenv";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it } from "vitest";
 import {
   agents,
   companies,
@@ -30,6 +30,8 @@ import {
   realizeExecutionWorkspace,
   releaseRuntimeServicesForRun,
   resetRuntimeServicesForTests,
+  resolveCompanyIdFilePath,
+  resolveDurableCompanyId,
   resolveWorkspaceRuntimeReadinessTimeoutSec,
   resolveShell,
   sanitizeRuntimeServiceBaseEnv,
@@ -194,6 +196,84 @@ describe("sanitizeRuntimeServiceBaseEnv", () => {
     expect(sanitized.npm_config_tailscale_auth).toBeUndefined();
     expect(sanitized.npm_config_authenticated_private).toBeUndefined();
     expect(sanitized.HOST).toBe("0.0.0.0");
+  });
+});
+
+describe("resolveDurableCompanyId (OOP-2910)", () => {
+  const VALID_UUID = "ed30ea86-a66e-434b-b307-6776a59f7698";
+  const OTHER_UUID = "11111111-2222-3333-4444-555555555555";
+
+  let tempDir: string;
+  let originalEnv: string | undefined;
+
+  beforeAll(async () => {
+    tempDir = await fs.mkdtemp(path.join(os.tmpdir(), "oop-2910-company-id-"));
+  });
+
+  afterAll(async () => {
+    await fs.rm(tempDir, { recursive: true, force: true });
+  });
+
+  beforeEach(() => {
+    originalEnv = process.env.PAPERCLIP_COMPANY_ID_FILE;
+  });
+
+  afterEach(() => {
+    if (originalEnv === undefined) delete process.env.PAPERCLIP_COMPANY_ID_FILE;
+    else process.env.PAPERCLIP_COMPANY_ID_FILE = originalEnv;
+  });
+
+  it("returns the candidate verbatim when it is a valid UUID", () => {
+    const result = resolveDurableCompanyId(VALID_UUID);
+    expect(result).toBe(VALID_UUID);
+  });
+
+  it("trims whitespace around a valid UUID candidate", () => {
+    const result = resolveDurableCompanyId(`  ${VALID_UUID}  `);
+    expect(result).toBe(VALID_UUID);
+  });
+
+  it("falls back to the disk file when the candidate is a slug like 'paperclip'", async () => {
+    const filePath = path.join(tempDir, ".company-id");
+    await fs.writeFile(filePath, OTHER_UUID, "utf8");
+    process.env.PAPERCLIP_COMPANY_ID_FILE = filePath;
+    const result = resolveDurableCompanyId("paperclip");
+    expect(result).toBe(OTHER_UUID);
+  });
+
+  it("falls back to the disk file when the candidate is 'company_paperclip'", async () => {
+    const filePath = path.join(tempDir, ".company-id");
+    await fs.writeFile(filePath, OTHER_UUID, "utf8");
+    process.env.PAPERCLIP_COMPANY_ID_FILE = filePath;
+    const result = resolveDurableCompanyId("company_paperclip");
+    expect(result).toBe(OTHER_UUID);
+  });
+
+  it("falls back to the disk file when the candidate is undefined", async () => {
+    const filePath = path.join(tempDir, ".company-id");
+    await fs.writeFile(filePath, OTHER_UUID, "utf8");
+    process.env.PAPERCLIP_COMPANY_ID_FILE = filePath;
+    const result = resolveDurableCompanyId(undefined);
+    expect(result).toBe(OTHER_UUID);
+  });
+
+  it("returns null when neither the candidate nor the disk file is a UUID", () => {
+    const filePath = path.join(tempDir, ".company-id-missing");
+    process.env.PAPERCLIP_COMPANY_ID_FILE = filePath;
+    expect(resolveDurableCompanyId("paperclip")).toBeNull();
+  });
+
+  it("returns null when the disk file exists but its contents are not a UUID", async () => {
+    const filePath = path.join(tempDir, ".company-id-malformed");
+    await fs.writeFile(filePath, "not-a-uuid\n", "utf8");
+    process.env.PAPERCLIP_COMPANY_ID_FILE = filePath;
+    expect(resolveDurableCompanyId(VALID_UUID)).toBe(VALID_UUID);
+    expect(resolveDurableCompanyId("paperclip")).toBeNull();
+  });
+
+  it("expands a leading ~ in PAPERCLIP_COMPANY_ID_FILE", () => {
+    process.env.PAPERCLIP_COMPANY_ID_FILE = "~/.paperclip/.company-id";
+    expect(resolveCompanyIdFilePath()).toBe(path.join(os.homedir(), ".paperclip", ".company-id"));
   });
 });
 

@@ -477,20 +477,35 @@ export function productivityReviewService(db: Db, deps?: { enqueueWakeup?: Enque
     // first in_progress transition and never reset per cron tick, so wall-
     // clock elapsed grows toward the full inter-tick gap and trips the
     // long-active threshold by construction for any healthy daily routine.
-    // Derive elapsed from the latest run instead: between ticks (latest run
-    // terminal, recent) the value is small; a hung tick (latest run has been
-    // running for hours) still trips the detector, preserving its purpose.
+    // The meaningful "active episode" is the latest run's current state:
+    //   - terminal (succeeded/failed/cancelled/timed_out): routine is idle
+    //     between scheduled ticks — desired state, elapsedMs = 0.
+    //   - active (queued/running/scheduled_retry): measure from the run's
+    //     startedAt — a hung tick past the threshold is a real signal.
+    // Gating on status (rather than only on the run's startedAt) is what
+    // fixes the OOP-2420 escape: in production both `issues.startedAt` and
+    // `latestRun.startedAt` are written by the same tick-fire transaction
+    // and differ by tens of milliseconds, so a startedAt-only check would
+    // produce the same elapsedMs as the original `issues.startedAt` path.
     let activeStartedAt: Date | null = null;
     let elapsedMs: number | null = null;
     if (sourceIssue.status === "in_progress") {
       if (sourceIssue.originKind === "routine_execution") {
         const latestRun = latestRuns[0];
         if (latestRun) {
-          const runStart = latestRun.startedAt ?? latestRun.createdAt;
-          activeStartedAt = coerceDate(runStart);
-          elapsedMs = activeStartedAt
-            ? Math.max(0, now.getTime() - activeStartedAt.getTime())
-            : null;
+          const runStatus = latestRun.status;
+          if (ACTIVE_RUN_STATUSES.includes(runStatus as (typeof ACTIVE_RUN_STATUSES)[number])) {
+            const runStart = latestRun.startedAt ?? latestRun.createdAt;
+            activeStartedAt = coerceDate(runStart);
+            elapsedMs = activeStartedAt
+              ? Math.max(0, now.getTime() - activeStartedAt.getTime())
+              : null;
+          } else if (
+            TERMINAL_RUN_STATUSES.includes(runStatus as (typeof TERMINAL_RUN_STATUSES)[number])
+          ) {
+            activeStartedAt = null;
+            elapsedMs = 0;
+          }
         }
       } else {
         activeStartedAt = sourceIssue.startedAt ?? sourceIssue.executionLockedAt ?? null;

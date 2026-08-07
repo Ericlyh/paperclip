@@ -108,6 +108,40 @@ export function actorMiddleware(db: Db, opts: ActorMiddlewareOptions): RequestHa
 
     const boardKey = await boardAuth.findBoardApiKeyByToken(token);
     if (boardKey) {
+      // OOP-2793: agent-scoped board API keys resolve to an agent identity.
+      // The DB row has agent_id set (and user_id null) per the
+      // board_api_keys_one_owner_chk constraint. Auth resolves to type=agent so
+      // harness-posted comments get author_type=agent and the self-skip check
+      // at server/src/routes/issues.ts:5984 fires.
+      if (boardKey.agentId) {
+        const access = await boardAuth.resolveAgentBoardAccess(boardKey.agentId);
+        if (access && access.agent.status !== "terminated" && access.agent.status !== "pending_approval") {
+          await boardAuth.touchBoardApiKey(boardKey.id);
+          req.actor = {
+            type: "agent",
+            agentId: boardKey.agentId,
+            companyId: access.companyId,
+            companyIds: [access.companyId],
+            keyId: boardKey.id,
+            runId: runIdHeader || undefined,
+            source: "agent_board_key",
+          };
+          next();
+          return;
+        }
+        // Agent-scoped key whose agent is gone (terminated/pending_approval/missing)
+        // — fall through and let the request be treated as unauthenticated.
+        next();
+        return;
+      }
+
+      // The board_api_keys_one_owner_chk constraint guarantees that exactly one
+      // of userId/agentId is set. We're in the user branch (agentId null) so
+      // userId must be non-null; narrow for TS.
+      if (!boardKey.userId) {
+        next();
+        return;
+      }
       const access = await boardAuth.resolveBoardAccess(boardKey.userId);
       if (access.user) {
         await boardAuth.touchBoardApiKey(boardKey.id);

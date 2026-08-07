@@ -573,6 +573,89 @@ describeEmbeddedPostgres("productivity review service", () => {
     expect(review?.description).toContain("Primary trigger: `long_active_duration`");
   });
 
+  it("does not create long-active reviews for routine_execution issues when startedAt and latest run startedAt are within 1s (terminal run)", async () => {
+    // OOP-2553 — production cadence. `issues.startedAt` and the latest run's
+    // `startedAt` are written in the same tick-fire DB transaction and differ
+    // by tens of ms. The OOP-2420 fix (which only switched the source
+    // timestamp) was a no-op here. With status-based gating, a terminal
+    // latest run → elapsedMs = 0 → no review, regardless of how long the
+    // issue has been in_progress.
+    const now = new Date("2026-04-28T12:00:00.000Z");
+    const tickFireAt = new Date(now.getTime() - 24 * 60 * 60 * 1000 + 500);
+    const seeded = await seedAssignedIssue({
+      status: "in_progress",
+      startedAt: tickFireAt,
+      originKind: "routine_execution",
+    });
+    // Latest run terminal and recent — within the routine's nominal cadence
+    // window. startedAt is the same tick-fire timestamp (within 1s) so the
+    // OOP-2420 escape had nothing to derive from.
+    const runCompletedAt = new Date(now.getTime() - 5 * 60 * 1000);
+    await db.insert(heartbeatRuns).values([
+      {
+        id: randomUUID(),
+        companyId: seeded.companyId,
+        agentId: seeded.coderId,
+        status: "succeeded",
+        invocationSource: "cron",
+        triggerDetail: "system",
+        startedAt: new Date(tickFireAt.getTime() + 137),
+        finishedAt: runCompletedAt,
+        contextSnapshot: { issueId: seeded.issueId, taskId: seeded.issueId },
+        livenessState: "advanced",
+        createdAt: tickFireAt,
+        updatedAt: runCompletedAt,
+      },
+    ]);
+
+    const result = await productivityReviewService(db).reconcileProductivityReviews({
+      now,
+      companyId: seeded.companyId,
+    });
+
+    expect(result.created).toBe(0);
+    expect(result.skipped).toBe(1);
+    expect(await listProductivityReviews(seeded.companyId)).toHaveLength(0);
+  });
+
+  it("still creates long-active reviews for routine_execution issues whose latest run is active past the threshold (production cadence)", async () => {
+    // OOP-2553 — over-suppression guard. Mirrors the previous test's
+    // production cadence (startedAt ~= latestRun.startedAt) but with the run
+    // still in `running` state past the 6h long-active threshold. A genuinely
+    // hung tick on a scheduler-driven routine must still trip the detector.
+    const now = new Date("2026-04-28T12:00:00.000Z");
+    const tickFireAt = new Date(now.getTime() - 7 * 60 * 60 * 1000);
+    const seeded = await seedAssignedIssue({
+      status: "in_progress",
+      startedAt: tickFireAt,
+      originKind: "routine_execution",
+    });
+    await db.insert(heartbeatRuns).values([
+      {
+        id: randomUUID(),
+        companyId: seeded.companyId,
+        agentId: seeded.coderId,
+        status: "running",
+        invocationSource: "cron",
+        triggerDetail: "system",
+        startedAt: new Date(tickFireAt.getTime() + 97),
+        contextSnapshot: { issueId: seeded.issueId, taskId: seeded.issueId },
+        livenessState: "advanced",
+        createdAt: tickFireAt,
+        updatedAt: tickFireAt,
+      },
+    ]);
+
+    const result = await productivityReviewService(db).reconcileProductivityReviews({
+      now,
+      companyId: seeded.companyId,
+    });
+
+    expect(result.created).toBe(1);
+    const [review] = await listProductivityReviews(seeded.companyId);
+    expect(review?.description).toContain("Primary trigger: `long_active_duration`");
+  });
+
   it("snoozes resolved productivity reviews for at least 24 hours", async () => {
     // OOP-2420 — the snooze window must be strictly longer than the long-active
     // threshold so a resolved review cannot immediately re-fire on an

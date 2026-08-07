@@ -30,6 +30,16 @@ const PRODUCTIVE_SUCCESS_LIVENESS_STATES = new Set<RunLivenessState>([
   "needs_followup",
 ]);
 
+// Recurring routine concurrency policies whose steady state is `in_progress`.
+// For these routines, a successful run leaving the issue in_progress is the
+// intended cadence — cron will fire the next tick. The harness must not queue
+// a "missing disposition" handoff wake, which would wake a recovery agent and
+// re-execute the heartbeat unnecessarily (see OOP-1533).
+const RECURRING_ROUTINE_STEADY_STATE_POLICIES = new Set<string>([
+  "coalesce_if_active",
+  "skip_if_active",
+]);
+
 const IDEMPOTENT_HANDOFF_WAKE_STATUSES = [
   "queued",
   "deferred_issue_execution",
@@ -344,10 +354,17 @@ export function decideSuccessfulRunHandoff(input: {
   hasPauseHold: boolean;
   budgetBlocked: boolean;
   idempotentWakeExists: boolean;
+  routineConcurrencyPolicy?: string | null;
 }): SuccessfulRunHandoffDecision {
   const { run, issue, agent } = input;
 
   if (run.status !== "succeeded") return { kind: "skip", reason: "source run did not succeed" };
+  if (input.routineConcurrencyPolicy && RECURRING_ROUTINE_STEADY_STATE_POLICIES.has(input.routineConcurrencyPolicy)) {
+    return {
+      kind: "skip",
+      reason: `routine concurrencyPolicy ${input.routineConcurrencyPolicy} treats in_progress as steady state`,
+    };
+  }
   if (isCorrectiveHandoffRun(run)) return { kind: "skip", reason: "source run is already a corrective handoff run" };
   if (isIssueMonitorMaintenanceRun(run)) return { kind: "skip", reason: "issue monitor run owns its own recovery path" };
   if (run.issueCommentStatus === "retry_queued" || run.issueCommentStatus === "retry_exhausted") {

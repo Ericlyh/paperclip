@@ -151,6 +151,22 @@ describe("successful run handoff decision", () => {
     });
   });
 
+  it("does not queue a handoff wake for a recurring routine with steady-state in_progress policies", () => {
+    expect(decide({ routineConcurrencyPolicy: "coalesce_if_active" })).toEqual({
+      kind: "skip",
+      reason: "routine concurrencyPolicy coalesce_if_active treats in_progress as steady state",
+    });
+    expect(decide({ routineConcurrencyPolicy: "skip_if_active" })).toEqual({
+      kind: "skip",
+      reason: "routine concurrencyPolicy skip_if_active treats in_progress as steady state",
+    });
+  });
+
+  it("still queues a handoff wake for routines that opt out of steady-state in_progress (always_enqueue)", () => {
+    const decision = decide({ routineConcurrencyPolicy: "always_enqueue" });
+    expect(decision.kind).toBe("enqueue");
+  });
+
   it("does not loop from a corrective handoff run", () => {
     expect(decide({
       run: {

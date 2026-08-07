@@ -142,6 +142,8 @@ import { buildExternalAdapters } from "./plugin-loader.js";
 import { getDisabledAdapterTypes } from "../services/adapter-plugin-store.js";
 import { processAdapter } from "./process/index.js";
 import { httpAdapter } from "./http/index.js";
+import { readFileSync } from "node:fs";
+import { resolveHomeAwarePath } from "../home-paths.js";
 
 function readConfiguredCommand(config: Record<string, unknown>, fallback: string): string {
   const value = typeof config.command === "string" ? config.command.trim() : "";
@@ -437,6 +439,51 @@ const piLocalAdapter: ServerAdapterModule = {
 // intentional until hermes ships a matching AdapterExecutionContext type.
 const executeHermesLocal = hermesExecute as unknown as ServerAdapterModule["execute"];
 
+const PAPERCLIP_HOST_AGENT_TOKEN_DISK_PATH = "~/.paperclip/.host-agent-token";
+
+function resolveHostAgentTokenFilePath(): string {
+  const configured = process.env.PAPERCLIP_HOST_AGENT_TOKEN_FILE?.trim();
+  if (configured) return resolveHomeAwarePath(configured);
+  return resolveHomeAwarePath(PAPERCLIP_HOST_AGENT_TOKEN_DISK_PATH);
+}
+
+/**
+ * Resolve a durable Paperclip API bearer token for routine execution.
+ *
+ * Returns the explicitly configured `existingEnv.PAPERCLIP_API_KEY` first
+ * (the user knows what they're doing), then the wake-time JWT
+ * (`normalizedCtx.authToken`) — short-lived, properly scoped, the proper
+ * credential for routine execution. When neither is available, falls back
+ * to the on-disk host-agent token at
+ * `${PAPERCLIP_HOST_AGENT_TOKEN_FILE:-~/.paperclip/.host-agent-token}` so
+ * the script can still authenticate against the board. Returns `null` when
+ * no source produces a value.
+ *
+ * OOP-2910 / OOP-2871 — the wake-time JWT is intermittently missing or
+ * invalid; the on-disk token is the durable source of truth (moved to disk
+ * in OOP-2592). The host-agent token's company membership matches the
+ * canonical `ed30ea86-...` UUID, so the script's board-list call succeeds
+ * without intermittent 403s.
+ */
+export function resolveDurablePaperclipApiKey(input: {
+  existingApiKey: string | undefined;
+  authToken: string | undefined;
+}): string | null {
+  if (typeof input.existingApiKey === "string" && input.existingApiKey.trim().length > 0) {
+    return input.existingApiKey.trim();
+  }
+  if (typeof input.authToken === "string" && input.authToken.trim().length > 0) {
+    return input.authToken.trim();
+  }
+  try {
+    const content = readFileSync(resolveHostAgentTokenFilePath(), "utf8").trim();
+    if (content.length > 0) return content;
+  } catch {
+    // File missing or unreadable; fall through to null.
+  }
+  return null;
+}
+
 const hermesLocalAdapter: ServerAdapterModule = {
   type: "hermes_local",
   execute: async (ctx) => {
@@ -461,11 +508,16 @@ const hermesLocalAdapter: ServerAdapterModule = {
       "Never use a board, browser, or local-board session for Paperclip API writes.",
     ].join("\n");
 
+    const durableApiKey = resolveDurablePaperclipApiKey({
+      existingApiKey: explicitApiKey ? existingEnv.PAPERCLIP_API_KEY : undefined,
+      authToken: normalizedCtx.authToken,
+    });
+
     const patchedConfig: Record<string, unknown> = {
       ...existingConfig,
       env: {
         ...existingEnv,
-        ...(!explicitApiKey ? { PAPERCLIP_API_KEY: normalizedCtx.authToken } : {}),
+        ...(durableApiKey ? { PAPERCLIP_API_KEY: durableApiKey } : {}),
         PAPERCLIP_RUN_ID: normalizedCtx.runId,
       },
     };

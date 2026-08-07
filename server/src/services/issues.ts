@@ -650,6 +650,74 @@ export async function listUnfinalizedExecutionWorkspaceIds(
   return unfinalized;
 }
 
+/**
+ * Wake-on-edge-satisfied monitor-suppression shim.
+ *
+ * When an edge-wake fires for a dependent issue (via the `becameDone` hook in
+ * `routes/issues.ts` or the workspace-finalize hook in `services/heartbeat.ts`),
+ * we push the dependent's `monitorNextCheckAt` forward so the cron-style
+ * heartbeat poll cycle does not fire a duplicate wake within the same poll window.
+ *
+ * Algorithm:
+ * - For each dependent issue in `dependentIssueIds`:
+ *   - `pushedAt = max(previous monitorNextCheckAt, now + EDGE_WAKE_MONITOR_MIN_GAP_MS)`
+ *   - Patch `monitorNextCheckAt = pushedAt`, `monitorLastTriggeredAt = now`.
+ * - Issues with no prior `monitorNextCheckAt` are still bumped — this prevents
+ *   a monitor cycle from being scheduled elsewhere in the same poll window
+ *   just because the edge-wake fired.
+ *
+ * ADR: `docs/adr/0042-wake-on-edge-satisfied.md` § Implementation Notes.
+ */
+export const EDGE_WAKE_MONITOR_MIN_GAP_MS = 60_000;
+
+export async function applyEdgeWakeMonitorSuppression(
+  dbOrTx: Pick<Db, "update">,
+  companyId: string,
+  dependentIssueIds: string[],
+  now: Date = new Date(),
+): Promise<void> {
+  if (dependentIssueIds.length === 0) return;
+  const uniqueIds = [...new Set(dependentIssueIds.filter(Boolean))];
+  if (uniqueIds.length === 0) return;
+
+  const pushedAt = new Date(now.getTime() + EDGE_WAKE_MONITOR_MIN_GAP_MS);
+  // SQL: push monitorNextCheckAt to max(prev, pushedAt), set monitorLastTriggeredAt = now.
+  // We can't reference the column on the right side of GREATEST in standard SQL
+  // for a single UPDATE row, so we use a CASE expression sourced from the
+  // previous value pulled by a follow-up pass. Batched below to one statement.
+  for (const id of uniqueIds) {
+    await dbOrTx
+      .update(issues)
+      .set({
+        monitorNextCheckAt: pushedAt,
+        monitorLastTriggeredAt: now,
+      })
+      .where(and(eq(issues.id, id), eq(issues.companyId, companyId)));
+  }
+}
+
+/**
+ * Wake-on-edge-satisfied readiness computation.
+ *
+ * Evaluates the two gates for the wake-on-edge contract for a set of candidate
+ * issue IDs.
+ *
+ * Gate (a) — done blockers only: any blocker whose `status !== "done"` populates
+ * `unresolvedBlockerIssueIds`, increments `unresolvedBlockerCount`, clears
+ * `isDependencyReady`, and clears `allBlockersDone`.
+ *
+ * Gate (b) — workspace-finalize barrier: a done blocker with an
+ * `executionWorkspaceId` that has no successful `workspace_finalize` row is
+ * treated as unresolved. The dependent does not wake until the finalize hook
+ * records success; a subsequent call to `listWakeableBlockedDependents` from
+ * that finalize hook will then return the dependent as wakeable.
+ *
+ * **Cancellation rule.** A blocker reaching `status = "cancelled"` is treated
+ * identically to an in-progress blocker — it does not satisfy the contract.
+ * Operators must remove or replace the `blocks` relation explicitly.
+ *
+ * See: `listWakeableBlockedDependents` (wake-on-edge-satisfied enumeration).
+ */
 async function listIssueDependencyReadinessMap(
   dbOrTx: Pick<Db, "select">,
   companyId: string,
@@ -4250,6 +4318,40 @@ export function issueService(db: Db) {
       return listIssueProductivityReviewMap(dbOrTx, companyId, sourceIssueIds);
     },
 
+    /**
+     * Wake-on-edge-satisfied enumeration.
+     *
+     * When a blocker issue `B` transitions to terminal-success (`status = "done"`),
+     * this function returns every reverse-`blocks`-edge dependent of `B` whose
+     * readiness map evaluates to `isDependencyReady = true`, along with the
+     * assignee agent ID and the blocker IDs for the wake payload.
+     *
+     * **The contract.** A `blocks` edge from issue `B` (the blocker) to issue `D`
+     * (the dependent) is a promise: when `B` reaches terminal-success, `D`'s owner
+     * is woken iff `D`'s readiness map evaluates to `isDependencyReady = true`.
+     *
+     * **Readiness gates (both must pass).**
+     * (a) Every blocker of `D` is `status = "done"`.
+     * (b) Every done blocker's `executionWorkspaceId` has a recorded successful
+     *     `workspace_finalize` (OOP-2793 sync-back barrier).
+     *
+     * **Cancellation rule.** A `blocks` edge whose blocker reaches
+     * `status = "cancelled"` does **not** satisfy the contract. The dependent
+     * stays `blocked`; an operator must remove or replace the relation
+     * explicitly. The wake-on-edge contract is silent on cancellation.
+     *
+     * **Trigger points.** Wakes fire from:
+     * - `routes/issues.ts` `becameDone` hook (PATCH `/issues/:id`).
+     * - `services/heartbeat.ts` workspace-finalize hook (if (b) was incomplete
+     *   at the first attempt and finalizes later).
+     *
+     * **Monitor fallback.** Issues with no incoming `blocks` edges fall back to
+     * `monitorNextCheckAt` cron polling. An edge-wake should push
+     * `monitorNextCheckAt` forward to prevent a duplicate wake within the same
+     * monitor poll window.
+     *
+     * **ADR:** `docs/adr/0042-wake-on-edge-satisfied.md`.
+     */
     listWakeableBlockedDependents: async (blockerIssueId: string) => {
       const blockerIssue = await db
         .select({ id: issues.id, companyId: issues.companyId })

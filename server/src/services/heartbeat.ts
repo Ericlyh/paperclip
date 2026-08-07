@@ -101,6 +101,7 @@ import {
   sanitizeRuntimeServiceBaseEnv,
 } from "./workspace-runtime.js";
 import { issueService } from "./issues.js";
+import { applyEdgeWakeMonitorSuppression } from "./issues.js";
 import {
   buildIssueMonitorClearedPatch,
   buildIssueMonitorTriggeredPatch,
@@ -8502,6 +8503,21 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
               .then((rows) => rows[0]?.status ?? null);
             if (blockerIssueStatus === "done") {
               const dependents = await issuesSvc.listWakeableBlockedDependents(issueId);
+              // WOE contract (OOP-3058): suppress monitor* on the dependents so
+              // the now-resolved edge-wake does not collide with a pending
+              // monitor poll in the same window. ADR-0042.
+              if (dependents.length > 0) {
+                await applyEdgeWakeMonitorSuppression(
+                  db,
+                  agent.companyId,
+                  dependents.map((d) => d.id),
+                ).catch((suppressErr) => {
+                  logger.warn(
+                    { err: suppressErr, issueId, dependents: dependents.length },
+                    "failed to apply edge-wake monitor suppression (finalize path)",
+                  );
+                });
+              }
               for (const dependent of dependents) {
                 await enqueueWakeup(dependent.assigneeAgentId, {
                   source: "automation",

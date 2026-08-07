@@ -2526,6 +2526,11 @@ export function recoveryService(db: Db, deps: { enqueueWakeup: RecoveryWakeup })
         }
 
         if (didAutomaticRecoveryFail(latestRun, "assignment_recovery")) {
+          // Skip escalation for routine-execution issues — the cron driver manages the next iteration.
+          if (issue.originKind === "routine_execution") {
+            result.skipped += 1;
+            continue;
+          }
           const failureSummary = summarizeRunFailureForIssueComment(latestRun);
           const updated = await escalateStrandedAssignedIssue({
             issue,
@@ -2578,6 +2583,23 @@ export function recoveryService(db: Db, deps: { enqueueWakeup: RecoveryWakeup })
           continue;
         }
 
+        // Routine-execution issues (cron-driven heartbeat loops) have an implicit next step:
+        // the next scheduled cron fire. A successful run without an explicit disposition is
+        // NOT a problem — the cron driver manages the next iteration. Treat this as a
+        // false-positive recovery trigger and suppress the escalation.
+        if (issue.originKind === "routine_execution") {
+          await recoveryActionsSvc.resolveActiveForIssue({
+            companyId: issue.companyId,
+            sourceIssueId: issue.id,
+            status: "resolved",
+            outcome: "false_positive",
+            resolutionNote:
+              "Suppressed: issue originated from routine_execution — next step is implicit (next cron fire). Successful run with no explicit disposition is expected behavior for cron-driven heartbeat routines.",
+          });
+          result.skipped += 1;
+          continue;
+        }
+
         const updated = await escalateStrandedAssignedIssue({
           issue,
           previousStatus: "in_progress",
@@ -2603,6 +2625,11 @@ export function recoveryService(db: Db, deps: { enqueueWakeup: RecoveryWakeup })
         }
 
         if (isRepeatedProductiveContinuationRecovery(successfulRun)) {
+          // Skip escalation for routine-execution issues — the cron driver manages the next iteration.
+          if (issue.originKind === "routine_execution") {
+            result.skipped += 1;
+            continue;
+          }
           const updated = await escalateStrandedAssignedIssue({
             issue,
             previousStatus: "in_progress",
@@ -2645,6 +2672,11 @@ export function recoveryService(db: Db, deps: { enqueueWakeup: RecoveryWakeup })
         const classification = classifyContinuationFailure(latestRun);
 
         if (classification.kind === "non_retryable") {
+          // Skip escalation for routine-execution issues — the cron driver manages the next iteration.
+          if (issue.originKind === "routine_execution") {
+            result.skipped += 1;
+            continue;
+          }
           const failureSummary = summarizeRunFailureForIssueComment(latestRun);
           const updated = await escalateStrandedAssignedIssue({
             issue,
@@ -2671,6 +2703,11 @@ export function recoveryService(db: Db, deps: { enqueueWakeup: RecoveryWakeup })
             classification.errorCode,
           );
           if (consecutive >= classification.maxAttempts) {
+            // Skip escalation for routine-execution issues — the cron driver manages the next iteration.
+            if (issue.originKind === "routine_execution") {
+              result.skipped += 1;
+              continue;
+            }
             const failureSummary = summarizeRunFailureForIssueComment(latestRun);
             const attemptCopy = consecutive <= 1 ? "" : ` (${consecutive}× attempts)`;
             const causeCopy = classification.errorCode
