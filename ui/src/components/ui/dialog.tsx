@@ -4,6 +4,7 @@ import { Dialog as DialogPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
+import { Translated } from "@/i18n/Translated"
 
 function Dialog({
   ...props
@@ -49,9 +50,12 @@ function DialogContent({
   className,
   children,
   showCloseButton = true,
+  closeLabelKey = "common.close",
   ...props
 }: React.ComponentProps<typeof DialogPrimitive.Content> & {
   showCloseButton?: boolean
+  /** i18n key for the close button's screen-reader label. Defaults to `common.close`. */
+  closeLabelKey?: string
 }) {
   return (
     <DialogPortal data-slot="dialog-portal">
@@ -71,7 +75,7 @@ function DialogContent({
             className="ring-offset-background focus:ring-ring data-[state=open]:bg-accent data-[state=open]:text-muted-foreground absolute top-4 right-4 rounded-xs opacity-70 transition-opacity hover:opacity-100 focus:ring-2 focus:ring-offset-2 focus:outline-hidden disabled:pointer-events-none [&_svg]:pointer-events-none [&_svg]:shrink-0 [&_svg:not([class*='size-'])]:size-4"
           >
             <XIcon />
-            <span className="sr-only">Close</span>
+            <span className="sr-only"><Translated k={closeLabelKey} /></span>
           </DialogPrimitive.Close>
         )}
       </DialogPrimitive.Content>
@@ -92,10 +96,13 @@ function DialogHeader({ className, ...props }: React.ComponentProps<"div">) {
 function DialogFooter({
   className,
   showCloseButton = false,
+  closeLabelKey = "common.close",
   children,
   ...props
 }: React.ComponentProps<"div"> & {
   showCloseButton?: boolean
+  /** i18n key for the footer close button label. Defaults to `common.close`. */
+  closeLabelKey?: string
 }) {
   return (
     <div
@@ -109,7 +116,7 @@ function DialogFooter({
       {children}
       {showCloseButton && (
         <DialogPrimitive.Close asChild>
-          <Button variant="outline">Close</Button>
+          <Button variant="outline" translationKey={closeLabelKey} />
         </DialogPrimitive.Close>
       )}
     </div>
@@ -118,27 +125,41 @@ function DialogFooter({
 
 function DialogTitle({
   className,
+  children,
+  translationKey,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Title>) {
+}: React.ComponentProps<typeof DialogPrimitive.Title> & {
+  /** i18n key for the title. `children` win when both are provided. */
+  translationKey?: string
+}) {
   return (
     <DialogPrimitive.Title
       data-slot="dialog-title"
       className={cn("text-lg leading-none font-semibold", className)}
       {...props}
-    />
+    >
+      {children ?? (translationKey ? <Translated k={translationKey} /> : undefined)}
+    </DialogPrimitive.Title>
   )
 }
 
 function DialogDescription({
   className,
+  children,
+  translationKey,
   ...props
-}: React.ComponentProps<typeof DialogPrimitive.Description>) {
+}: React.ComponentProps<typeof DialogPrimitive.Description> & {
+  /** i18n key for the description. `children` win when both are provided. */
+  translationKey?: string
+}) {
   return (
     <DialogPrimitive.Description
       data-slot="dialog-description"
       className={cn("text-muted-foreground text-sm", className)}
       {...props}
-    />
+    >
+      {children ?? (translationKey ? <Translated k={translationKey} /> : undefined)}
+    </DialogPrimitive.Description>
   )
 }
 

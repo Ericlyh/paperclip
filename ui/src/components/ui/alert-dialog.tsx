@@ -3,6 +3,7 @@ import { AlertDialog as AlertDialogPrimitive } from "radix-ui"
 
 import { cn } from "@/lib/utils"
 import { buttonVariants } from "@/components/ui/button"
+import { Translated } from "@/i18n/Translated"
 
 function AlertDialog({
   ...props
@@ -127,14 +128,21 @@ function AlertDialogAction({
 
 function AlertDialogCancel({
   className,
+  children,
+  translationKey = "common.cancel",
   ...props
-}: React.ComponentProps<typeof AlertDialogPrimitive.Cancel>) {
+}: React.ComponentProps<typeof AlertDialogPrimitive.Cancel> & {
+  /** i18n key for the label. Defaults to `common.cancel`; `children` win when provided. */
+  translationKey?: string
+}) {
   return (
     <AlertDialogPrimitive.Cancel
       data-slot="alert-dialog-cancel"
       className={cn(buttonVariants({ variant: "outline" }), className)}
       {...props}
-    />
+    >
+      {children ?? <Translated k={translationKey} />}
+    </AlertDialogPrimitive.Cancel>
   )
 }
 
