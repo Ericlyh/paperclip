@@ -436,6 +436,7 @@ function StudioNewSkillPanel({
   forkLoading: boolean;
   forkError: boolean;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const toast = useOptionalToastActions();
@@ -537,7 +538,7 @@ function StudioNewSkillPanel({
       <section className="space-y-3">
         <div>
           <h2 className="text-sm font-medium text-foreground">Basics</h2>
-          <p className="text-xs text-muted-foreground">Name the skill and set the route-safe slug.</p>
+          <p className="text-xs text-muted-foreground">{t("skillStudio.Name_the_skill_and_set_the_route_safe_sl")}</p>
         </div>
         <div className="grid gap-3 md:grid-cols-2">
           <div className="space-y-1.5">
@@ -555,7 +556,7 @@ function StudioNewSkillPanel({
                     : draft.markdown,
                 });
               }}
-              placeholder="Code review"
+              placeholder={t("skillStudio.Code_review")}
             />
           </div>
           <div className="space-y-1.5">
@@ -588,7 +589,7 @@ function StudioNewSkillPanel({
                   : draft.markdown,
               });
             }}
-            placeholder="Review repository changes for correctness, tests, and maintainability."
+            placeholder={t("skillStudio.Review_repository_changes_for_correctnes")}
             className="min-h-20"
           />
         </div>
@@ -597,7 +598,7 @@ function StudioNewSkillPanel({
       <section className="space-y-3">
         <div>
           <h2 className="text-sm font-medium text-foreground">Appearance</h2>
-          <p className="text-xs text-muted-foreground">Tune how the skill appears in the store and Studio switcher.</p>
+          <p className="text-xs text-muted-foreground">{t("skillStudio.Tune_how_the_skill_appears_in_the_store_")}</p>
         </div>
         <div className="flex items-center gap-3">
           <SkillCardIcon card={previewCard} size={48} />
@@ -623,7 +624,7 @@ function StudioNewSkillPanel({
               />
             ))}
             <Input
-              aria-label="Hex color"
+              aria-label={t("skillStudio.Hex_color")}
               value={draft.color}
               onChange={(event) => patchDraft({ color: event.target.value })}
               className="h-7 w-28 font-mono text-xs"
@@ -636,7 +637,7 @@ function StudioNewSkillPanel({
             id="skill-categories"
             value={categoryDraft}
             onChange={(event) => setCategoryDraft(event.target.value)}
-            placeholder="engineering, review, memory"
+            placeholder={t("skillStudio.engineering_review_memory")}
           />
         </div>
       </section>
@@ -644,7 +645,7 @@ function StudioNewSkillPanel({
       <section className="space-y-3">
         <div>
           <h2 className="text-sm font-medium text-foreground">Sharing</h2>
-          <p className="text-xs text-muted-foreground">Choose who can discover this skill inside Paperclip.</p>
+          <p className="text-xs text-muted-foreground">{t("skillStudio.Choose_who_can_discover_this_skill_insid")}</p>
         </div>
         <div className="grid gap-2 sm:grid-cols-3">
           {(["company", "private"] as const).map((scope) => (
@@ -669,13 +670,13 @@ function StudioNewSkillPanel({
             className="rounded-md border border-dashed border-border px-3 py-2 text-left text-sm text-muted-foreground"
           >
             <span className="block font-medium">Public</span>
-            <span className="mt-1 block text-xs">Coming later.</span>
+            <span className="mt-1 block text-xs">{t("skillStudio.Coming_later")}</span>
           </button>
         </div>
       </section>
 
       <details className="rounded-md border border-border px-3 py-2">
-        <summary className="cursor-pointer text-sm font-medium text-foreground">Starter content</summary>
+        <summary className="cursor-pointer text-sm font-medium text-foreground">{t("skillStudio.Starter_content")}</summary>
         <Textarea
           value={draft.markdown}
           onChange={(event) => patchDraft({ markdown: event.target.value })}
@@ -757,6 +758,7 @@ function StudioLanding({
   onSelectSkill: (skillId: string) => void;
   onCreateNew: () => void;
 }) {
+  const { t } = useTranslation();
   // Recency-sorted list, enriched with the last human editor (PAP-13149) — the
   // source for both landing sections. Kept separate from the alphabetical
   // switcher list so each cache stays sorted the way its consumer expects.
@@ -808,13 +810,13 @@ function StudioLanding({
           <div className="mx-auto w-full max-w-3xl space-y-8 px-4 py-8">
             {visited.length > 0 ? (
               <StudioLandingSection
-                title="Recently visited"
+                title={t("skillStudio.Recently_visited")}
                 skills={visited}
                 onSelectSkill={onSelectSkill}
               />
             ) : null}
             <StudioLandingSection
-              title="Recently updated"
+              title={t("skillStudio.Recently_updated")}
               skills={updated}
               onSelectSkill={onSelectSkill}
             />
@@ -1129,6 +1131,7 @@ function StudioHeader({
   onSelectSkill: (skillId: string) => void;
   onOpenVersions: () => void;
 }) {
+  const { t } = useTranslation();
   const version = skill.currentVersion?.revisionNumber ?? null;
   const toast = useOptionalToastActions();
   const copyShareLink = useCallback(() => {
@@ -1154,7 +1157,7 @@ function StudioHeader({
         <span className="font-mono text-xs text-muted-foreground">v{version}</span>
       )}
       {skillDirty ? (
-        <Badge variant="secondary">Unsaved edits</Badge>
+        <Badge variant="secondary">{t("skillStudio.Unsaved_edits")}</Badge>
       ) : null}
       {!skill.editable ? (
         <Badge variant="secondary">Read-only</Badge>
@@ -1173,7 +1176,7 @@ function StudioHeader({
         </Button>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" size="icon-sm" aria-label="Studio menu">
+            <Button variant="ghost" size="icon-sm" aria-label={t("skillStudio.Studio_menu")}>
               <MoreHorizontal className="h-4 w-4" />
             </Button>
           </DropdownMenuTrigger>
@@ -1268,6 +1271,7 @@ function SkillPane({
   onDirtyChange: (dirty: boolean) => void;
   onEditACopy: () => void;
 }) {
+  const { t } = useTranslation();
   const skillId = skill.id;
   const queryClient = useQueryClient();
   const onError = useMutationErrorToast();
@@ -1452,7 +1456,7 @@ function SkillPane({
         {dirty && !readOnly ? (
           <div className="flex items-start gap-2 border-b border-border bg-muted/40 px-3 py-2 text-xs text-muted-foreground">
             <AlertTriangle className="mt-0.5 h-3.5 w-3.5 shrink-0 text-amber-500" />
-            <span>Unsaved edits live only in this Studio session. Save to create the next version before running tests or switching files.</span>
+            <span>{t("skillStudio.Unsaved_edits_live_only_in_this_Studio_s")}</span>
           </div>
         ) : null}
         <div className="max-h-(--sz-11_75rem) overflow-auto border-b border-border p-1">
@@ -1648,6 +1652,7 @@ function SkillFileActions({
   onDeleteFile: () => void;
   onDeleteFolder: () => void;
 }) {
+  const { t } = useTranslation();
   const disabled = readOnly || pending;
   const deleteDisabled = disabled || !canDeleteFile;
   return (
@@ -1655,22 +1660,22 @@ function SkillFileActions({
       <Tooltip>
         <TooltipTrigger asChild>
           <span>
-            <Button variant="ghost" size="icon-sm" disabled={disabled} onClick={onAddFile} aria-label="Add file">
+            <Button variant="ghost" size="icon-sm" disabled={disabled} onClick={onAddFile} aria-label={t("skillStudio.Add_file")}>
               <FilePlus className="h-4 w-4" />
             </Button>
           </span>
         </TooltipTrigger>
-        <TooltipContent>Add file</TooltipContent>
+        <TooltipContent>{t("skillStudio.Add_file")}</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
           <span>
-            <Button variant="ghost" size="icon-sm" disabled={disabled} onClick={onAddFolder} aria-label="Add folder">
+            <Button variant="ghost" size="icon-sm" disabled={disabled} onClick={onAddFolder} aria-label={t("skillStudio.Add_folder")}>
               <FolderPlus className="h-4 w-4" />
             </Button>
           </span>
         </TooltipTrigger>
-        <TooltipContent>Add folder</TooltipContent>
+        <TooltipContent>{t("skillStudio.Add_folder")}</TooltipContent>
       </Tooltip>
       <Tooltip>
         <TooltipTrigger asChild>
@@ -1684,7 +1689,7 @@ function SkillFileActions({
                   onDeleteFile();
                 }
               }}
-              aria-label="Delete file"
+              aria-label={t("skillStudio.Delete_file")}
             >
               <Trash2 className="h-4 w-4" />
             </Button>
@@ -1695,12 +1700,12 @@ function SkillFileActions({
       <Tooltip>
         <TooltipTrigger asChild>
           <span>
-            <Button variant="ghost" size="icon-sm" disabled={disabled} onClick={onDeleteFolder} aria-label="Delete folder">
+            <Button variant="ghost" size="icon-sm" disabled={disabled} onClick={onDeleteFolder} aria-label={t("skillStudio.Delete_folder")}>
               <FolderMinus className="h-4 w-4" />
             </Button>
           </span>
         </TooltipTrigger>
-        <TooltipContent>Delete folder</TooltipContent>
+        <TooltipContent>{t("skillStudio.Delete_folder")}</TooltipContent>
       </Tooltip>
     </div>
   );
@@ -1723,6 +1728,7 @@ function SkillPathDialog({
   pending: boolean;
   onSubmit: (path: string, content: string) => void;
 }) {
+  const { t } = useTranslation();
   const [pathValue, setPathValue] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -1782,7 +1788,7 @@ function SkillPathDialog({
             placeholder={mode === "folder" ? "references/examples" : "references/examples.md"}
           />
           {mode === "folder" ? (
-            <p className="text-xs text-muted-foreground">A README.md seed file is created so the folder appears in the file tree.</p>
+            <p className="text-xs text-muted-foreground">{t("skillStudio.A_README_md_seed_file_is_created_so_the_")}</p>
           ) : null}
           {error ? <p className="text-xs text-destructive">{error}</p> : null}
         </div>
@@ -1814,6 +1820,7 @@ function DeleteFolderDialog({
   pending: boolean;
   onSubmit: (path: string) => void;
 }) {
+  const { t } = useTranslation();
   const [pathValue, setPathValue] = useState("");
   const [error, setError] = useState<string | null>(null);
 
@@ -1845,13 +1852,13 @@ function DeleteFolderDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Delete folder</DialogTitle>
+          <DialogTitle>{t("skillStudio.Delete_folder")}</DialogTitle>
           <DialogDescription>
             This removes every skill file under the folder and saves the result as the next version.
           </DialogDescription>
         </DialogHeader>
         <div className="space-y-2">
-          <Label htmlFor="skill-folder-delete">Folder path</Label>
+          <Label htmlFor="skill-folder-delete">{t("skillStudio.Folder_path")}</Label>
           <Input
             id="skill-folder-delete"
             value={pathValue}
@@ -1859,7 +1866,7 @@ function DeleteFolderDialog({
               setPathValue(event.target.value);
               setError(null);
             }}
-            placeholder="references/examples"
+            placeholder={t("skillStudio.references_examples")}
           />
           {error ? <p className="text-xs text-destructive">{error}</p> : null}
         </div>
@@ -1903,6 +1910,7 @@ function InputPane({
   onSelectInput: (id: string) => void;
   onSelectAdHoc: () => void;
 }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const onError = useMutationErrorToast();
   const [expandedDirs, setExpandedDirs] = useState<Set<string>>(new Set());
@@ -2031,11 +2039,11 @@ function InputPane({
         <div className="flex items-center gap-1">
           <Tooltip>
             <TooltipTrigger asChild>
-              <Button variant="ghost" size="icon-sm" onClick={selectAdHocInput} aria-label="New input">
+              <Button variant="ghost" size="icon-sm" onClick={selectAdHocInput} aria-label={t("skillStudio.New_input")}>
                 <Plus className="h-4 w-4" />
               </Button>
             </TooltipTrigger>
-            <TooltipContent>New input</TooltipContent>
+            <TooltipContent>{t("skillStudio.New_input")}</TooltipContent>
           </Tooltip>
         </div>
       }
@@ -2047,14 +2055,14 @@ function InputPane({
           onClick={() => setCollapsed(false)}
         >
           <ChevronRight className="h-3.5 w-3.5" />
-          <span>Input folded</span>
+          <span>{t("skillStudio.Input_folded")}</span>
         </button>
       ) : (
         <div className="flex min-h-0 flex-1 flex-col">
           {loading || inputs.length > 0 ? (
             <div className="max-h-(--sz-11_75rem) overflow-auto border-b border-border p-1">
               {loading ? (
-                <div className="p-3 text-xs text-muted-foreground">Loading inputs…</div>
+                <div className="p-3 text-xs text-muted-foreground">{t("skillStudio.Loading_inputs")}</div>
               ) : (
                 <>
                   {adHocMode && (
@@ -2123,8 +2131,8 @@ function InputPane({
             <textarea
               value={draft}
               onChange={(event) => setDraft(event.target.value)}
-              placeholder="Paste text - treated as a new issue description."
-              aria-label="Skill test input"
+              placeholder={t("skillStudio.Paste_text_treated_as_a_new_issue_descri")}
+              aria-label={t("skillStudio.Skill_test_input")}
               className="min-h-0 flex-1 resize-none border-0 bg-transparent px-3 py-3 text-sm leading-6 outline-none placeholder:text-muted-foreground focus-visible:ring-0"
             />
           </div>
@@ -2199,6 +2207,7 @@ function SaveInputDialog({
   initialContent: string;
   onSaved: (input: CompanySkillTestInput) => void;
 }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [content, setContent] = useState(initialContent);
@@ -2233,7 +2242,7 @@ function SaveInputDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent>
         <DialogHeader>
-          <DialogTitle>Save test input</DialogTitle>
+          <DialogTitle>{t("skillStudio.Save_test_input")}</DialogTitle>
           <DialogDescription>
             Runs snapshot input at run time — editing later won't change past runs.
           </DialogDescription>
@@ -2245,9 +2254,9 @@ function SaveInputDialog({
               id="input-name"
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="onboarding/happy-path"
+              placeholder={t("skillStudio.onboarding_happy_path")}
             />
-            <p className="text-xs text-muted-foreground">Use “/” for folders, e.g. onboarding/happy-path</p>
+            <p className="text-xs text-muted-foreground">{t("skillStudio.Use_for_folders_e_g_onboarding_happy_pat")}</p>
           </div>
           <div className="space-y-1">
             <Label htmlFor="input-content">Content</Label>
@@ -2313,6 +2322,7 @@ function RunsPane({
   filterInput: CompanySkillTestInput | null;
   onClearFilter: () => void;
 }) {
+  const { t } = useTranslation();
   const skillId = skill.id;
   const queryClient = useQueryClient();
   const onError = useMutationErrorToast();
@@ -2499,7 +2509,7 @@ function RunsPane({
 
   return (
     <PaneScaffold
-      title="Test runs"
+      title={t("skillStudio.Test_runs")}
       action={
         <div className="flex items-center gap-2">
           <AgentPicker
@@ -2566,7 +2576,7 @@ function RunsPane({
         )}
         <div className="min-h-0 flex-1 overflow-auto p-3">
           {runsQuery.isLoading ? (
-            <div className="text-xs text-muted-foreground">Loading runs…</div>
+            <div className="text-xs text-muted-foreground">{t("skillStudio.Loading_runs")}</div>
           ) : runs.length === 0 ? (
             <EmptyState icon={FlaskConical} message="No test runs yet. Pick an agent and Run." />
           ) : (
@@ -2647,6 +2657,7 @@ function RunTemplateAdvancedPanel({
   deletingTemplateId: string | null;
   actionPending: boolean;
 }) {
+  const { t } = useTranslation();
   const templateGroups = useMemo<readonly SearchableSelectGroup<string, RunTemplateOption>[]>(() => {
     const noTemplateOption: RunTemplateOption = {
       key: "no-template",
@@ -2699,14 +2710,14 @@ function RunTemplateAdvancedPanel({
         <div className="space-y-3 px-3 pb-3 pt-1">
           <div className="flex items-end gap-2">
             <div className="min-w-0 flex-1 space-y-1">
-              <Label>Run template</Label>
+              <Label>{t("skillStudio.Run_template")}</Label>
               <SearchableSelect<string, RunTemplateOption>
                 value={selectedValue}
                 groups={templateGroups}
                 loading={templatesLoading}
                 disabled={templatesLoading || templatesError}
                 loadingMessage="Loading templates..."
-                placeholder="Select template"
+                placeholder={t("skillStudio.Select_template")}
                 searchPlaceholder="Search templates..."
                 emptyMessage="No templates."
                 contentClassName="w-(--sz-320px)"
@@ -2728,14 +2739,14 @@ function RunTemplateAdvancedPanel({
                   type="button"
                   variant="outline"
                   size="icon-sm"
-                  aria-label="Create run template"
+                  aria-label={t("skillStudio.Create_run_template")}
                   disabled={actionPending}
                   onClick={onCreateTemplate}
                 >
                   <Plus />
                 </Button>
               </TooltipTrigger>
-              <TooltipContent>Create run template</TooltipContent>
+              <TooltipContent>{t("skillStudio.Create_run_template")}</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -2744,7 +2755,7 @@ function RunTemplateAdvancedPanel({
                     type="button"
                     variant="ghost"
                     size="icon-sm"
-                    aria-label="Edit run template"
+                    aria-label={t("skillStudio.Edit_run_template")}
                     disabled={!canEdit || actionPending}
                     onClick={() => selectedTemplate && onEditTemplate(selectedTemplate)}
                   >
@@ -2752,7 +2763,7 @@ function RunTemplateAdvancedPanel({
                   </Button>
                 </span>
               </TooltipTrigger>
-              <TooltipContent>Edit custom template</TooltipContent>
+              <TooltipContent>{t("skillStudio.Edit_custom_template")}</TooltipContent>
             </Tooltip>
             <Tooltip>
               <TooltipTrigger asChild>
@@ -2761,7 +2772,7 @@ function RunTemplateAdvancedPanel({
                     type="button"
                     variant="ghost"
                     size="icon-sm"
-                    aria-label="Duplicate run template"
+                    aria-label={t("skillStudio.Duplicate_run_template")}
                     disabled={!canDuplicate || actionPending}
                     onClick={() => selectedTemplate && onDuplicateTemplate(selectedTemplate)}
                   >
@@ -2780,7 +2791,7 @@ function RunTemplateAdvancedPanel({
                     type="button"
                     variant="ghost"
                     size="icon-sm"
-                    aria-label="Delete run template"
+                    aria-label={t("skillStudio.Delete_run_template")}
                     className="text-destructive hover:text-destructive"
                     disabled={!canDelete || actionPending || deletingTemplateId === selectedTemplate?.id}
                     onClick={() => selectedTemplate && onDeleteTemplate(selectedTemplate)}
@@ -2789,16 +2800,16 @@ function RunTemplateAdvancedPanel({
                   </Button>
                 </span>
               </TooltipTrigger>
-              <TooltipContent>Delete custom template</TooltipContent>
+              <TooltipContent>{t("skillStudio.Delete_custom_template")}</TooltipContent>
             </Tooltip>
           </div>
 
           {templatesError ? (
-            <p className="text-xs text-destructive">Run templates could not load.</p>
+            <p className="text-xs text-destructive">{t("skillStudio.Run_templates_could_not_load")}</p>
           ) : selectedTemplateId === null ? (
-            <p className="text-xs text-muted-foreground">Runs will use only the input text.</p>
+            <p className="text-xs text-muted-foreground">{t("skillStudio.Runs_will_use_only_the_input_text")}</p>
           ) : selectedMissing ? (
-            <p className="text-xs text-destructive">Selected template is no longer available.</p>
+            <p className="text-xs text-destructive">{t("skillStudio.Selected_template_is_no_longer_available")}</p>
           ) : selectedTemplate ? (
             <div className="space-y-2">
               {selectedTemplate.description ? (
@@ -2809,7 +2820,7 @@ function RunTemplateAdvancedPanel({
               </pre>
             </div>
           ) : (
-            <p className="text-xs text-muted-foreground">Loading template...</p>
+            <p className="text-xs text-muted-foreground">{t("skillStudio.Loading_template")}</p>
           )}
         </div>
       ) : null}
@@ -2828,6 +2839,7 @@ function RunTemplateDialog({
   onOpenChange: (open: boolean) => void;
   onSubmit: (payload: CompanySkillTestRunTemplateCreateRequest) => void;
 }) {
+  const { t } = useTranslation();
   const source = state?.source ?? null;
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
@@ -2863,7 +2875,7 @@ function RunTemplateDialog({
               id="run-template-name"
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="Focused smoke"
+              placeholder={t("skillStudio.Focused_smoke")}
             />
           </div>
           <div className="space-y-1">
@@ -2872,7 +2884,7 @@ function RunTemplateDialog({
               id="run-template-description"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              placeholder="Short instructions for common skill checks"
+              placeholder={t("skillStudio.Short_instructions_for_common_skill_chec")}
             />
           </div>
           <div className="space-y-1">
@@ -2949,6 +2961,7 @@ function AgentPicker({
   selectedAgent: Agent | null;
   onSelect: (id: string) => void;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -2957,15 +2970,15 @@ function AgentPicker({
           {selectedAgent ? (
             <Identity name={selectedAgent.name} size="xs" />
           ) : (
-            <span className="text-muted-foreground">Pick an agent</span>
+            <span className="text-muted-foreground">{t("skillStudio.Pick_an_agent")}</span>
           )}
         </Button>
       </PopoverTrigger>
       <PopoverContent align="end" className="w-64 p-0">
         <Command>
-          <CommandInput placeholder="Search agents…" />
+          <CommandInput placeholder={t("skillStudio.Search_agents")} />
           <CommandList>
-            <CommandEmpty>No agents.</CommandEmpty>
+            <CommandEmpty>{t("skillStudio.No_agents")}</CommandEmpty>
             <CommandGroup>
               {agents.map((agent) => {
                 const selectable = isAgentSelectable(agent);
@@ -3024,6 +3037,7 @@ function RunDetailView({
   onBack: () => void;
   onSelectRun: (id: string | null) => void;
 }) {
+  const { t } = useTranslation();
   const skillId = skill.id;
   const queryClient = useQueryClient();
   const onError = useMutationErrorToast();
@@ -3090,14 +3104,14 @@ function RunDetailView({
   if (detailQuery.isLoading) {
     return (
       <PaneScaffold title="Run" action={<BackButton onBack={onBack} />}>
-        <div className="p-3 text-xs text-muted-foreground">Loading run…</div>
+        <div className="p-3 text-xs text-muted-foreground">{t("skillStudio.Loading_run")}</div>
       </PaneScaffold>
     );
   }
   if (!detail) {
     return (
       <PaneScaffold title="Run" action={<BackButton onBack={onBack} />}>
-        <div className="p-3 text-xs text-muted-foreground">Run not found.</div>
+        <div className="p-3 text-xs text-muted-foreground">{t("skillStudio.Run_not_found")}</div>
       </PaneScaffold>
     );
   }
@@ -3129,7 +3143,7 @@ function RunDetailView({
         <div className="rounded-md border border-border text-xs">
           <PropRow label="Input" value={detail.inputId ? "saved input" : "ad-hoc paste"} />
           <PropRow label="Template" value={detail.templateName ?? "No template"} />
-          <PropRow label="Skill version" value={`v${detail.skillVersion.revisionNumber}`} />
+          <PropRow label={t("skillStudio.Skill_version")} value={`v${detail.skillVersion.revisionNumber}`} />
           <PropRow label="Created" value={relativeTime(detail.createdAt)} />
         </div>
 
@@ -3137,7 +3151,7 @@ function RunDetailView({
           <Card className="border-destructive/50">
             <CardHeader className="flex-row items-center gap-2 space-y-0 pb-2">
               <AlertTriangle className="h-3.5 w-3.5 text-destructive" />
-              <span className="text-sm font-medium">Run failed</span>
+              <span className="text-sm font-medium">{t("skillStudio.Run_failed")}</span>
             </CardHeader>
             <CardContent className="text-sm text-muted-foreground">
               {detail.error ?? "The test task ended with an error."}
@@ -3241,7 +3255,7 @@ function RunDetailView({
           )}
           {taskLink.enabled && detail.harnessIssue ? (
             <Button variant="link" size="sm" asChild>
-              <Link to={`/issues/${detail.harnessIssue.id}`}>Open test task ↗</Link>
+              <Link to={`/issues/${detail.harnessIssue.id}`}>{t("skillStudio.Open_test_task")}</Link>
             </Button>
           ) : (
             <Tooltip>
@@ -3320,6 +3334,7 @@ function InteractionSection({
   agents: Agent[];
   onAnswered: () => void;
 }) {
+  const { t } = useTranslation();
   const harnessIssueId = detail.harnessIssue?.id ?? null;
   const hasInlineAnswerable = detail.interactions.some((i) => isInteractionAnswerable(i));
 
@@ -3393,7 +3408,7 @@ function InteractionSection({
               trailing={
                 harnessIssueId ? (
                   <Button variant="link" size="xs" asChild>
-                    <Link to={`/issues/${harnessIssueId}`}>Open test task ↗</Link>
+                    <Link to={`/issues/${harnessIssueId}`}>{t("skillStudio.Open_test_task")}</Link>
                   </Button>
                 ) : null
               }
@@ -3424,6 +3439,7 @@ function VersionHistorySheet({
   onRestored: () => void;
   onFilterRuns: (inputId: string) => void;
 }) {
+  const { t } = useTranslation();
   const skillId = skill.id;
   const queryClient = useQueryClient();
   const versionsQuery = useQuery({
@@ -3463,11 +3479,11 @@ function VersionHistorySheet({
     <Sheet open={open} onOpenChange={onOpenChange}>
       <SheetContent side="left" className="w-full sm:max-w-(--sz-560px)">
         <SheetHeader>
-          <SheetTitle>Version history</SheetTitle>
+          <SheetTitle>{t("skillStudio.Version_history")}</SheetTitle>
         </SheetHeader>
         <div className="mt-3 space-y-2 overflow-auto">
           {versionsQuery.isLoading ? (
-            <div className="text-xs text-muted-foreground">Loading versions…</div>
+            <div className="text-xs text-muted-foreground">{t("skillStudio.Loading_versions")}</div>
           ) : versions.length === 0 ? (
             <EmptyState icon={History} message="No versions yet. Save changes to create the first." />
           ) : (
