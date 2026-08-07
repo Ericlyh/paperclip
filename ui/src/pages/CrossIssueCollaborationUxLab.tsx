@@ -7,6 +7,7 @@ import { IssueFieldChangeReceipt } from "@/components/IssueFieldChangeReceipt";
 import { IssueWriteDenialNotice } from "@/components/IssueWriteDenialNotice";
 import { Identity } from "@/components/Identity";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "@/i18n";
 
 /**
  * UX lab for the three surfaces that make open
@@ -115,6 +116,7 @@ const AGENT_NAMES = new Map([
 ]);
 
 export function CrossIssueCollaborationUxLab() {
+  const { t } = useTranslation();
   const resolveAgentLabel = (id: string) => AGENT_NAMES.get(id) ?? null;
   const resolveUserLabel = (id: string) => (id === "user-dotta" ? "Dotta" : null);
 
@@ -123,10 +125,10 @@ export function CrossIssueCollaborationUxLab() {
       <div className="mx-auto max-w-5xl space-y-6">
         <header>
           <div className="text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
-            Open cross-task collaboration
+            {t("pages.crossIssueCollaborationUxLab.open")}
           </div>
           <h1 className="mt-1 text-xl font-semibold text-foreground">
-            Open cross-task collaboration — attribution, audit, and denial copy
+            {t("pages.crossIssueCollaborationUxLab.description")}
           </h1>
           <p className="mt-1 text-sm text-muted-foreground">
             Agents may now write to any task they can read. These are the three surfaces that keep

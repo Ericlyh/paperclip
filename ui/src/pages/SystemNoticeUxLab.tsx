@@ -3,6 +3,7 @@
 // are deliberate one-off decoration, reverted from --gradient-extract-*/--shadow-extract-*
 // tokens; the file is on the check-token-gates allowlist in ui/src/index.css.
 import type { ReactNode } from "react";
+import { useTranslation } from "@/i18n";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -129,6 +130,7 @@ const checklist = [
 ];
 
 export function SystemNoticeUxLab() {
+  const { t } = useTranslation();
   const fixtureById = new Map(systemNoticeFixtures.map((f) => [f.id, f] as const));
 
   const warningCollapsed = fixtureById.get("warning-collapsed")!;
@@ -146,10 +148,10 @@ export function SystemNoticeUxLab() {
           <div className="p-6 sm:p-7">
             <div className="inline-flex items-center gap-2 rounded-full border border-amber-500/25 bg-amber-500/[0.08] px-3 py-1 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-amber-700 dark:text-amber-300">
               <FlaskConical className="h-3.5 w-3.5" />
-              System Notice Lab
+              {t("pages.systemNoticeUxLab.title")}
             </div>
             <h1 className="mt-4 text-3xl font-semibold tracking-tight">
-              First-class system notice treatment
+              {t("pages.systemNoticeUxLab.firstClass")}
             </h1>
             <p className="mt-3 max-w-3xl text-sm leading-6 text-muted-foreground">
               Replaces the current pattern where a Paperclip-authored warning renders inside a user-style
@@ -159,13 +161,13 @@ export function SystemNoticeUxLab() {
 
             <div className="mt-5 flex flex-wrap items-center gap-2">
               <Badge variant="outline" className="rounded-full px-3 py-1 text-(length:--text-nano) uppercase tracking-(--tracking-caps)">
-                PAP-3525 plan
+                {t("pages.systemNoticeUxLab.papPlan")}
               </Badge>
               <Badge variant="outline" className="rounded-full px-3 py-1 text-(length:--text-nano) uppercase tracking-(--tracking-caps)">
-                phase 1 — UX
+                {t("pages.systemNoticeUxLab.phase1")}
               </Badge>
               <Badge variant="outline" className="rounded-full px-3 py-1 text-(length:--text-nano) uppercase tracking-(--tracking-caps)">
-                tones: warning · danger · neutral
+                {t("pages.systemNoticeUxLab.tones")}
               </Badge>
             </div>
           </div>
@@ -173,7 +175,7 @@ export function SystemNoticeUxLab() {
           <aside className="border-t border-border/60 bg-background/70 p-6 lg:border-l lg:border-t-0">
             <div className="mb-4 flex items-center gap-2 text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
               <ListChecks className="h-4 w-4 text-amber-700 dark:text-amber-300" />
-              What this lab proves
+              {t("pages.systemNoticeUxLab.whatProves")}
             </div>
             <div className="space-y-3">
               {checklist.map((line) => (
@@ -298,21 +300,21 @@ export function SystemNoticeUxLab() {
                 <AvatarFallback>YO</AvatarFallback>
               </Avatar>
               <div className="flex min-w-0 max-w-(--pct-85) flex-col">
-                <div className="mb-1 px-1 text-sm font-medium text-foreground">You</div>
+                <div className="mb-1 px-1 text-sm font-medium text-foreground">{t("pages.systemNoticeUxLab.you")}</div>
                 <div className="min-w-0 max-w-full rounded-2xl bg-muted px-4 py-2.5 text-sm leading-6 text-foreground">
                   <div className="rounded-md border border-red-500/35 bg-red-500/10 px-3 py-2.5 text-sm text-red-950 dark:text-red-100">
                     <div className="flex items-start gap-2">
                       <Sparkles className="mt-1 h-4 w-4 shrink-0 text-red-600 dark:text-red-300" />
                       <div className="min-w-0">
-                        <p className="m-0 font-semibold">Successful run handoff missing</p>
+                        <p className="m-0 font-semibold">{t("pages.systemNoticeUxLab.successfulHandoffMissing")}</p>
                         <ul className="mt-1.5 list-disc space-y-0.5 pl-4 text-(length:--text-compact) leading-5">
-                          <li>Source issue: PAP-3440</li>
-                          <li>Source run: 9cdba892-c7ca-4d93-8604-4843873b127c</li>
-                          <li>Recovery run: 61fdb79b-8012-4676-ac71-2971830e126a</li>
-                          <li>Status before: in_progress</li>
-                          <li>Normalized cause: Run completed without disposition</li>
-                          <li>Recovery owner: CTO</li>
-                          <li>Suggested action: Reassign to recovery agent</li>
+                          <li>{t("pages.systemNoticeUxLab.sourceIssue")} PAP-3440</li>
+                          <li>{t("pages.systemNoticeUxLab.sourceRun")}: 9cdba892-c7ca-4d93-8604-4843873b127c</li>
+                          <li>{t("pages.systemNoticeUxLab.recoveryRun")}: 61fdb79b-8012-4676-ac71-2971830e126a</li>
+                          <li>{t("pages.systemNoticeUxLab.statusBefore")}: in_progress</li>
+                          <li>{t("pages.systemNoticeUxLab.normalizedCause")}</li>
+                          <li>{t("pages.systemNoticeUxLab.recoveryOwner")}: CTO</li>
+                          <li>{t("pages.systemNoticeUxLab.suggestedAction")}</li>
                         </ul>
                       </div>
                     </div>
@@ -321,7 +323,7 @@ export function SystemNoticeUxLab() {
               </div>
             </div>
             <p className="px-1 text-xs text-muted-foreground">
-              Author reads as <span className="font-medium text-foreground">You</span> even though the
+              {t("pages.systemNoticeUxLab.authorReadsAs")} <span className="font-medium text-foreground">{t("pages.systemNoticeUxLab.you")}</span> even though the
               author is the Paperclip system. Two containers stack the warning inside a user-style
               bubble, and operational evidence is always visible.
             </p>
@@ -338,7 +340,7 @@ export function SystemNoticeUxLab() {
             <SystemNotice {...dangerCollapsed} />
             <p className="px-1 text-xs text-muted-foreground">
               Same content. The visible body is one short system sentence; reviewers expand{" "}
-              <span className="font-medium text-foreground">Details</span> only when they need run
+              <span className="font-medium text-foreground">{t("pages.systemNoticeUxLab.details")}</span> only when they need run
               evidence. Tone is reinforced by the octagon icon and the &quot;System alert&quot; label,
               not just red.
             </p>
@@ -350,52 +352,52 @@ export function SystemNoticeUxLab() {
         <CardHeader className="px-5 pt-5 pb-0">
           <div className="flex items-center gap-2 text-(length:--text-micro) font-semibold uppercase tracking-(--tracking-caps) text-muted-foreground">
             <Layers className="h-4 w-4 text-amber-700 dark:text-amber-300" />
-            Implementation notes
+            {t("pages.systemNoticeUxLab.implNotes")}
           </div>
-          <CardTitle className="text-lg">Handoff to engineering</CardTitle>
+          <CardTitle className="text-lg">{t("pages.systemNoticeUxLab.handoffEngineering")}</CardTitle>
           <CardDescription>
-            What the Phase 4 UI implementation should preserve from this design.
+            {t("pages.systemNoticeUxLab.whatPhase4Preserve")}
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-3 px-5 pb-5 pt-0 text-sm text-muted-foreground">
           <div className="rounded-2xl border border-border/70 bg-background/80 px-4 py-3">
-            <div className="mb-1 font-medium text-foreground">Component</div>
+            <div className="mb-1 font-medium text-foreground">{t("pages.systemNoticeUxLab.component")}</div>
             Use <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{`<SystemNotice />`}</code>{" "}
             from <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">@/components/SystemNotice</code>.
-            It accepts <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">tone</code>,{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">label</code>,{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">body</code>,{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">metadata</code>, and{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">detailsDefaultOpen</code>.
+            It accepts <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{t("pages.systemNoticeUxLab.tone")}</code>,{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{t("pages.systemNoticeUxLab.label")}</code>,{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{t("pages.systemNoticeUxLab.body")}</code>,{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{t("pages.systemNoticeUxLab.metadata")}</code>, and{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{t("pages.systemNoticeUxLab.detailsDefaultOpen")}</code>.
           </div>
           <div className="rounded-2xl border border-border/70 bg-background/80 px-4 py-3">
-            <div className="mb-1 font-medium text-foreground">Routing in IssueChatThread</div>
+            <div className="mb-1 font-medium text-foreground">{t("pages.systemNoticeUxLab.routingInIssueChat")}</div>
             Comments where{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">authorType === &quot;system&quot;</code>{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{t("pages.systemNoticeUxLab.authorTypeSystem")}&quot;system&quot;</code>{" "}
             or{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">presentation.kind === &quot;system_notice&quot;</code>{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{t("pages.systemNoticeUxLab.presentationSystemNotice")}&quot;system_notice&quot;</code>{" "}
             should render as a SystemNotice row at full content width — never inside an{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">IssueChatUserMessage</code>{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{t("pages.systemNoticeUxLab.issueChatUserMessage")}</code>{" "}
             or assistant bubble.
           </div>
           <div className="rounded-2xl border border-border/70 bg-background/80 px-4 py-3">
-            <div className="mb-1 font-medium text-foreground">Accessibility</div>
+            <div className="mb-1 font-medium text-foreground">{t("pages.systemNoticeUxLab.accessibility")}</div>
             The Details button has{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">aria-expanded</code>{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{t("pages.systemNoticeUxLab.ariaExpanded")}</code>{" "}
             and{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">aria-controls</code>{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{t("pages.systemNoticeUxLab.ariaControls")}</code>{" "}
             wired to the panel id. The container exposes{" "}
             <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">role=&quot;status&quot;</code>{" "}
             and an{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">aria-label</code>{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{t("pages.systemNoticeUxLab.ariaLabel")}</code>{" "}
             equal to the visible tone label so screen readers announce tone with text.
           </div>
           <div className="rounded-2xl border border-border/70 bg-background/80 px-4 py-3">
-            <div className="mb-1 font-medium text-foreground">Legacy fallback</div>
+            <div className="mb-1 font-medium text-foreground">{t("pages.systemNoticeUxLab.legacyFallback")}</div>
             Existing comments without{" "}
             <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">presentation</code>{" "}
             keep rendering through the current{" "}
-            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">SuccessfulRunHandoffCommentCallout</code>{" "}
+            <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{t("pages.systemNoticeUxLab.successfulRunHandoff")}</code>{" "}
             string-detector. The new contract is opt-in for the system generators in Phase 5.
           </div>
         </CardContent>

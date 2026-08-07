@@ -23,6 +23,7 @@ import {
   TooltipTrigger,
 } from "@/components/ui/tooltip";
 import { Activity, ArrowDown, History, MessageSquarePlus, X } from "lucide-react";
+import { useTranslation } from "@/i18n";
 import { ActivityFeed } from "../components/ActivityFeed";
 import { ChatComposer, type ChatComposerHandle } from "../components/ChatComposer";
 import {
@@ -101,6 +102,7 @@ function TypingBubble() {
 }
 
 export function BoardChat() {
+  const { t } = useTranslation();
   const { selectedCompanyId, selectedCompany } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
@@ -658,9 +660,9 @@ export function BoardChat() {
     return (
       <div className="flex items-center justify-center h-full">
         <div className="text-center max-w-sm">
-          <h2 className="text-lg font-semibold">No company selected</h2>
+          <h2 className="text-lg font-semibold">{t("pages.boardChat.noCompanySelected")}</h2>
           <p className="text-sm text-muted-foreground mt-2">
-            Select a company to start chatting with your board concierge.
+            {t("pages.boardChat.selectCompanyToStart")}
           </p>
         </div>
       </div>
@@ -703,12 +705,12 @@ export function BoardChat() {
                     variant="ghost"
                     size="icon-sm"
                     className="text-muted-foreground"
-                    aria-label="chat history"
+                    aria-label={t("pages.boardChat.chatHistory")}
                   >
                     <History className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">chat history</TooltipContent>
+                <TooltipContent side="bottom">{t("pages.boardChat.chatHistory")}</TooltipContent>
               </Tooltip>
               <Tooltip>
                 <TooltipTrigger asChild>
@@ -717,12 +719,12 @@ export function BoardChat() {
                     variant="ghost"
                     size="icon-sm"
                     className="text-muted-foreground"
-                    aria-label="new chat"
+                    aria-label={t("pages.boardChat.newChat")}
                   >
                     <MessageSquarePlus className="h-4 w-4" />
                   </Button>
                 </TooltipTrigger>
-                <TooltipContent side="bottom">new chat</TooltipContent>
+                <TooltipContent side="bottom">{t("pages.boardChat.newChat")}</TooltipContent>
               </Tooltip>
             </div>
           </div>

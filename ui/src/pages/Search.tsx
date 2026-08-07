@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { Search as SearchIcon, AlertTriangle, FileQuestion, Plus, X } from "lucide-react";
+import { useTranslation } from "@/i18n";
 import {
   COMPANY_SEARCH_DEFAULT_LIMIT,
   COMPANY_SEARCH_SCOPES,
@@ -171,6 +172,7 @@ function shapeError(error: unknown): { message: string; status?: number } {
 }
 
 export function Search() {
+  const { t } = useTranslation();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const { openNewIssue } = useDialogActions();
@@ -659,9 +661,9 @@ export function Search() {
             </div>
           ) : (
             <span className="truncate">
-              Try <code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">status:todo</code>,{" "}
-              <code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">assignee:me</code>,{" "}
-              or <code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">updated:&gt;7d</code>.
+              {t("pages.search.try")}{" "}<code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">{t("pages.search.statusTodo")}</code>,{" "}
+              <code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">{t("pages.search.assigneeMe")}</code>,{" "}
+              or <code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">{t("pages.search.updatedDays")}</code>.
             </span>
           )}
         </div>
@@ -801,19 +803,20 @@ function SearchTabContent({
   isFetching,
   agentsById,
 }: SearchTabContentProps) {
+  const { t } = useTranslation();
   if (showInitialState) {
     return (
       <div className="mx-auto flex w-full max-w-2xl flex-col gap-4 px-4 py-10 sm:px-6">
         <div>
-          <h2 className="text-lg font-semibold">Type to search company memory.</h2>
+          <h2 className="text-lg font-semibold">{t("pages.search.typeToSearch")}</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Tasks, comments, plan documents, artifacts, agents, projects — same surface, ranked by relevance.
+            {t("pages.search.searchAll")}
           </p>
         </div>
         {recentSearches.length > 0 ? (
           <div>
             <div className="mb-2 text-(length:--text-micro) font-semibold uppercase tracking-wide text-muted-foreground">
-              Recent searches
+              {t("pages.search.recentSearches")}
             </div>
             <ul className="flex flex-col divide-y divide-border rounded-md border border-border">
               {recentSearches.map((entry) => (
@@ -833,11 +836,11 @@ function SearchTabContent({
         ) : null}
         <ul className="space-y-1 text-xs text-muted-foreground">
           <li>
-            <span className="font-medium text-foreground">Identifier lookup:</span> type{" "}
-            <code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">PAP-123</code> to jump straight to a task.
+            <span className="font-medium text-foreground">{t("pages.search.identifierLookup")}</span> type{" "}
+            <code className="rounded bg-muted px-1 py-0.5 text-(length:--text-micro)">{t("pages.search.papLookup")}</code> {t("pages.search.toJump")}
           </li>
           <li>
-            <span className="font-medium text-foreground">Quoted phrases:</span> wrap a phrase in quotes to match the
+            <span className="font-medium text-foreground">{t("pages.search.quotedPhrases")}</span> wrap a phrase in quotes to match the
             exact sequence.
           </li>
           <li>
@@ -861,10 +864,10 @@ function SearchTabContent({
         </p>
         <div className="flex flex-wrap items-center justify-center gap-2">
           <Button onClick={refetch} variant="default" size="sm">
-            Retry
+            {t("pages.search.retry")}
           </Button>
           <Button onClick={navigateIssuesFallback} variant="outline" size="sm">
-            Open Tasks filter view
+            {t("pages.search.openTasksFilter")}
           </Button>
         </div>
       </div>
@@ -910,23 +913,23 @@ function SearchTabContent({
         <div className="flex flex-wrap items-center justify-center gap-2">
           {scope !== "all" ? (
             <Button onClick={showAllScope} size="sm" variant="outline">
-              Search all scopes
+              {t("pages.search.searchAllScopes")}
             </Button>
           ) : null}
           <Button onClick={openNewIssue} size="sm" variant="default">
             <Plus className="mr-1.5 h-4 w-4" />
-            Create task from this query
+            {t("pages.search.createTaskFromQuery")}
           </Button>
           <Button onClick={navigateIssuesFallback} size="sm" variant="ghost">
-            Open Tasks filter view
+            {t("pages.search.openTasksFilter")}
           </Button>
         </div>
         <ul className="mt-2 space-y-0.5 text-xs text-muted-foreground">
-          <li>Try fewer tokens or a single distinctive term.</li>
+          <li>{t("pages.search.fewerTokens")}</li>
           <li>
-            Use an identifier shortcut like <code className="rounded bg-muted px-1 py-0.5">PAP-123</code>.
+            {t("pages.search.identifierShortcut")} <code className="rounded bg-muted px-1 py-0.5">PAP-123</code>.
           </li>
-          <li>Wrap multi-word phrases in quotes.</li>
+          <li>{t("pages.search.wrapMultiword")}</li>
         </ul>
       </div>
     );
@@ -948,7 +951,7 @@ function SearchTabContent({
             ? ` · ${activeFilterCount} ${activeFilterCount === 1 ? "filter" : "filters"} active`
             : ""}
         </span>
-        {isFetching ? <span aria-live="polite" className="normal-case tracking-normal">Updating…</span> : null}
+        {isFetching ? <span aria-live="polite" className="normal-case tracking-normal">{t("pages.search.updating")}</span> : null}
       </div>
       <div className="flex flex-col pb-10">
         {scope === "all" ? (

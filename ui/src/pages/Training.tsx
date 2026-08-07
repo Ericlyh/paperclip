@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { DecisionTrainingExample, DecisionTrainingSourceKind, IssueComment, Project } from "@paperclipai/shared";
+import { useTranslation } from "@/i18n";
 import { ArrowLeft, Download, Search } from "lucide-react";
 import { useNavigate, useParams } from "@/lib/router";
 import { decisionTrainingApi, type DecisionTrainingFilters } from "@/api/decisionTraining";
@@ -78,6 +79,7 @@ function downloadExport(companyId: string) {
 }
 
 export function TrainingLibrary() {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
@@ -113,11 +115,11 @@ export function TrainingLibrary() {
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6">
       <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h1 className="text-xl font-bold">Training examples</h1>
-          <p className="mt-1 text-sm text-muted-foreground">Human decision traces with frozen state for future eval cases.</p>
+          <h1 className="text-xl font-bold">{t("pages.training.title")}</h1>
+          <p className="mt-1 text-sm text-muted-foreground">{t("pages.training.description")}</p>
         </div>
         <Button variant="outline" onClick={() => selectedCompanyId && downloadExport(selectedCompanyId)} disabled={!selectedCompanyId}>
-          <Download className="size-4" /> Export JSONL
+          <Download className="size-4" /> {t("pages.training.exportJsonl")}
         </Button>
       </header>
 
@@ -126,18 +128,18 @@ export function TrainingLibrary() {
           <Search className="pointer-events-none absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <Input aria-label="Search training examples" value={q} onChange={(event) => setQ(event.target.value)} placeholder="Search notes, tasks…" className="pl-9" />
         </div>
-        <Select value={project} onValueChange={setProject}><SelectTrigger aria-label="Filter by project"><SelectValue placeholder="Project: All" /></SelectTrigger><SelectContent><SelectItem value="all">Project: All</SelectItem>{projects.map((item: Project) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent></Select>
-        <Select value={kind} onValueChange={setKind}><SelectTrigger aria-label="Filter by decision kind"><SelectValue placeholder="Decision kind: All" /></SelectTrigger><SelectContent><SelectItem value="all">Decision kind: All</SelectItem><SelectItem value="interaction">Interaction</SelectItem><SelectItem value="approval">Approval</SelectItem><SelectItem value="execution_decision">Execution decision</SelectItem></SelectContent></Select>
-        <Select value={author} onValueChange={setAuthor}><SelectTrigger aria-label="Filter by author"><SelectValue placeholder="Author: All" /></SelectTrigger><SelectContent><SelectItem value="all">Author: All</SelectItem>{authors.map((userId) => <SelectItem key={userId} value={userId}>{authorLabel(userId)}</SelectItem>)}</SelectContent></Select>
+        <Select value={project} onValueChange={setProject}><SelectTrigger aria-label="Filter by project"><SelectValue placeholder={t("pages.training.projectAll")} /></SelectTrigger><SelectContent><SelectItem value="all">{t("pages.training.projectAll")}</SelectItem>{projects.map((item: Project) => <SelectItem key={item.id} value={item.id}>{item.name}</SelectItem>)}</SelectContent></Select>
+        <Select value={kind} onValueChange={setKind}><SelectTrigger aria-label="Filter by decision kind"><SelectValue placeholder={t("pages.training.decisionKindAll")} /></SelectTrigger><SelectContent><SelectItem value="all">{t("pages.training.decisionKindAll")}</SelectItem><SelectItem value="interaction">{t("pages.training.interaction")}</SelectItem><SelectItem value="approval">{t("pages.training.approval")}</SelectItem><SelectItem value="execution_decision">{t("pages.training.executionDecision")}</SelectItem></SelectContent></Select>
+        <Select value={author} onValueChange={setAuthor}><SelectTrigger aria-label="Filter by author"><SelectValue placeholder={t("pages.training.authorAll")} /></SelectTrigger><SelectContent><SelectItem value="all">{t("pages.training.authorAll")}</SelectItem>{authors.map((userId) => <SelectItem key={userId} value={userId}>{authorLabel(userId)}</SelectItem>)}</SelectContent></Select>
       </div>
 
-      {recordsQuery.isLoading ? <p className="text-sm text-muted-foreground">Loading training examples…</p> : null}
-      {recordsQuery.isError ? <p className="text-sm text-destructive">Could not load training examples.</p> : null}
-      {!recordsQuery.isLoading && !recordsQuery.isError && records.length === 0 ? <p className="py-12 text-center text-sm text-muted-foreground">No training examples match these filters.</p> : null}
+      {recordsQuery.isLoading ? <p className="text-sm text-muted-foreground">{t("pages.training.loading")}</p> : null}
+      {recordsQuery.isError ? <p className="text-sm text-destructive">{t("pages.training.loadFailed")}</p> : null}
+      {!recordsQuery.isLoading && !recordsQuery.isError && records.length === 0 ? <p className="py-12 text-center text-sm text-muted-foreground">{t("pages.training.noMatch")}</p> : null}
 
       <div className="overflow-hidden rounded-lg border border-border">
         <div className="hidden grid-cols-6 gap-4 bg-muted/40 px-4 py-2 text-xs font-medium text-muted-foreground md:grid">
-          <span>Decision</span><span>Outcome</span><span>Snapshot</span><span>Author</span><span>Created</span><span>Edited</span>
+          <span>{t("pages.training.decision")}</span><span>{t("pages.training.outcome")}</span><span>{t("pages.training.snapshot")}</span><span>{t("pages.training.author")}</span><span>{t("pages.training.created")}</span><span>{t("pages.training.edited")}</span>
         </div>
         {records.map(({ example, issueIdentifier, issueTitle }) => {
           const issue = example.snapshot.issue;
@@ -167,13 +169,14 @@ export function TrainingThreadPanel({ example, liveComments }: { example: Decisi
     <div key={recordId(comment) || `${recordDate(comment)}-${stringValue(comment, "body")}`} data-excluded-from-snapshot={ghosted ? "true" : undefined} className={cn("py-4", ghosted && "opacity-50")}>
       <div className="font-mono text-xs text-muted-foreground">{stringValue(comment, "authorType", "author_type") ?? "Comment"} · {recordDate(comment) ? formatDateTime(recordDate(comment)) : "Unknown time"} · {recordId(comment).slice(0, 10)}</div>
       <p className="mt-2 whitespace-pre-wrap text-sm">{stringValue(comment, "body") ?? ""}</p>
-      {ghosted ? <p className="mt-2 text-xs font-medium text-destructive">Excluded from snapshot · after cutoff</p> : null}
+      {ghosted ? <p className="mt-2 text-xs font-medium text-destructive">{t("pages.training.excludedAfterCutoff")}</p> : null}
     </div>
   );
   return <div className="divide-y divide-border">{included.map((comment) => renderComment(comment))}<div data-training-cutoff className="flex items-center gap-3 py-4"><span className="h-px flex-1 bg-destructive" /><span className="font-mono text-xs font-bold text-destructive">CUTOFF · {formatDateTime(example.cutoffAt)}</span><span className="h-px flex-1 bg-destructive" /></div>{excluded.map((comment) => renderComment(comment as SnapshotRecord, true))}</div>;
 }
 
 export function TrainingInspector() {
+  const { t } = useTranslation();
   const { id = "" } = useParams();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -205,16 +208,16 @@ export function TrainingInspector() {
     },
   });
 
-  if (recordQuery.isLoading) return <p className="p-6 text-sm text-muted-foreground">Loading training example…</p>;
-  if (recordQuery.isError) return <p className="p-6 text-sm text-destructive">Could not load training example.</p>;
-  if (!example) return <p className="p-6 text-sm text-destructive">Training example not found.</p>;
+  if (recordQuery.isLoading) return <p className="p-6 text-sm text-muted-foreground">{t("pages.training.loadingExample")}</p>;
+  if (recordQuery.isError) return <p className="p-6 text-sm text-destructive">{t("pages.training.loadExampleFailed")}</p>;
+  if (!example) return <p className="p-6 text-sm text-destructive">{t("pages.training.notFound")}</p>;
   const issueIdentifier = stringValue(example.snapshot.issue, "identifier") ?? example.issueId.slice(0, 8);
   return (
     <div className="mx-auto flex w-full max-w-7xl flex-col gap-6 px-4 py-6 sm:px-6">
-      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><Button variant="ghost" size="sm" className="mb-2 -ml-2" onClick={() => navigate(decisionTrainingHref())}><ArrowLeft className="size-4" /> Training</Button><h1 className="truncate text-xl font-bold">{decisionTitle(example)}</h1><p className="mt-1 text-sm text-muted-foreground">{issueIdentifier} · {outcomeLabel(example.decisionOutcome)} · cutoff {formatDateTime(example.cutoffAt)}</p></div><Button variant="outline" onClick={() => downloadExport(example.companyId)}><Download className="size-4" /> Export JSONL</Button></header>
+      <header className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between"><div className="min-w-0"><Button variant="ghost" size="sm" className="mb-2 -ml-2" onClick={() => navigate(decisionTrainingHref())}><ArrowLeft className="size-4" /> {t("pages.training.training")}</Button><h1 className="truncate text-xl font-bold">{decisionTitle(example)}</h1><p className="mt-1 text-sm text-muted-foreground">{issueIdentifier} · {outcomeLabel(example.decisionOutcome)} · cutoff {formatDateTime(example.cutoffAt)}</p></div><Button variant="outline" onClick={() => downloadExport(example.companyId)}><Download className="size-4" /> Export JSONL</Button></header>
       <div className="grid gap-8 lg:grid-cols-2">
-        <section><div className="mb-3 flex items-center justify-between"><div><h2 className="text-sm font-semibold">Training notes</h2><p className="mt-1 text-xs text-muted-foreground">Last edited {formatDateTime(example.updatedAt)} · edits are versioned</p></div>{!editing ? <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>Edit</Button> : null}</div>{editing ? <div className="space-y-3"><Textarea value={notes} onChange={(event) => setNotes(event.target.value)} className="min-h-72" /><div className="flex justify-end gap-2"><Button variant="ghost" onClick={() => { setNotes(example.notes); setEditing(false); }}>Cancel</Button><Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || notes.trim() === example.notes}>Save notes</Button></div></div> : <p className="whitespace-pre-wrap text-sm leading-relaxed">{example.notes || "No notes recorded."}</p>}</section>
-        <section className="min-w-0"><div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-semibold">Frozen state</h2><span className="font-mono text-xs text-muted-foreground">read-only</span></div><Tabs defaultValue="thread"><TabsList variant="line" className="w-full justify-start overflow-x-auto"><TabsTrigger value="thread">Thread</TabsTrigger><TabsTrigger value="issue">Issue</TabsTrigger><TabsTrigger value="runs">Runs</TabsTrigger><TabsTrigger value="code">Code</TabsTrigger><TabsTrigger value="decision">Decision</TabsTrigger></TabsList><TabsContent value="thread"><TrainingThreadPanel example={example} liveComments={commentsQuery.data ?? []} /></TabsContent><TabsContent value="issue"><JsonPanel value={example.snapshot.issue} /></TabsContent><TabsContent value="runs"><JsonPanel value={example.snapshot.runs} /></TabsContent><TabsContent value="code"><JsonPanel value={example.snapshot.code} /></TabsContent><TabsContent value="decision"><JsonPanel value={example.snapshot.decision} /></TabsContent></Tabs></section>
+        <section><div className="mb-3 flex items-center justify-between"><div><h2 className="text-sm font-semibold">{t("pages.training.trainingNotes")}</h2><p className="mt-1 text-xs text-muted-foreground">Last edited {formatDateTime(example.updatedAt)} · edits are versioned</p></div>{!editing ? <Button variant="ghost" size="sm" onClick={() => setEditing(true)}>{t("pages.training.edit")}</Button> : null}</div>{editing ? <div className="space-y-3"><Textarea value={notes} onChange={(event) => setNotes(event.target.value)} className="min-h-72" /><div className="flex justify-end gap-2"><Button variant="ghost" onClick={() => { setNotes(example.notes); setEditing(false); }}>{t("pages.training.cancel")}</Button><Button onClick={() => saveMutation.mutate()} disabled={saveMutation.isPending || notes.trim() === example.notes}>{t("pages.training.saveNotes")}</Button></div></div> : <p className="whitespace-pre-wrap text-sm leading-relaxed">{example.notes || "No notes recorded."}</p>}</section>
+        <section className="min-w-0"><div className="mb-3 flex items-center justify-between"><h2 className="text-sm font-semibold">{t("pages.training.frozenState")}</h2><span className="font-mono text-xs text-muted-foreground">{t("pages.training.readOnly")}</span></div><Tabs defaultValue="thread"><TabsList variant="line" className="w-full justify-start overflow-x-auto"><TabsTrigger value="thread">{t("pages.training.thread")}</TabsTrigger><TabsTrigger value="issue">{t("pages.training.issue")}</TabsTrigger><TabsTrigger value="runs">{t("pages.training.runs")}</TabsTrigger><TabsTrigger value="code">{t("pages.training.code")}</TabsTrigger><TabsTrigger value="decision">Decision</TabsTrigger></TabsList><TabsContent value="thread"><TrainingThreadPanel example={example} liveComments={commentsQuery.data ?? []} /></TabsContent><TabsContent value="issue"><JsonPanel value={example.snapshot.issue} /></TabsContent><TabsContent value="runs"><JsonPanel value={example.snapshot.runs} /></TabsContent><TabsContent value="code"><JsonPanel value={example.snapshot.code} /></TabsContent><TabsContent value="decision"><JsonPanel value={example.snapshot.decision} /></TabsContent></Tabs></section>
       </div>
     </div>
   );
