@@ -73,6 +73,43 @@ function readDashboardFilterState(companyId: string | null | undefined): Dashboa
   }
 }
 
+function DashboardVisibilityFilters({
+  filterState,
+  onChange,
+  testIdPrefix,
+}: {
+  filterState: DashboardFilterState;
+  onChange: (patch: Partial<DashboardFilterState>) => void;
+  testIdPrefix: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+      <label
+        className="inline-flex cursor-pointer items-center gap-2 hover:text-foreground"
+        title="Hide auto-generated Review productivity issues"
+      >
+        <Checkbox
+          checked={filterState.hideProductivityReviewIssues}
+          onCheckedChange={(checked) => onChange({ hideProductivityReviewIssues: checked === true })}
+          data-testid={`${testIdPrefix}-productivity-review-filter`}
+        />
+        <span>Hide productivity-review issues</span>
+      </label>
+      <label
+        className="inline-flex cursor-pointer items-center gap-2 hover:text-foreground"
+        title="Hide tasks whose title starts with Paperclip: Close lint residuals on PR merge"
+      >
+        <Checkbox
+          checked={filterState.hideLintResidualTasks}
+          onCheckedChange={(checked) => onChange({ hideLintResidualTasks: checked === true })}
+          data-testid={`${testIdPrefix}-lint-residual-filter`}
+        />
+        <span>Hide lint-residual tasks</span>
+      </label>
+    </div>
+  );
+}
+
 export function Dashboard() {
   const { selectedCompanyId, companies } = useCompany();
   const { openOnboarding } = useDialogActions();
@@ -422,35 +459,6 @@ export function Dashboard() {
             itemClassName="rounded-lg border bg-card p-4 shadow-sm"
           />
 
-          <div className="flex flex-wrap justify-end gap-x-4 gap-y-1">
-            <label
-              className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
-              title="Hide auto-generated Review productivity issues"
-              data-testid="dashboard-productivity-review-filter"
-            >
-              <Checkbox
-                checked={filterState.hideProductivityReviewIssues}
-                onCheckedChange={(checked) =>
-                  updateDashboardFilter({ hideProductivityReviewIssues: checked === true })
-                }
-              />
-              <span>Hide productivity-review issues</span>
-            </label>
-            <label
-              className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
-              title="Hide tasks whose title starts with Paperclip: Close lint residuals on PR merge"
-              data-testid="dashboard-lint-residual-filter"
-            >
-              <Checkbox
-                checked={filterState.hideLintResidualTasks}
-                onCheckedChange={(checked) =>
-                  updateDashboardFilter({ hideLintResidualTasks: checked === true })
-                }
-              />
-              <span>Hide lint-residual tasks</span>
-            </label>
-          </div>
-
           <div className="grid md:grid-cols-2 gap-4">
             {/* Recent Activity */}
             {recentActivity.length > 0 && (
@@ -476,9 +484,16 @@ export function Dashboard() {
 
             {/* Recent Tasks */}
             <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                Recent Tasks
-              </h3>
+              <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                  Recent Tasks
+                </h3>
+                <DashboardVisibilityFilters
+                  filterState={filterState}
+                  onChange={updateDashboardFilter}
+                  testIdPrefix="dashboard-recent-tasks"
+                />
+              </div>
               {recentIssues.length === 0 ? (
                 <div className="border border-border p-4">
                   <p className="text-sm text-muted-foreground">No tasks yet.</p>
