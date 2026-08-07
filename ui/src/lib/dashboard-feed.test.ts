@@ -7,9 +7,15 @@ import {
   getRecentDashboardActivity,
   getRecentDashboardIssues,
   isLintResidualTaskActivity,
+  isProductivityReviewActivity,
 } from "./dashboard-feed";
 
-function makeIssue(id: string, title: string, updatedAt = "2026-08-07T00:00:00.000Z"): Issue {
+function makeIssue(
+  id: string,
+  title: string,
+  updatedAt = "2026-08-07T00:00:00.000Z",
+  originKind?: string,
+): Issue {
   return {
     id,
     companyId: "company-1",
@@ -45,6 +51,7 @@ function makeIssue(id: string, title: string, updatedAt = "2026-08-07T00:00:00.0
     labelIds: [],
     createdAt: new Date(updatedAt),
     updatedAt: new Date(updatedAt),
+    originKind: originKind as Issue["originKind"],
     workMode: "standard",
   };
 }
@@ -90,8 +97,35 @@ describe("dashboard feed helpers", () => {
       visibleEvent,
     ];
 
-    expect(getRecentDashboardActivity(events, new Map([[lintIssue.id, lintIssue]]), true)).toEqual([visibleEvent]);
-    expect(getRecentDashboardActivity(events, new Map([[lintIssue.id, lintIssue]]), false)).toHaveLength(2);
+    expect(getRecentDashboardActivity(events, new Map([[lintIssue.id, lintIssue]]), true, false)).toEqual([visibleEvent]);
+    expect(getRecentDashboardActivity(events, new Map([[lintIssue.id, lintIssue]]), false, false)).toHaveLength(2);
+  });
+
+  it("identifies productivity-review activity via issue reference or originKind details", () => {
+    const reviewIssue = makeIssue("review", "Review productivity for OOP-1", "2026-08-07T00:00:00.000Z", "issue_productivity_review");
+    const issuesById = new Map([[reviewIssue.id, reviewIssue]]);
+
+    expect(isProductivityReviewActivity(makeEvent({ entityId: reviewIssue.id }), issuesById)).toBe(true);
+    expect(isProductivityReviewActivity(
+      makeEvent({ entityType: "run", details: { issueId: reviewIssue.id, originKind: "issue_productivity_review" } }),
+      issuesById,
+    )).toBe(true);
+    expect(isProductivityReviewActivity(
+      makeEvent({ details: { originKind: "issue_productivity_review" } }),
+      new Map(),
+    )).toBe(true);
+    expect(isProductivityReviewActivity(makeEvent({ entityId: "other" }), new Map())).toBe(false);
+  });
+
+  it("filters productivity-review events independently of the lint-residual toggle", () => {
+    const reviewIssue = makeIssue("review", "Review productivity", "2026-08-07T00:00:00.000Z", "issue_productivity_review");
+    const visibleEvent = makeEvent({ id: "visible", entityId: "visible-issue" });
+    const reviewEvent = makeEvent({ id: "review", entityId: reviewIssue.id });
+    const events = [reviewEvent, visibleEvent];
+    const issuesById = new Map([[reviewIssue.id, reviewIssue]]);
+
+    expect(getRecentDashboardActivity(events, issuesById, false, true)).toEqual([visibleEvent]);
+    expect(getRecentDashboardActivity(events, issuesById, false, false)).toEqual([reviewEvent, visibleEvent]);
   });
 
   it("sorts and caps recent tasks at the expanded dashboard limit", () => {
@@ -99,7 +133,7 @@ describe("dashboard feed helpers", () => {
       makeIssue(`issue-${index}`, `Task ${index}`, `2026-08-07T00:${String(index).padStart(2, "0")}:00.000Z`),
     );
 
-    const recent = getRecentDashboardIssues(issues, false);
+    const recent = getRecentDashboardIssues(issues, false, true);
     expect(recent).toHaveLength(DASHBOARD_VISIBLE_FEED_LIMIT);
     expect(recent[0]?.title).toBe(`Task ${DASHBOARD_VISIBLE_FEED_LIMIT}`);
   });

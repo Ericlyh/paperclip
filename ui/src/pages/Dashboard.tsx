@@ -33,27 +33,43 @@ import {
   getRecentDashboardActivity,
   getRecentDashboardIssues,
 } from "../lib/dashboard-feed";
+import { isProductivityReviewIssue } from "../lib/issue-filters";
 
 // Auto-generated "Review productivity for OOP-*" issues carry this origin kind.
-// They are internal bookkeeping and should not clutter the dashboard surfaces.
-// Matches the server constant in server/src/services/issues.ts.
-const PRODUCTIVITY_REVIEW_ORIGIN_KIND = "issue_productivity_review";
+// They are internal bookkeeping and should not clutter the dashboard surfaces
+// by default, but the user can toggle them off via "Hide productivity-review
+// issues". The helper lives in ui/src/lib/issue-filters.ts.
 const DASHBOARD_FILTER_STORAGE_PREFIX = "paperclip:dashboard-filters";
 
-function isProductivityReviewIssue(issue: Issue): boolean {
-  return issue.originKind === PRODUCTIVITY_REVIEW_ORIGIN_KIND;
-}
+type DashboardFilterState = {
+  hideLintResidualTasks: boolean;
+  hideProductivityReviewIssues: boolean;
+};
+
+const DEFAULT_DASHBOARD_FILTER_STATE: DashboardFilterState = {
+  hideLintResidualTasks: false,
+  hideProductivityReviewIssues: true,
+};
 
 function dashboardFilterStorageKey(companyId: string): string {
   return `${DASHBOARD_FILTER_STORAGE_PREFIX}:${companyId}`;
 }
 
-function readHideLintResidualTasks(companyId: string | null | undefined): boolean {
-  if (!companyId || typeof window === "undefined") return false;
+function readDashboardFilterState(companyId: string | null | undefined): DashboardFilterState {
+  if (!companyId || typeof window === "undefined") return { ...DEFAULT_DASHBOARD_FILTER_STATE };
   try {
-    return window.localStorage.getItem(dashboardFilterStorageKey(companyId)) === "true";
+    const raw = window.localStorage.getItem(dashboardFilterStorageKey(companyId));
+    if (!raw) return { ...DEFAULT_DASHBOARD_FILTER_STATE };
+    const parsed = JSON.parse(raw) as Partial<DashboardFilterState>;
+    return {
+      hideLintResidualTasks: parsed.hideLintResidualTasks === true,
+      hideProductivityReviewIssues:
+        parsed.hideProductivityReviewIssues === undefined
+          ? DEFAULT_DASHBOARD_FILTER_STATE.hideProductivityReviewIssues
+          : parsed.hideProductivityReviewIssues === true,
+    };
   } catch {
-    return false;
+    return { ...DEFAULT_DASHBOARD_FILTER_STATE };
   }
 }
 
@@ -62,7 +78,9 @@ export function Dashboard() {
   const { openOnboarding } = useDialogActions();
   const { setBreadcrumbs } = useBreadcrumbs();
   const [animatedActivityIds, setAnimatedActivityIds] = useState<Set<string>>(new Set());
-  const [hideLintResidualTasks, setHideLintResidualTasks] = useState(false);
+  const [filterState, setFilterState] = useState<DashboardFilterState>({
+    ...DEFAULT_DASHBOARD_FILTER_STATE,
+  });
   const seenActivityIdsRef = useRef<Set<string>>(new Set());
   const hydratedActivityRef = useRef(false);
   const activityAnimationTimersRef = useRef<number[]>([]);
@@ -78,7 +96,7 @@ export function Dashboard() {
   }, [setBreadcrumbs]);
 
   useEffect(() => {
-    setHideLintResidualTasks(readHideLintResidualTasks(selectedCompanyId));
+    setFilterState(readDashboardFilterState(selectedCompanyId));
   }, [selectedCompanyId]);
 
   const { data, isLoading, error } = useQuery({
@@ -124,11 +142,13 @@ export function Dashboard() {
     [companyMembers?.users],
   );
 
-  // Hide auto-generated productivity-review issues from dashboard issue surfaces
-  // (recent list + charts). Raw `issues` is still used for activity-feed labels.
+  // Filter dashboard issue surfaces (recent list + charts). Raw `issues` is
+  // still used for activity-feed labels. Productivity-review suppression is
+  // toggled by `filterState.hideProductivityReviewIssues` (default ON to keep
+  // the prior "internal bookkeeping, should not clutter surfaces" behaviour).
   const visibleIssues = useMemo(
-    () => (issues ?? []).filter((issue) => !isProductivityReviewIssue(issue)),
-    [issues],
+    () => (issues ?? []).filter((issue) => !filterState.hideProductivityReviewIssues || !isProductivityReviewIssue(issue)),
+    [issues, filterState.hideProductivityReviewIssues],
   );
 
   const issueById = useMemo(() => {
@@ -138,12 +158,32 @@ export function Dashboard() {
   }, [issues]);
 
   const recentIssues = useMemo(
-    () => getRecentDashboardIssues(visibleIssues, hideLintResidualTasks),
-    [hideLintResidualTasks, visibleIssues],
+    () =>
+      getRecentDashboardIssues(
+        visibleIssues,
+        filterState.hideLintResidualTasks,
+        filterState.hideProductivityReviewIssues,
+      ),
+    [
+      visibleIssues,
+      filterState.hideLintResidualTasks,
+      filterState.hideProductivityReviewIssues,
+    ],
   );
   const recentActivity = useMemo(
-    () => getRecentDashboardActivity(activity ?? [], issueById, hideLintResidualTasks),
-    [activity, hideLintResidualTasks, issueById],
+    () =>
+      getRecentDashboardActivity(
+        activity ?? [],
+        issueById,
+        filterState.hideLintResidualTasks,
+        filterState.hideProductivityReviewIssues,
+      ),
+    [
+      activity,
+      issueById,
+      filterState.hideLintResidualTasks,
+      filterState.hideProductivityReviewIssues,
+    ],
   );
 
   useEffect(() => {
@@ -226,14 +266,18 @@ export function Dashboard() {
     return agents.find((a) => a.id === id)?.name ?? null;
   };
 
-  const updateHideLintResidualTasks = (checked: boolean) => {
-    setHideLintResidualTasks(checked);
-    if (!selectedCompanyId || typeof window === "undefined") return;
-    try {
-      window.localStorage.setItem(dashboardFilterStorageKey(selectedCompanyId), String(checked));
-    } catch {
-      // Ignore localStorage failures; the current view still updates.
-    }
+  const updateDashboardFilter = (patch: Partial<DashboardFilterState>) => {
+    setFilterState((prev) => {
+      const next = { ...prev, ...patch };
+      if (selectedCompanyId && typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(dashboardFilterStorageKey(selectedCompanyId), JSON.stringify(next));
+        } catch {
+          // Ignore localStorage failures; the current view still updates.
+        }
+      }
+      return next;
+    });
   };
 
   if (!selectedCompanyId) {
@@ -378,15 +422,30 @@ export function Dashboard() {
             itemClassName="rounded-lg border bg-card p-4 shadow-sm"
           />
 
-          <div className="flex justify-end">
+          <div className="flex flex-wrap justify-end gap-x-4 gap-y-1">
+            <label
+              className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
+              title="Hide auto-generated Review productivity issues"
+              data-testid="dashboard-productivity-review-filter"
+            >
+              <Checkbox
+                checked={filterState.hideProductivityReviewIssues}
+                onCheckedChange={(checked) =>
+                  updateDashboardFilter({ hideProductivityReviewIssues: checked === true })
+                }
+              />
+              <span>Hide productivity-review issues</span>
+            </label>
             <label
               className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
               title="Hide tasks whose title starts with Paperclip: Close lint residuals on PR merge"
               data-testid="dashboard-lint-residual-filter"
             >
               <Checkbox
-                checked={hideLintResidualTasks}
-                onCheckedChange={(checked) => updateHideLintResidualTasks(checked === true)}
+                checked={filterState.hideLintResidualTasks}
+                onCheckedChange={(checked) =>
+                  updateDashboardFilter({ hideLintResidualTasks: checked === true })
+                }
               />
               <span>Hide lint-residual tasks</span>
             </label>

@@ -195,6 +195,7 @@ export function Issues() {
       onSearchChange={handleSearchChange}
       enableRoutineVisibilityFilter
       enableLintResidualTaskFilter
+      enableProductivityReviewFilter
       hasMoreIssues={hasMoreServerIssues}
       onLoadMoreIssues={loadMoreServerIssues}
       onUpdateIssue={(id, data) => updateIssue.mutate({ id, data })}

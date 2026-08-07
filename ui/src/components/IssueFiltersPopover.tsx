@@ -58,6 +58,7 @@ export function IssueFiltersPopover({
   currentUserId,
   enableRoutineVisibilityFilter = false,
   enableLintResidualTaskFilter = false,
+  enableProductivityReviewFilter = false,
   buttonVariant = "ghost",
   iconOnly = false,
   workspaces,
@@ -72,6 +73,7 @@ export function IssueFiltersPopover({
   currentUserId?: string | null;
   enableRoutineVisibilityFilter?: boolean;
   enableLintResidualTaskFilter?: boolean;
+  enableProductivityReviewFilter?: boolean;
   buttonVariant?: "ghost" | "outline";
   iconOnly?: boolean;
   workspaces?: WorkspaceOption[];
@@ -375,6 +377,18 @@ export function IssueFiltersPopover({
                       onCheckedChange={(checked) => onChange({ hideLintResidualTasks: checked === true })}
                     />
                     <span className="text-sm">Hide lint-residual tasks</span>
+                  </label>
+                ) : null}
+                {enableProductivityReviewFilter ? (
+                  <label
+                    className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 hover:bg-accent/50"
+                    title="Hide auto-generated Review productivity issues"
+                  >
+                    <Checkbox
+                      checked={state.hideProductivityReviewIssues ?? true}
+                      onCheckedChange={(checked) => onChange({ hideProductivityReviewIssues: checked === true })}
+                    />
+                    <span className="text-sm">Hide productivity-review issues</span>
                   </label>
                 ) : null}
               </div>

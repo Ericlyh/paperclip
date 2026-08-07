@@ -8,6 +8,7 @@ import {
   defaultIssueFilterState,
   isLintResidualTask,
   isLintResidualTaskTitle,
+  isProductivityReviewIssue,
   resolveIssueFilterWorkspaceId,
   shouldIncludeIssueFilterWorkspaceOption,
 } from "./issue-filters";
@@ -85,6 +86,27 @@ describe("issue filters", () => {
     expect(applyIssueFilters([manualIssue, lintIssue], state)).toEqual([manualIssue, lintIssue]);
     expect(applyIssueFilters([manualIssue, lintIssue], state, null, false, undefined, {}, true)).toEqual([manualIssue]);
     expect(countActiveIssueFilters(state, false, true)).toBe(1);
+  });
+
+  it("identifies productivity-review issues by originKind and defaults the filter to ON", () => {
+    const reviewIssue = makeIssue({ id: "review", originKind: "issue_productivity_review" });
+    const manualIssue = makeIssue({ id: "manual" });
+
+    expect(isProductivityReviewIssue(reviewIssue)).toBe(true);
+    expect(isProductivityReviewIssue(manualIssue)).toBe(false);
+    expect(defaultIssueFilterState.hideProductivityReviewIssues).toBe(true);
+  });
+
+  it("hides productivity-review issues only when the dedicated filter is enabled", () => {
+    const reviewIssue = makeIssue({ id: "review", originKind: "issue_productivity_review" });
+    const manualIssue = makeIssue({ id: "manual" });
+    const state = { ...defaultIssueFilterState, hideProductivityReviewIssues: true };
+
+    expect(applyIssueFilters([manualIssue, reviewIssue], state)).toEqual([manualIssue, reviewIssue]);
+    expect(
+      applyIssueFilters([manualIssue, reviewIssue], state, null, false, undefined, {}, false, true),
+    ).toEqual([manualIssue]);
+    expect(countActiveIssueFilters(state, false, false, true)).toBe(1);
   });
 
   it("counts creator filters as an active filter group", () => {

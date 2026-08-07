@@ -3,6 +3,8 @@ import type { Issue } from "@paperclipai/shared";
 export const LINT_RESIDUAL_TASK_TITLE_PREFIX = "Paperclip: Close lint residuals on PR merge";
 const normalizedLintResidualTaskTitlePrefix = LINT_RESIDUAL_TASK_TITLE_PREFIX.toLowerCase();
 
+export const PRODUCTIVITY_REVIEW_ORIGIN_KIND = "issue_productivity_review";
+
 export type IssueFilterWorkspaceLookup = {
   mode?: string | null;
   projectWorkspaceId?: string | null;
@@ -24,6 +26,7 @@ export type IssueFilterState = {
   liveOnly?: boolean;
   hideRoutineExecutions: boolean;
   hideLintResidualTasks?: boolean;
+  hideProductivityReviewIssues?: boolean;
 };
 
 export const defaultIssueFilterState: IssueFilterState = {
@@ -37,6 +40,9 @@ export const defaultIssueFilterState: IssueFilterState = {
   liveOnly: false,
   hideRoutineExecutions: false,
   hideLintResidualTasks: false,
+  // Default ON to preserve the prior always-hidden behaviour for
+  // auto-generated "Review productivity for OOP-*" issues.
+  hideProductivityReviewIssues: true,
 };
 
 export const issueStatusOrder = ["in_progress", "todo", "backlog", "in_review", "blocked", "done", "cancelled"];
@@ -79,6 +85,10 @@ export function normalizeIssueFilterState(value: unknown): IssueFilterState {
     liveOnly: candidate.liveOnly === true,
     hideRoutineExecutions: candidate.hideRoutineExecutions === true,
     hideLintResidualTasks: candidate.hideLintResidualTasks === true,
+    hideProductivityReviewIssues:
+      candidate.hideProductivityReviewIssues === undefined
+        ? defaultIssueFilterState.hideProductivityReviewIssues
+        : candidate.hideProductivityReviewIssues === true,
   };
 }
 
@@ -88,6 +98,10 @@ export function isLintResidualTaskTitle(title: string | null | undefined): boole
 
 export function isLintResidualTask(issue: Pick<Issue, "title">): boolean {
   return isLintResidualTaskTitle(issue.title);
+}
+
+export function isProductivityReviewIssue(issue: Pick<Issue, "originKind">): boolean {
+  return issue.originKind === PRODUCTIVITY_REVIEW_ORIGIN_KIND;
 }
 
 export function toggleIssueFilterValue(values: string[], value: string): string[] {
@@ -140,6 +154,7 @@ export function applyIssueFilters(
   liveIssueIds?: ReadonlySet<string>,
   workspaceContext: IssueFilterWorkspaceContext = {},
   enableLintResidualTaskFilter = false,
+  enableProductivityReviewFilter = false,
 ): Issue[] {
   let result = issues;
   if (state.liveOnly) {
@@ -150,6 +165,9 @@ export function applyIssueFilters(
   }
   if (enableLintResidualTaskFilter && state.hideLintResidualTasks) {
     result = result.filter((issue) => !isLintResidualTask(issue));
+  }
+  if (enableProductivityReviewFilter && state.hideProductivityReviewIssues) {
+    result = result.filter((issue) => !isProductivityReviewIssue(issue));
   }
   if (state.statuses.length > 0) result = result.filter((issue) => state.statuses.includes(issue.status));
   if (state.priorities.length > 0) result = result.filter((issue) => state.priorities.includes(issue.priority));
@@ -191,6 +209,7 @@ export function countActiveIssueFilters(
   state: IssueFilterState,
   enableRoutineVisibilityFilter = false,
   enableLintResidualTaskFilter = false,
+  enableProductivityReviewFilter = false,
 ): number {
   let count = 0;
   if (state.statuses.length > 0) count += 1;
@@ -203,5 +222,6 @@ export function countActiveIssueFilters(
   if (state.liveOnly) count += 1;
   if (enableRoutineVisibilityFilter && state.hideRoutineExecutions) count += 1;
   if (enableLintResidualTaskFilter && state.hideLintResidualTasks) count += 1;
+  if (enableProductivityReviewFilter && state.hideProductivityReviewIssues) count += 1;
   return count;
 }

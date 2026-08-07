@@ -1054,6 +1054,7 @@ describe("inbox helpers", () => {
         liveOnly: true,
         hideRoutineExecutions: false,
         hideLintResidualTasks: false,
+        hideProductivityReviewIssues: true,
       },
     });
     expect(loadInboxFilterPreferences("company-2")).toEqual({
@@ -1070,6 +1071,7 @@ describe("inbox helpers", () => {
         liveOnly: false,
         hideRoutineExecutions: true,
         hideLintResidualTasks: false,
+        hideProductivityReviewIssues: true,
       },
     });
   });
@@ -1105,6 +1107,7 @@ describe("inbox helpers", () => {
         liveOnly: false,
         hideRoutineExecutions: false,
         hideLintResidualTasks: false,
+        hideProductivityReviewIssues: true,
       },
     });
   });
