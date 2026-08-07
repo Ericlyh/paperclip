@@ -1187,6 +1187,7 @@
     "fillRequired": "Please fill in all required fields."
   },
   "agents": {
+    "breadcrumb": "Agents",
     "viewMode": "View mode",
     "listView": "List view",
     "orgChartView": "Org chart view",
@@ -1198,9 +1199,11 @@
     "loadingEnvironment": "Loading environment",
     "localPaperclipHost": "Local - Paperclip host",
     "paperclipHost": "Paperclip host",
-    "invalidReportingChain": "Invalid reporting chain"
+    "invalidReportingChain": "Invalid reporting chain",
+    "noAgentsMatch": "No agents match the selected status."
   },
   "whatNeedsMe": {
+    "breadcrumbDecisions": "Decisions",
     "selectCompany": "Select a company first.",
     "noDecisionsMatch": "No decisions match your filters.",
     "adjustOrClear": "Adjust or clear the filters to see the rest.",

@@ -1187,6 +1187,7 @@
     "fillRequired": "請填寫所有必填欄位。"
   },
   "agents": {
+    "breadcrumb": "代理人",
     "viewMode": "檢視模式",
     "listView": "列表檢視",
     "orgChartView": "組織圖檢視",
@@ -1198,19 +1199,21 @@
     "loadingEnvironment": "正在載入環境",
     "localPaperclipHost": "本機 - Paperclip 主機",
     "paperclipHost": "Paperclip 主機",
-    "invalidReportingChain": "無效的隸屬關係鏈"
+    "invalidReportingChain": "無效的隸屬關係鏈",
+    "noAgentsMatch": "沒有符合所選狀態的代理人。"
   },
   "whatNeedsMe": {
-    "selectCompany": "請先選擇一家公司。",
-    "noDecisionsMatch": "沒有符合篩選條件的決策。",
-    "adjustOrClear": "請調整或清除篩選條件以查看其餘項目。",
-    "decidedDecisions": "正在載入已決定決策…",
-    "expiredDecisions": "正在載入已過期決策…",
-    "noDecided": "沒有已決定的決策。",
-    "noExpired": "沒有已過期的決策。",
-    "allCaughtUp1": "您已處理完畢",
-    "allCaughtUp2": "您已處理完畢。",
-    "anAgent": "一位代理人"
+    "breadcrumbDecisions": "Decisions",
+    "selectCompany": "Select a company first.",
+    "noDecisionsMatch": "No decisions match your filters.",
+    "adjustOrClear": "Adjust or clear the filters to see the rest.",
+    "decidedDecisions": "Loading decided decisions…",
+    "expiredDecisions": "Loading expired decisions…",
+    "noDecided": "No decided decisions.",
+    "noExpired": "No expired decisions.",
+    "allCaughtUp1": "You're all caught up",
+    "allCaughtUp2": "You're all caught up.",
+    "anAgent": "An agent"
   },
   "newAgent": {
     "title": "新增代理人",
