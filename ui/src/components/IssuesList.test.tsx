@@ -1655,6 +1655,66 @@ describe("IssuesList", () => {
     });
   });
 
+  it("hides lint-residual tasks when the dedicated filter is toggled", async () => {
+    const manualIssue = createIssue({
+      id: "issue-manual-lint-filter",
+      title: "Manual issue",
+    });
+    const lintIssue = createIssue({
+      id: "issue-lint-filter",
+      title: "Paperclip: Close lint residuals on PR merge",
+    });
+
+    const { root } = renderWithQueryClient(
+      <IssuesList
+        issues={[manualIssue, lintIssue]}
+        agents={[]}
+        projects={[]}
+        viewStateKey="paperclip:test-lint-filter"
+        enableLintResidualTaskFilter
+        onUpdateIssue={() => undefined}
+      />,
+      container,
+    );
+
+    await waitForAssertion(() => {
+      expect(container.textContent).toContain("Manual issue");
+      expect(container.textContent).toContain("Paperclip: Close lint residuals on PR merge");
+    });
+
+    await act(async () => {
+      const filterButton = Array.from(document.body.querySelectorAll("button")).find(
+        (button) => button.getAttribute("title") === "Filter",
+      );
+      filterButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    await waitForAssertion(() => {
+      const toggle = Array.from(document.body.querySelectorAll("label")).find(
+        (label) => label.textContent?.includes("Hide lint-residual tasks"),
+      );
+      expect(toggle).not.toBeUndefined();
+    });
+
+    await act(async () => {
+      const toggle = Array.from(document.body.querySelectorAll("label")).find(
+        (label) => label.textContent?.includes("Hide lint-residual tasks"),
+      );
+      toggle?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    await waitForAssertion(() => {
+      expect(container.textContent).toContain("Manual issue");
+      expect(container.textContent).not.toContain("Paperclip: Close lint residuals on PR merge");
+    });
+
+    act(() => {
+      root.unmount();
+    });
+  });
+
   it("blurs the search input on Enter without clearing the query", async () => {
     const { root } = renderWithQueryClient(
       <IssuesList

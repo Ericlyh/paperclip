@@ -408,6 +408,7 @@ interface IssuesListProps {
    */
   parentIssueIdForCostSummary?: string;
   enableRoutineVisibilityFilter?: boolean;
+  enableLintResidualTaskFilter?: boolean;
   hasMoreIssues?: boolean;
   isLoadingMoreIssues?: boolean;
   mutedIssueIds?: Set<string>;
@@ -615,6 +616,7 @@ export function IssuesList({
   showProgressSummary = false,
   parentIssueIdForCostSummary,
   enableRoutineVisibilityFilter = false,
+  enableLintResidualTaskFilter = false,
   hasMoreIssues = false,
   isLoadingMoreIssues = false,
   mutedIssueIds,
@@ -975,6 +977,7 @@ export function IssuesList({
       enableRoutineVisibilityFilter,
       liveIssueIds,
       issueFilterWorkspaceContext,
+      enableLintResidualTaskFilter,
     );
     return sortIssues(filteredByControls, viewState);
   }, [
@@ -986,6 +989,7 @@ export function IssuesList({
     normalizedIssueSearch,
     currentUserId,
     enableRoutineVisibilityFilter,
+    enableLintResidualTaskFilter,
     liveIssueIds,
     issueFilterWorkspaceContext,
   ]);
@@ -1043,7 +1047,11 @@ export function IssuesList({
     enabled: !!selectedCompanyId,
   });
 
-  const activeFilterCount = countActiveIssueFilters(viewState, enableRoutineVisibilityFilter);
+  const activeFilterCount = countActiveIssueFilters(
+    viewState,
+    enableRoutineVisibilityFilter,
+    enableLintResidualTaskFilter,
+  );
   const boardHighVolume = viewState.viewMode === "board" && filtered.length > KANBAN_BOARD_HIGH_VOLUME_THRESHOLD;
   const boardCompactCards =
     viewState.boardCardDensity === "compact"
@@ -1475,6 +1483,7 @@ export function IssuesList({
             labels={labels?.map((label) => ({ id: label.id, name: label.name, color: label.color }))}
             currentUserId={currentUserId}
             enableRoutineVisibilityFilter={enableRoutineVisibilityFilter}
+            enableLintResidualTaskFilter={enableLintResidualTaskFilter}
             iconOnly
             workspaces={isolatedWorkspacesEnabled ? workspaceOptions : undefined}
           />

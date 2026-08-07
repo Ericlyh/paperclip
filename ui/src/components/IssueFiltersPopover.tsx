@@ -9,6 +9,7 @@ import { PriorityIcon } from "./PriorityIcon";
 import { StatusIcon } from "./StatusIcon";
 import {
   defaultIssueFilterState,
+  LINT_RESIDUAL_TASK_TITLE_PREFIX,
   issueFilterArraysEqual,
   issueFilterLabel,
   issuePriorityOrder,
@@ -56,6 +57,7 @@ export function IssueFiltersPopover({
   labels,
   currentUserId,
   enableRoutineVisibilityFilter = false,
+  enableLintResidualTaskFilter = false,
   buttonVariant = "ghost",
   iconOnly = false,
   workspaces,
@@ -69,6 +71,7 @@ export function IssueFiltersPopover({
   labels?: LabelOption[];
   currentUserId?: string | null;
   enableRoutineVisibilityFilter?: boolean;
+  enableLintResidualTaskFilter?: boolean;
   buttonVariant?: "ghost" | "outline";
   iconOnly?: boolean;
   workspaces?: WorkspaceOption[];
@@ -360,6 +363,18 @@ export function IssueFiltersPopover({
                       onCheckedChange={(checked) => onChange({ hideRoutineExecutions: checked === true })}
                     />
                     <span className="text-sm">Hide routine runs</span>
+                  </label>
+                ) : null}
+                {enableLintResidualTaskFilter ? (
+                  <label
+                    className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 hover:bg-accent/50"
+                    title={`Hide titles starting with ${LINT_RESIDUAL_TASK_TITLE_PREFIX}`}
+                  >
+                    <Checkbox
+                      checked={state.hideLintResidualTasks}
+                      onCheckedChange={(checked) => onChange({ hideLintResidualTasks: checked === true })}
+                    />
+                    <span className="text-sm">Hide lint-residual tasks</span>
                   </label>
                 ) : null}
               </div>

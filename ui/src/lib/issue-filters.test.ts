@@ -6,6 +6,8 @@ import {
   applyIssueFilters,
   countActiveIssueFilters,
   defaultIssueFilterState,
+  isLintResidualTask,
+  isLintResidualTaskTitle,
   resolveIssueFilterWorkspaceId,
   shouldIncludeIssueFilterWorkspaceOption,
 } from "./issue-filters";
@@ -65,6 +67,24 @@ describe("issue filters", () => {
     });
 
     expect(filtered.map((issue) => issue.id)).toEqual(["agent-match", "user-match"]);
+  });
+
+  it("matches lint-residual task title variants without matching unrelated titles", () => {
+    expect(isLintResidualTaskTitle("Paperclip: Close lint residuals on PR merge")).toBe(true);
+    expect(isLintResidualTaskTitle(" paperclip: close lint residuals on PR merge — PR 123 ")).toBe(true);
+    expect(isLintResidualTaskTitle("Paperclip: Hourly Log Rotation")).toBe(false);
+    expect(isLintResidualTaskTitle("Close lint residuals on PR merge")).toBe(false);
+    expect(isLintResidualTask(makeIssue({ title: "Paperclip: Close lint residuals on PR merge (follow-up)" }))).toBe(true);
+  });
+
+  it("hides lint-residual tasks only when the dedicated filter is enabled", () => {
+    const manualIssue = makeIssue({ id: "manual", title: "Manual issue" });
+    const lintIssue = makeIssue({ id: "lint", title: "Paperclip: Close lint residuals on PR merge" });
+    const state = { ...defaultIssueFilterState, hideLintResidualTasks: true };
+
+    expect(applyIssueFilters([manualIssue, lintIssue], state)).toEqual([manualIssue, lintIssue]);
+    expect(applyIssueFilters([manualIssue, lintIssue], state, null, false, undefined, {}, true)).toEqual([manualIssue]);
+    expect(countActiveIssueFilters(state, false, true)).toBe(1);
   });
 
   it("counts creator filters as an active filter group", () => {

@@ -15,6 +15,7 @@ import { queryKeys } from "../lib/queryKeys";
 import { MetricCard } from "../components/MetricCard";
 import { EmptyState } from "../components/EmptyState";
 import { StatusIcon } from "../components/StatusIcon";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import { ActivityRow } from "../components/ActivityRow";
 import { Identity } from "../components/Identity";
@@ -26,21 +27,34 @@ import { ChartCard, RunActivityChart, PriorityChart, IssueStatusChart, SuccessRa
 import { PageSkeleton } from "../components/PageSkeleton";
 import type { Agent, Issue } from "@paperclipai/shared";
 import { PluginSlotOutlet } from "@/plugins/slots";
-
-const DASHBOARD_ACTIVITY_LIMIT = 10;
+import {
+  DASHBOARD_ACTIVITY_FETCH_LIMIT,
+  DASHBOARD_ISSUE_FETCH_LIMIT,
+  getRecentDashboardActivity,
+  getRecentDashboardIssues,
+} from "../lib/dashboard-feed";
 
 // Auto-generated "Review productivity for OOP-*" issues carry this origin kind.
 // They are internal bookkeeping and should not clutter the dashboard surfaces.
 // Matches the server constant in server/src/services/issues.ts.
 const PRODUCTIVITY_REVIEW_ORIGIN_KIND = "issue_productivity_review";
+const DASHBOARD_FILTER_STORAGE_PREFIX = "paperclip:dashboard-filters";
 
 function isProductivityReviewIssue(issue: Issue): boolean {
   return issue.originKind === PRODUCTIVITY_REVIEW_ORIGIN_KIND;
 }
 
-function getRecentIssues(issues: Issue[]): Issue[] {
-  return [...issues]
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+function dashboardFilterStorageKey(companyId: string): string {
+  return `${DASHBOARD_FILTER_STORAGE_PREFIX}:${companyId}`;
+}
+
+function readHideLintResidualTasks(companyId: string | null | undefined): boolean {
+  if (!companyId || typeof window === "undefined") return false;
+  try {
+    return window.localStorage.getItem(dashboardFilterStorageKey(companyId)) === "true";
+  } catch {
+    return false;
+  }
 }
 
 export function Dashboard() {
@@ -48,6 +62,7 @@ export function Dashboard() {
   const { openOnboarding } = useDialogActions();
   const { setBreadcrumbs } = useBreadcrumbs();
   const [animatedActivityIds, setAnimatedActivityIds] = useState<Set<string>>(new Set());
+  const [hideLintResidualTasks, setHideLintResidualTasks] = useState(false);
   const seenActivityIdsRef = useRef<Set<string>>(new Set());
   const hydratedActivityRef = useRef(false);
   const activityAnimationTimersRef = useRef<number[]>([]);
@@ -62,6 +77,10 @@ export function Dashboard() {
     setBreadcrumbs([{ label: "Dashboard" }]);
   }, [setBreadcrumbs]);
 
+  useEffect(() => {
+    setHideLintResidualTasks(readHideLintResidualTasks(selectedCompanyId));
+  }, [selectedCompanyId]);
+
   const { data, isLoading, error } = useQuery({
     queryKey: queryKeys.dashboard(selectedCompanyId!),
     queryFn: () => dashboardApi.summary(selectedCompanyId!),
@@ -69,14 +88,22 @@ export function Dashboard() {
   });
 
   const { data: activity } = useQuery({
-    queryKey: [...queryKeys.activity(selectedCompanyId!), { limit: DASHBOARD_ACTIVITY_LIMIT }],
-    queryFn: () => activityApi.list(selectedCompanyId!, { limit: DASHBOARD_ACTIVITY_LIMIT }),
+    queryKey: [...queryKeys.activity(selectedCompanyId!), { limit: DASHBOARD_ACTIVITY_FETCH_LIMIT }],
+    queryFn: () => activityApi.list(selectedCompanyId!, { limit: DASHBOARD_ACTIVITY_FETCH_LIMIT }),
     enabled: !!selectedCompanyId,
   });
 
   const { data: issues } = useQuery({
-    queryKey: queryKeys.issues.list(selectedCompanyId!),
-    queryFn: () => issuesApi.list(selectedCompanyId!),
+    queryKey: [
+      ...queryKeys.issues.list(selectedCompanyId!),
+      "dashboard",
+      { limit: DASHBOARD_ISSUE_FETCH_LIMIT, sortField: "updated", sortDir: "desc" },
+    ],
+    queryFn: () => issuesApi.list(selectedCompanyId!, {
+      limit: DASHBOARD_ISSUE_FETCH_LIMIT,
+      sortField: "updated",
+      sortDir: "desc",
+    }),
     enabled: !!selectedCompanyId,
   });
 
@@ -104,8 +131,20 @@ export function Dashboard() {
     [issues],
   );
 
-  const recentIssues = getRecentIssues(visibleIssues);
-  const recentActivity = useMemo(() => (activity ?? []).slice(0, 10), [activity]);
+  const issueById = useMemo(() => {
+    const map = new Map<string, Issue>();
+    for (const issue of issues ?? []) map.set(issue.id, issue);
+    return map;
+  }, [issues]);
+
+  const recentIssues = useMemo(
+    () => getRecentDashboardIssues(visibleIssues, hideLintResidualTasks),
+    [hideLintResidualTasks, visibleIssues],
+  );
+  const recentActivity = useMemo(
+    () => getRecentDashboardActivity(activity ?? [], issueById, hideLintResidualTasks),
+    [activity, hideLintResidualTasks, issueById],
+  );
 
   useEffect(() => {
     for (const timer of activityAnimationTimersRef.current) {
@@ -185,6 +224,16 @@ export function Dashboard() {
   const agentName = (id: string | null) => {
     if (!id || !agents) return null;
     return agents.find((a) => a.id === id)?.name ?? null;
+  };
+
+  const updateHideLintResidualTasks = (checked: boolean) => {
+    setHideLintResidualTasks(checked);
+    if (!selectedCompanyId || typeof window === "undefined") return;
+    try {
+      window.localStorage.setItem(dashboardFilterStorageKey(selectedCompanyId), String(checked));
+    } catch {
+      // Ignore localStorage failures; the current view still updates.
+    }
   };
 
   if (!selectedCompanyId) {
@@ -329,6 +378,20 @@ export function Dashboard() {
             itemClassName="rounded-lg border bg-card p-4 shadow-sm"
           />
 
+          <div className="flex justify-end">
+            <label
+              className="inline-flex cursor-pointer items-center gap-2 text-xs text-muted-foreground hover:text-foreground"
+              title="Hide tasks whose title starts with Paperclip: Close lint residuals on PR merge"
+              data-testid="dashboard-lint-residual-filter"
+            >
+              <Checkbox
+                checked={hideLintResidualTasks}
+                onCheckedChange={(checked) => updateHideLintResidualTasks(checked === true)}
+              />
+              <span>Hide lint-residual tasks</span>
+            </label>
+          </div>
+
           <div className="grid md:grid-cols-2 gap-4">
             {/* Recent Activity */}
             {recentActivity.length > 0 && (
@@ -363,7 +426,7 @@ export function Dashboard() {
                 </div>
               ) : (
                 <div className="border border-border divide-y divide-border overflow-hidden">
-                  {recentIssues.slice(0, 10).map((issue) => (
+                  {recentIssues.map((issue) => (
                     <Link
                       key={issue.id}
                       to={`/issues/${issue.identifier ?? issue.id}`}
