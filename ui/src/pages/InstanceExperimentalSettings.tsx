@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "@/i18n";
 import { AlertTriangle, Clock, FlaskConical, Lock, Play, Search } from "lucide-react";
 import type {
   InstanceExperimentalSettings,
@@ -145,12 +146,13 @@ function RecoveryPreviewDialog({
   onEnableAndRun: () => void;
   isPending: boolean;
 }) {
+  const { t } = useTranslation();
   const count = preview?.recoverableFindings ?? 0;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-3xl">
         <DialogHeader>
-          <DialogTitle>Confirm auto-recovery</DialogTitle>
+          <DialogTitle>{t("instanceExperimentalSettings.Confirm_auto_recovery")}</DialogTitle>
           <DialogDescription>
             {preview
               ? `${count} recovery ${count === 1 ? "task" : "tasks"} match the last ${preview.lookbackHours} hours.`
@@ -219,6 +221,7 @@ function RecoveryPreviewDialog({
 }
 
 export function InstanceExperimentalSettings() {
+  const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
   const [actionError, setActionError] = useState<string | null>(null);
@@ -330,7 +333,7 @@ export function InstanceExperimentalSettings() {
   }, [autoRecoveryManaged]);
 
   if (experimentalQuery.isLoading) {
-    return <div className="text-sm text-muted-foreground">Loading experimental settings...</div>;
+    return <div className="text-sm text-muted-foreground">{t("instanceExperimentalSettings.Loading_experimental_settings")}</div>;
   }
 
   if (experimentalQuery.error) {
@@ -444,7 +447,7 @@ export function InstanceExperimentalSettings() {
         <div className="flex items-start gap-3">
           <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
           <div className="space-y-1 text-sm">
-            <p className="font-medium text-foreground">Experimental features may break at any time.</p>
+            <p className="font-medium text-foreground">{t("instanceExperimentalSettings.Experimental_features_may_break_at_any_t")}</p>
             <p className="text-muted-foreground">
               These features are opt-in and come with no compatibility guarantees. They may change, break, or be
               removed without notice. Avoid relying on them for critical or production workflows.
@@ -474,7 +477,7 @@ export function InstanceExperimentalSettings() {
           <div className="flex items-start justify-between gap-4">
             <div className="space-y-1.5">
               <div className="flex flex-wrap items-center gap-2">
-                <h2 className="text-sm font-semibold">Auto-Create Recovery Tasks</h2>
+                <h2 className="text-sm font-semibold">{t("instanceExperimentalSettings.Auto_Create_Recovery_Tasks")}</h2>
                 {autoRecoveryManaged ? <ManagedByCloudBadge /> : null}
               </div>
               <p className="max-w-2xl text-sm text-muted-foreground">
@@ -493,7 +496,7 @@ export function InstanceExperimentalSettings() {
                 previewForEnable();
               }}
               disabled={recoveryActionPending || autoRecoveryManaged}
-              aria-label="Toggle task graph liveness auto-recovery"
+              aria-label={t("instanceExperimentalSettings.Toggle_task_graph_liveness_auto_recovery")}
             />
           </div>
 
@@ -560,7 +563,7 @@ export function InstanceExperimentalSettings() {
       </Card>
 
       <ExperimentalToggleCard
-        title="Auto-Restart Dev Server When Idle"
+        title={t("instanceExperimentalSettings.Auto_Restart_Dev_Server_When_Idle")}
         description="In `pnpm dev:once`, wait for all queued and running local agent runs to finish, then restart the server automatically when backend changes or migrations make the current boot stale."
         checked={autoRestartDevServerWhenIdle}
         onCheckedChange={(checked) => toggleMutation.mutate({ autoRestartDevServerWhenIdle: checked })}
@@ -570,7 +573,7 @@ export function InstanceExperimentalSettings() {
       />
 
       <ExperimentalToggleCard
-        title="Beta skills"
+        title={t("instanceExperimentalSettings.Beta_skills")}
         description="Allow agents to pin beta releases of the Paperclip core skill. Disabling this returns every agent to the default live skill without removing saved pins."
         checked={enableBetaSkills}
         onCheckedChange={(checked) => toggleMutation.mutate({ enableBetaSkills: checked })}
@@ -580,7 +583,7 @@ export function InstanceExperimentalSettings() {
       />
 
       <ExperimentalToggleCard
-        title="Built-in Agents"
+        title={t("instanceExperimentalSettings.Built_in_Agents")}
         description="Show Paperclip-managed built-in agent surfaces, including built-in roster badges, the Built-in agents tab, and built-in agent setup controls."
         checked={enableBuiltInAgents}
         onCheckedChange={(checked) => toggleMutation.mutate({ enableBuiltInAgents: checked })}
@@ -601,7 +604,7 @@ export function InstanceExperimentalSettings() {
       />
 
       <ExperimentalToggleCard
-        title="Chat-Style Tasks"
+        title={t("instanceExperimentalSettings.Chat_Style_Tasks")}
         description="Reimagines the task detail page as a live conversation with your agents: chat bubbles for people and agents, streaming activity — thinking, tool calls, diffs — that folds into a one-line summary when a turn finishes, inline plan/question/permission cards, a three-mode composer (Agent · Plan · Ask), and a resizable Properties · Plan · Artifacts pane."
         footnote="Turning this off instantly restores the classic task page. No task data is affected."
         checked={enableTaskChatRedesign}
@@ -613,7 +616,7 @@ export function InstanceExperimentalSettings() {
 
       {SHOW_CONFERENCE_ROOM_EXPERIMENTAL_SETTING ? (
         <ExperimentalToggleCard
-          title="Conference Room Chat"
+          title={t("instanceExperimentalSettings.Conference_Room_Chat")}
           description="Adds a Conference Room — one chat where you and your whole team work together — plus the live activity feed and the redesigned onboarding. Also restyles task threads as chat bubbles. Turn off anytime to restore the classic UI."
           checked={enableConferenceRoomChat}
           onCheckedChange={(checked) => toggleMutation.mutate({ enableConferenceRoomChat: checked })}
@@ -634,7 +637,7 @@ export function InstanceExperimentalSettings() {
       />
 
       <ExperimentalToggleCard
-        title="Enable Environments"
+        title={t("instanceExperimentalSettings.Enable_Environments")}
         description="Show environment management in company settings and allow project and agent environment assignment controls."
         checked={enableEnvironments}
         onCheckedChange={(checked) => toggleMutation.mutate({ enableEnvironments: checked })}
@@ -644,7 +647,7 @@ export function InstanceExperimentalSettings() {
       />
 
       <ExperimentalToggleCard
-        title="Enable External Objects"
+        title={t("instanceExperimentalSettings.Enable_External_Objects")}
         description="Detect external URLs in issues and show resolved status for pull requests, tickets, and other referenced work objects."
         checked={enableExternalObjects}
         onCheckedChange={(checked) => toggleMutation.mutate({ enableExternalObjects: checked })}
@@ -654,7 +657,7 @@ export function InstanceExperimentalSettings() {
       />
 
       <ExperimentalToggleCard
-        title="Enable Isolated Workspaces"
+        title={t("instanceExperimentalSettings.Enable_Isolated_Workspaces")}
         description="Show execution workspace controls in project configuration and allow isolated workspace behavior for new and existing task runs."
         checked={enableIsolatedWorkspaces}
         onCheckedChange={(checked) => toggleMutation.mutate({ enableIsolatedWorkspaces: checked })}
@@ -664,7 +667,7 @@ export function InstanceExperimentalSettings() {
       />
 
       <ExperimentalToggleCard
-        title="Experimental File Viewer"
+        title={t("instanceExperimentalSettings.Experimental_File_Viewer")}
         description="Show task detail controls for browsing and previewing workspace files relative to a task."
         checked={enableExperimentalFileViewer}
         onCheckedChange={(checked) => toggleMutation.mutate({ enableExperimentalFileViewer: checked })}
@@ -674,7 +677,7 @@ export function InstanceExperimentalSettings() {
       />
 
       <ExperimentalToggleCard
-        title="Goals Sidebar Link"
+        title={t("instanceExperimentalSettings.Goals_Sidebar_Link")}
         description="Restore the Goals item in the main sidebar while the goals surface is being evaluated."
         checked={enableGoalsSidebarLink}
         onCheckedChange={(checked) => toggleMutation.mutate({ enableGoalsSidebarLink: checked })}
@@ -689,7 +692,7 @@ export function InstanceExperimentalSettings() {
             <div className="flex items-start justify-between gap-4">
               <div className="space-y-1.5">
                 <div className="flex flex-wrap items-center gap-2">
-                  <h2 className="text-sm font-semibold">Run tasks in this worktree</h2>
+                  <h2 className="text-sm font-semibold">{t("instanceExperimentalSettings.Run_tasks_in_this_worktree")}</h2>
                   {worktreeRunExecutionManaged ? <ManagedByCloudBadge /> : null}
                 </div>
                 <p className="max-w-2xl text-sm text-muted-foreground">
@@ -705,7 +708,7 @@ export function InstanceExperimentalSettings() {
                   toggleMutation.mutate({ enableWorktreeRunExecution: checked });
                 }}
                 disabled={toggleMutation.isPending || worktreeRunExecutionManaged}
-                aria-label="Toggle worktree run execution setting"
+                aria-label={t("instanceExperimentalSettings.Toggle_worktree_run_execution_setting")}
               />
             </div>
 
@@ -726,7 +729,7 @@ export function InstanceExperimentalSettings() {
               <div className="flex items-start gap-2 rounded-md border border-amber-500/30 bg-amber-500/5 px-3 py-2 text-sm">
                 <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0 text-amber-700" />
                 <div className="space-y-0.5">
-                  <p className="font-medium text-foreground">Execution is suppressed — effectively off.</p>
+                  <p className="font-medium text-foreground">{t("instanceExperimentalSettings.Execution_is_suppressed_effectively_off")}</p>
                   <p className="text-muted-foreground">
                     {worktreeRunExecutionState.reason === "instance_mismatch"
                       ? "This setting was armed in a different instance and copied here, so no tasks run automatically."
@@ -741,7 +744,7 @@ export function InstanceExperimentalSettings() {
       ) : null}
 
       <ExperimentalToggleCard
-        title="Server Info Debug View"
+        title={t("instanceExperimentalSettings.Server_Info_Debug_View")}
         description='Show a "Server" section in the account drawer with the current server restart time and running commit.'
         checked={enableServerInfoDebugView}
         onCheckedChange={(checked) => toggleMutation.mutate({ enableServerInfoDebugView: checked })}
@@ -751,7 +754,7 @@ export function InstanceExperimentalSettings() {
       />
 
       <ExperimentalToggleCard
-        title="Simplified English Interactions"
+        title={t("instanceExperimentalSettings.Simplified_English_Interactions")}
         description="Instruct agents to write user interactions (plan confirmations, questions, suggested tasks, checkbox prompts) in ASD-STE100 Simplified Technical English, with brief context on what information the decision needs and what happens for each choice."
         checked={enableSimplifiedEnglishInteractions}
         onCheckedChange={(checked) =>
@@ -763,7 +766,7 @@ export function InstanceExperimentalSettings() {
       />
 
       <ExperimentalToggleCard
-        title="Smoke Lab"
+        title={t("instanceExperimentalSettings.Smoke_Lab")}
         description='Add a "Smoke Lab" tab under Apps → Developer and an "Integration smoke" card on the dashboard for exercising every integration path against deterministic local fixtures (fake OAuth provider + loopback MCP servers). Private (non-public) deployments only.'
         checked={enableSmokeLab}
         onCheckedChange={(checked) => toggleMutation.mutate({ enableSmokeLab: checked })}
@@ -773,7 +776,7 @@ export function InstanceExperimentalSettings() {
       />
 
       <ExperimentalToggleCard
-        title="Status Cards"
+        title={t("instanceExperimentalSettings.Status_Cards")}
         description="Enable the experimental shared status-card board and its gated API. Existing card data is kept when this is disabled."
         footnote="Enabling Status Cards also enables Summaries."
         checked={enableStatusCards}
@@ -807,7 +810,7 @@ export function InstanceExperimentalSettings() {
       />
 
       <ExperimentalToggleCard
-        title="Task Plan Decomposition Panel"
+        title={t("instanceExperimentalSettings.Task_Plan_Decomposition_Panel")}
         description="Show accepted-plan decomposition history on task detail pages. Intended for debugging and validating subtask creation behavior while the presentation is still being refined."
         checked={enableIssuePlanDecompositions}
         onCheckedChange={(checked) => toggleMutation.mutate({ enableIssuePlanDecompositions: checked })}
@@ -817,7 +820,7 @@ export function InstanceExperimentalSettings() {
       />
 
       <ExperimentalToggleCard
-        title="Task Watchdogs"
+        title={t("instanceExperimentalSettings.Task_Watchdogs")}
         description="Show task detail controls for configuring watchdog agents that verify stopped task subtrees and restore live paths when work should continue."
         checked={enableTaskWatchdogs}
         onCheckedChange={(checked) => toggleMutation.mutate({ enableTaskWatchdogs: checked })}
