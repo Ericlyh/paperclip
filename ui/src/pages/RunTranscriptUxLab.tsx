@@ -5,6 +5,7 @@
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "@/i18n";
 import { cn, formatDateTime } from "../lib/utils";
 import { Identity } from "../components/Identity";
 import { StatusBadge } from "../components/StatusBadge";
@@ -100,11 +101,12 @@ function LiveWidgetPreview({
   mode: TranscriptMode;
   density: TranscriptDensity;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="overflow-hidden rounded-xl border border-cyan-500/25 bg-background/85 shadow-[0_20px_50px_rgba(6,182,212,0.10)]">
       <div className="border-b border-border/60 bg-cyan-500/[0.05] px-5 py-4">
         <div className="text-xs font-semibold uppercase tracking-(--tracking-caps) text-cyan-700 dark:text-cyan-300">
-          Live Runs
+          {t("runTranscriptUxLab.liveRuns")}
         </div>
         <div className="mt-1 text-xs text-muted-foreground">
           Compact live transcript stream for the issue detail page.
@@ -123,7 +125,7 @@ function LiveWidgetPreview({
             </div>
           </div>
           <Badge variant="outline" className="border-border/70 bg-background/70 px-2.5 py-1 text-(length:--text-micro) text-muted-foreground">
-            Open run
+            {t("runTranscriptUxLab.openRun")}
             <ExternalLink className="h-3 w-3" />
           </Badge>
         </div>
@@ -150,6 +152,7 @@ function DashboardPreview({
   mode: TranscriptMode;
   density: TranscriptDensity;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="max-w-md">
       <div className={cn(
@@ -169,7 +172,7 @@ function DashboardPreview({
                 <Identity name={runTranscriptFixtureMeta.agentName} size="sm" />
               </div>
               <div className="mt-2 text-(length:--text-micro) text-muted-foreground">
-                {streaming ? "Live now" : "Finished 2m ago"}
+                {streaming ? t("runTranscriptUxLab.liveNow") : t("runTranscriptUxLab.finishedAgo")}
               </div>
             </div>
             <Badge variant="outline" className="[&>svg]:size-2.5 border-border/70 bg-background/70 py-1 text-(length:--text-nano) text-muted-foreground">
@@ -195,6 +198,7 @@ function DashboardPreview({
 }
 
 export function RunTranscriptUxLab() {
+  const { t } = useTranslation();
   const [selectedSurface, setSelectedSurface] = useState<SurfaceId>("detail");
   const [detailMode, setDetailMode] = useState<TranscriptMode>("nice");
   const [streaming, setStreaming] = useState(true);
@@ -210,9 +214,9 @@ export function RunTranscriptUxLab() {
             <div className="mb-5">
               <div className="inline-flex items-center gap-2 rounded-full border border-cyan-500/25 bg-cyan-500/[0.08] px-3 py-1 text-(length:--text-nano) font-semibold uppercase tracking-(--tracking-caps) text-cyan-700 dark:text-cyan-300">
                 <FlaskConical className="h-3.5 w-3.5" />
-                UX Lab
+                {t("runTranscriptUxLab.uxLab")}
               </div>
-              <h1 className="mt-4 text-2xl font-semibold tracking-tight">Run Transcript Fixtures</h1>
+              <h1 className="mt-4 text-2xl font-semibold tracking-tight">{t("runTranscriptUxLab.title")}</h1>
               <p className="mt-2 text-sm text-muted-foreground">
                 Built from a real Paperclip development run, then sanitized so no secrets, local paths, or environment details survive into the fixture.
               </p>
@@ -315,7 +319,7 @@ export function RunTranscriptUxLab() {
                 className="rounded-full"
                 onClick={() => setStreaming((value) => !value)}
               >
-                {streaming ? "Show settled state" : "Show streaming state"}
+                {streaming ? t("runTranscriptUxLab.showSettled") : t("runTranscriptUxLab.showStreaming")}
               </Button>
             </div>
 
