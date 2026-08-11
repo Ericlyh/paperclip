@@ -23,6 +23,7 @@ import { summarySlotRoutes } from "./routes/summary-slots.js";
 import { statusCardRoutes } from "./routes/status-cards.js";
 import { teamsCatalogRoutes } from "./routes/teams-catalog.js";
 import { agentRoutes } from "./routes/agents.js";
+import type { SetupTokenSessionService } from "./services/setup-token-session.js";
 import { projectRoutes } from "./routes/projects.js";
 import { issueRoutes } from "./routes/issues.js";
 import { issueTreeControlRoutes } from "./routes/issue-tree-control.js";
@@ -378,7 +379,34 @@ export async function createApp(
   api.use(summarySlotRoutes(db));
   api.use(statusCardRoutes(db));
   api.use(teamsCatalogRoutes(db));
-  api.use(agentRoutes(db, { pluginWorkerManager: workerManager }));
+  // The setup-token login session service. The router builds it and hands it
+  // back through the callback below, so the shutdown hook can cancel every live
+  // session (SR-4).
+  let setupTokenLoginService: SetupTokenSessionService | null = null;
+  // The dedicated proxy IP or CIDR allowlist for the confidential setup-token
+  // login responses (SR-7). The global `TRUST_PROXY` setting does not satisfy
+  // the guard; an operator sets this allowlist to the real TLS-terminating
+  // proxy addresses. An empty value keeps the confidential responses on direct
+  // TLS (or a `local_trusted` loopback peer) only.
+  const setupTokenLoginProxyAllowlist = (process.env.CLAUDE_LOGIN_TRUSTED_PROXIES ?? "")
+    .split(",")
+    .map((entry) => entry.trim())
+    .filter((entry) => entry.length > 0);
+  api.use(
+    agentRoutes(db, {
+      pluginWorkerManager: workerManager,
+      deploymentMode: opts.deploymentMode,
+      confidentialProxyAllowlist: setupTokenLoginProxyAllowlist,
+      onSetupTokenLoginService: (service) => {
+        setupTokenLoginService = service;
+        // Startup reaper (SR-4): release any lease whose login session is
+        // terminal or past its deadline after a restart. The DB is ready here.
+        void service.reap().catch((err) => {
+          logger.error({ err }, "Setup-token login startup reaper failed");
+        });
+      },
+    }),
+  );
   api.use(assetRoutes(db, opts.storageService));
   api.use(projectRoutes(db));
   api.use(caseRoutes(db, opts.storageService));
@@ -740,6 +768,9 @@ export async function createApp(
     viteHtmlRenderer?.dispose();
     hostServiceCleanup.disposeAll();
     hostServiceCleanup.teardown();
+    // Cancel every live setup-token login session, so each direct child stops
+    // before the server releases each lease (SR-4).
+    void setupTokenLoginService?.shutdown();
   };
   app.locals.paperclipShutdown = shutdownAppServices;
 
