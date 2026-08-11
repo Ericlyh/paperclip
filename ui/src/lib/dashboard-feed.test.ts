@@ -87,6 +87,11 @@ describe("dashboard feed helpers", () => {
       makeEvent({ details: { issueTitle: "Paperclip: Close lint residuals on PR merge" } }),
       new Map(),
     )).toBe(true);
+    // Hyphenated follow-ups match too (broadened filter scope).
+    expect(isLintResidualTaskActivity(
+      makeEvent({ details: { issueTitle: "lint-residual-prune: escalation triage surface" } }),
+      new Map(),
+    )).toBe(true);
   });
 
   it("fills the dashboard activity window after excluded events", () => {

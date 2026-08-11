@@ -1715,6 +1715,65 @@ describe("IssuesList", () => {
     });
   });
 
+  it("hides hyphenated lint-residual follow-ups (e.g. lint-residual-prune) when the filter is on", async () => {
+    const manualIssue = createIssue({
+      id: "issue-manual-hyphen",
+      title: "Manual issue",
+    });
+    const hyphenFollowup = createIssue({
+      id: "issue-hyphen-followup",
+      title: "lint-residual-prune: escalation triage surface",
+    });
+    const bracketedFollowup = createIssue({
+      id: "issue-bracket-followup",
+      title: "[lint-residual-prune] docker daemon unresponsive on tick-20260805T1100Z",
+    });
+
+    const { root } = renderWithQueryClient(
+      <IssuesList
+        issues={[manualIssue, hyphenFollowup, bracketedFollowup]}
+        agents={[]}
+        projects={[]}
+        viewStateKey="paperclip:test-hyphen-lint-filter"
+        enableLintResidualTaskFilter
+        onUpdateIssue={() => undefined}
+      />,
+      container,
+    );
+
+    await waitForAssertion(() => {
+      expect(container.textContent).toContain("Manual issue");
+      expect(container.textContent).toContain("lint-residual-prune: escalation triage surface");
+      expect(container.textContent).toContain("[lint-residual-prune] docker daemon unresponsive");
+    });
+
+    await act(async () => {
+      const filterButton = Array.from(document.body.querySelectorAll("button")).find(
+        (button) => button.getAttribute("title") === "Filter",
+      );
+      filterButton?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    await act(async () => {
+      const toggle = Array.from(document.body.querySelectorAll("label")).find(
+        (label) => label.textContent?.includes("Hide lint-residual tasks"),
+      );
+      toggle?.dispatchEvent(new MouseEvent("click", { bubbles: true }));
+      await Promise.resolve();
+    });
+
+    await waitForAssertion(() => {
+      expect(container.textContent).toContain("Manual issue");
+      expect(container.textContent).not.toContain("lint-residual-prune: escalation triage surface");
+      expect(container.textContent).not.toContain("[lint-residual-prune] docker daemon unresponsive");
+    });
+
+    act(() => {
+      root.unmount();
+    });
+  });
+
   it("blurs the search input on Enter without clearing the query", async () => {
     const { root } = renderWithQueryClient(
       <IssuesList

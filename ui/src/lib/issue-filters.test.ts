@@ -71,11 +71,20 @@ describe("issue filters", () => {
   });
 
   it("matches lint-residual task title variants without matching unrelated titles", () => {
+    // Canonical prefix (still matches as substring).
     expect(isLintResidualTaskTitle("Paperclip: Close lint residuals on PR merge")).toBe(true);
     expect(isLintResidualTaskTitle(" paperclip: close lint residuals on PR merge — PR 123 ")).toBe(true);
-    expect(isLintResidualTaskTitle("Paperclip: Hourly Log Rotation")).toBe(false);
-    expect(isLintResidualTaskTitle("Close lint residuals on PR merge")).toBe(false);
+    expect(isLintResidualTaskTitle("Close lint residuals on PR merge")).toBe(true);
     expect(isLintResidualTask(makeIssue({ title: "Paperclip: Close lint residuals on PR merge (follow-up)" }))).toBe(true);
+    // Hyphenated follow-ups (the issue type shown in OOP-3094 screenshot).
+    expect(isLintResidualTaskTitle("lint-residual-prune: escalation triage surface")).toBe(true);
+    expect(isLintResidualTaskTitle("[lint-residual-prune] docker daemon unresponsive on tick-20260805T1100Z (OOP-3064)")).toBe(true);
+    expect(isLintResidualTaskTitle("Lint residual prune escalation from OOP-3247")).toBe(true);
+    // Unrelated titles still don't match.
+    expect(isLintResidualTaskTitle("Paperclip: Hourly Log Rotation")).toBe(false);
+    expect(isLintResidualTaskTitle("Review productivity for OOP-1")).toBe(false);
+    expect(isLintResidualTaskTitle(null)).toBe(false);
+    expect(isLintResidualTaskTitle(undefined)).toBe(false);
   });
 
   it("hides lint-residual tasks only when the dedicated filter is enabled", () => {

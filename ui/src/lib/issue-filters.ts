@@ -1,7 +1,10 @@
 import type { Issue } from "@paperclipai/shared";
 
 export const LINT_RESIDUAL_TASK_TITLE_PREFIX = "Paperclip: Close lint residuals on PR merge";
-const normalizedLintResidualTaskTitlePrefix = LINT_RESIDUAL_TASK_TITLE_PREFIX.toLowerCase();
+// Match the canonical "lint residual" phrase in either spaced or hyphenated
+// form, so the filter catches follow-up issues like "lint-residual-prune: ..."
+// and "[lint-residual-prune] ..." that the strict prefix would miss.
+const LINT_RESIDUAL_TITLE_NEEDLES = ["lint residual", "lint-residual"];
 
 export const PRODUCTIVITY_REVIEW_ORIGIN_KIND = "issue_productivity_review";
 
@@ -93,7 +96,9 @@ export function normalizeIssueFilterState(value: unknown): IssueFilterState {
 }
 
 export function isLintResidualTaskTitle(title: string | null | undefined): boolean {
-  return title?.trim().toLowerCase().startsWith(normalizedLintResidualTaskTitlePrefix) === true;
+  const normalized = title?.trim().toLowerCase() ?? "";
+  if (normalized.length === 0) return false;
+  return LINT_RESIDUAL_TITLE_NEEDLES.some((needle) => normalized.includes(needle));
 }
 
 export function isLintResidualTask(issue: Pick<Issue, "title">): boolean {

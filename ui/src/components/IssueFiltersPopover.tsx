@@ -370,7 +370,7 @@ export function IssueFiltersPopover({
                 {enableLintResidualTaskFilter ? (
                   <label
                     className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 hover:bg-accent/50"
-                    title={`Hide titles starting with ${LINT_RESIDUAL_TASK_TITLE_PREFIX}`}
+                    title={`Hide issues whose title contains "${LINT_RESIDUAL_TASK_TITLE_PREFIX}" or related lint-residual follow-ups`}
                   >
                     <Checkbox
                       checked={state.hideLintResidualTasks}
