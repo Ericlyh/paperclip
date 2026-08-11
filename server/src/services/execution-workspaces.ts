@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
-import { and, asc, desc, eq, inArray, isNull, ne, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, isNull, ne, or, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import {
   executionWorkspaces,
@@ -1063,6 +1063,14 @@ export function executionWorkspaceService(db: Db, opts: ExecutionWorkspaceServic
   >();
   const pullRequestStateCacheTtlMs = 5 * 60 * 1000;
 
+  // The terminal-workspace reaper scans the candidate set in fixed-size pages.
+  // It keeps this keyset cursor between sweeps so each sweep continues after the
+  // previous page. A skipped candidate keeps its updatedAt, so a cursor is
+  // required: without it the query re-selects the oldest ineligible rows every
+  // sweep and starves eligible rows behind them. The cursor resets to the start
+  // when a sweep reaches the end of the candidate set.
+  let terminalSweepCursor: { updatedAt: Date; id: string } | null = null;
+
   async function listWorkspaceIssueTree(workspace: Pick<ExecutionWorkspaceRow, "companyId" | "sourceIssueId">) {
     if (!workspace.sourceIssueId) return [];
     return db
@@ -2033,16 +2041,40 @@ export function executionWorkspaceService(db: Db, opts: ExecutionWorkspaceServic
     },
 
     sweepTerminalWorkspaces: async (limit = 50) => {
+      const baseCandidateFilter = and(
+        inArray(executionWorkspaces.status, ["active", "idle", "in_review"]),
+        isNull(executionWorkspaces.closedAt),
+        sql<boolean>`${executionWorkspaces.sourceIssueId} IS NOT NULL`,
+      );
+      // Continue the scan after the previous sweep's last row. The keyset
+      // predicate uses the same (updatedAt, id) order as the query, so each
+      // sweep advances past the rows it already inspected instead of re-reading
+      // the oldest ineligible candidates.
+      const cursor = terminalSweepCursor;
+      const cursorFilter = cursor
+        ? or(
+            gt(executionWorkspaces.updatedAt, cursor.updatedAt),
+            and(
+              eq(executionWorkspaces.updatedAt, cursor.updatedAt),
+              gt(executionWorkspaces.id, cursor.id),
+            ),
+          )
+        : undefined;
       const candidates = await db
         .select()
         .from(executionWorkspaces)
-        .where(and(
-          inArray(executionWorkspaces.status, ["active", "idle", "in_review"]),
-          isNull(executionWorkspaces.closedAt),
-          sql<boolean>`${executionWorkspaces.sourceIssueId} IS NOT NULL`,
-        ))
+        .where(cursorFilter ? and(baseCandidateFilter, cursorFilter) : baseCandidateFilter)
         .orderBy(asc(executionWorkspaces.updatedAt), asc(executionWorkspaces.id))
         .limit(limit);
+      // Advance the cursor to this page's last row. A short page means the scan
+      // reached the end of the candidate set, so reset to the start for the next
+      // rotation.
+      if (candidates.length < limit) {
+        terminalSweepCursor = null;
+      } else {
+        const lastCandidate = candidates[candidates.length - 1]!;
+        terminalSweepCursor = { updatedAt: lastCandidate.updatedAt, id: lastCandidate.id };
+      }
       const result = {
         checked: candidates.length,
         eligible: 0,

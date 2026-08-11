@@ -466,6 +466,172 @@ describeEmbeddedPostgres("executionWorkspaceService.getCloseReadiness", () => {
     expect(archived?.cleanupEligibleAt).toBeInstanceOf(Date);
   }, 20_000);
 
+  async function seedAncestryTerminalWorkspace(overrides: { updatedAt?: Date } = {}) {
+    // Build a worktree whose HEAD equals the base ref, so HEAD is an ancestor
+    // of the base. This workspace landed by ancestry and carries no tracked
+    // pull request, so delivery derives to merged_by_ancestry.
+    const repoRoot = await createTempRepo();
+    tempDirs.add(repoRoot);
+    const worktreePath = path.join(path.dirname(repoRoot), `paperclip-ancestry-${randomUUID()}`);
+    tempDirs.add(worktreePath);
+    const branchName = `ancestry-${randomUUID().slice(0, 8)}`;
+    await runGit(repoRoot, ["branch", branchName]);
+    await runGit(repoRoot, ["worktree", "add", worktreePath, branchName]);
+
+    const companyId = randomUUID();
+    const projectId = randomUUID();
+    const executionWorkspaceId = randomUUID();
+    const sourceIssueId = randomUUID();
+    const issuePrefix = `P${companyId.slice(0, 8).toUpperCase()}`;
+    await db.insert(companies).values({
+      id: companyId,
+      name: "Paperclip",
+      issuePrefix,
+      requireBoardApprovalForNewAgents: false,
+    });
+    await db.insert(projects).values({
+      id: projectId,
+      companyId,
+      name: "Ancestry delivery",
+      status: "in_progress",
+    });
+    await db.insert(executionWorkspaces).values({
+      id: executionWorkspaceId,
+      companyId,
+      projectId,
+      mode: "isolated_workspace",
+      strategyType: "git_worktree",
+      name: `${issuePrefix}-1`,
+      status: "active",
+      cwd: worktreePath,
+      providerRef: worktreePath,
+      providerType: "git_worktree",
+      repoUrl: "https://github.com/paperclipai/paperclip.git",
+      baseRef: "main",
+      branchName,
+    });
+    await db.insert(issues).values({
+      id: sourceIssueId,
+      companyId,
+      projectId,
+      identifier: `${issuePrefix}-1`,
+      title: "Delivered by ancestry",
+      status: "done",
+      priority: "medium",
+      executionWorkspaceId,
+    });
+    await db
+      .update(executionWorkspaces)
+      .set({ sourceIssueId, ...(overrides.updatedAt ? { updatedAt: overrides.updatedAt } : {}) })
+      .where(eq(executionWorkspaces.id, executionWorkspaceId));
+    return { companyId, projectId, executionWorkspaceId, sourceIssueId, worktreePath };
+  }
+
+  it("archives a terminal workspace delivered by ancestry with no pull request", async () => {
+    const seeded = await seedAncestryTerminalWorkspace();
+
+    const readiness = await svc.getCloseReadiness(seeded.executionWorkspaceId);
+    expect(readiness?.deliveryState).toBe("merged_by_ancestry");
+    expect(readiness?.blockingReasons).toEqual([]);
+
+    const sweep = await svc.sweepTerminalWorkspaces();
+    const [workspace] = await db
+      .select({ status: executionWorkspaces.status, cleanupReason: executionWorkspaces.cleanupReason })
+      .from(executionWorkspaces)
+      .where(eq(executionWorkspaces.id, seeded.executionWorkspaceId));
+
+    expect(sweep).toMatchObject({ archived: 1, cleanupFailed: 0 });
+    expect(workspace).toMatchObject({ status: "archived", cleanupReason: "issue_terminal" });
+  }, 20_000);
+
+  it("archives an eligible workspace behind a full page of skipped candidates", async () => {
+    // Seed more skipped candidates than the sweep page holds, each older than
+    // the eligible workspace. A skipped candidate keeps its updatedAt, so a
+    // sweep that always reads the oldest page never reaches the eligible
+    // workspace. The reaper must rotate its scan window across sweeps.
+    const companyId = randomUUID();
+    const projectId = randomUUID();
+    const issuePrefix = `P${companyId.slice(0, 8).toUpperCase()}`;
+    await db.insert(companies).values({
+      id: companyId,
+      name: "Paperclip",
+      issuePrefix,
+      requireBoardApprovalForNewAgents: false,
+    });
+    await db.insert(projects).values({
+      id: projectId,
+      companyId,
+      name: "Starved reaper",
+      status: "in_progress",
+    });
+    // Two open-issue workspaces that the reaper always skips. Their older
+    // updatedAt keeps them at the front of the ordered candidate set.
+    const skippedWorkspaceIds: string[] = [];
+    for (let index = 0; index < 2; index += 1) {
+      const workspaceId = randomUUID();
+      const openIssueId = randomUUID();
+      skippedWorkspaceIds.push(workspaceId);
+      await db.insert(executionWorkspaces).values({
+        id: workspaceId,
+        companyId,
+        projectId,
+        mode: "isolated_workspace",
+        strategyType: "local_fs",
+        name: `${issuePrefix}-skip-${index}`,
+        status: "active",
+        providerType: "local_fs",
+        updatedAt: new Date(Date.UTC(2020, 0, index + 1)),
+      });
+      await db.insert(issues).values({
+        id: openIssueId,
+        companyId,
+        projectId,
+        title: `Open ${index}`,
+        status: "in_progress",
+        priority: "medium",
+        executionWorkspaceId: workspaceId,
+      });
+      await db
+        .update(executionWorkspaces)
+        .set({ sourceIssueId: openIssueId, updatedAt: new Date(Date.UTC(2020, 0, index + 1)) })
+        .where(eq(executionWorkspaces.id, workspaceId));
+    }
+    // The eligible workspace is newest, so it sorts after the whole skipped page.
+    const eligible = await seedAncestryTerminalWorkspace({ updatedAt: new Date(Date.UTC(2020, 0, 9)) });
+
+    // A fresh service starts with an empty scan cursor, so each call inspects
+    // one row and advances. A single-row page never lands on the eligible
+    // workspace first.
+    const service = executionWorkspaceService(db, {
+      resolvePullRequestDetails: async () => ({ state: "unknown", headRef: null, headSha: null }),
+    });
+
+    const firstSweep = await service.sweepTerminalWorkspaces(1);
+    expect(firstSweep).toMatchObject({ checked: 1, archived: 0, skippedNonTerminalTree: 1 });
+    const [afterFirst] = await db
+      .select({ status: executionWorkspaces.status })
+      .from(executionWorkspaces)
+      .where(eq(executionWorkspaces.id, eligible.executionWorkspaceId));
+    expect(afterFirst?.status).toBe("active");
+
+    let archivedSweep: Awaited<ReturnType<typeof service.sweepTerminalWorkspaces>> | null = null;
+    for (let attempt = 0; attempt < 4 && !archivedSweep; attempt += 1) {
+      const sweep = await service.sweepTerminalWorkspaces(1);
+      if (sweep.archived > 0) archivedSweep = sweep;
+    }
+
+    expect(archivedSweep).toMatchObject({ archived: 1 });
+    const workspaces = await db
+      .select({ id: executionWorkspaces.id, status: executionWorkspaces.status })
+      .from(executionWorkspaces)
+      .where(inArray(executionWorkspaces.id, [eligible.executionWorkspaceId, ...skippedWorkspaceIds]));
+    const byId = new Map(workspaces.map((row) => [row.id, row.status]));
+    expect(byId.get(eligible.executionWorkspaceId)).toBe("archived");
+    for (const skippedId of skippedWorkspaceIds) {
+      expect(byId.get(skippedId)).toBe("active");
+    }
+  }, 20_000);
+
   it("does not treat an unrelated inbound issue mention as delivery evidence", async () => {
     const seeded = await seedTerminalWorkspace();
     const unrelatedIssueId = randomUUID();
