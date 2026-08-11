@@ -3236,6 +3236,16 @@ export function companyPortabilityService(db: Db, storage?: StorageService) {
 
     const selectedProjectRows = Array.from(selectedProjects.values())
       .sort((left, right) => left.name.localeCompare(right.name));
+    // Re-fetch each selected issue via getById so the portability bundle includes
+    // the full description. The list endpoint truncates descriptions to a preview
+    // length (~1200 chars) to keep inbox queries cheap, which silently strips
+    // large bodies from exported TASK.md files.
+    for (const issueId of Array.from(selectedIssues.keys())) {
+      const fullIssue = await issuesSvc.getById(issueId);
+      if (fullIssue) {
+        selectedIssues.set(issueId, fullIssue);
+      }
+    }
     const selectedIssueRows = Array.from(selectedIssues.values())
       .filter((issue): issue is NonNullable<typeof issue> => issue != null)
       .sort((left, right) => (left.identifier ?? left.title).localeCompare(right.identifier ?? right.title));

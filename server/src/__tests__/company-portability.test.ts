@@ -2666,6 +2666,95 @@ describe("company portability", () => {
     );
   });
 
+  it("preserves full issue descriptions on export (regression: list endpoint truncates descriptions)", async () => {
+    const portability = companyPortabilityService({} as any);
+
+    const truncatedFromList = "preview-only";
+    const fullDescription = "Round-trip the company package through the CLI.\n\n" + "portable-data ".repeat(12_000);
+
+    projectSvc.list.mockResolvedValue([
+      {
+        id: "project-1",
+        name: "Launch",
+        urlKey: "launch",
+        description: null,
+        status: "active",
+        leadAgentId: null,
+        metadata: null,
+        defaultProjectWorkspaceId: null,
+      },
+    ]);
+    projectSvc.listWorkspaces.mockResolvedValue([]);
+    // The list() endpoint intentionally truncates descriptions to a preview
+    // length. The portability export must not rely on those previews, otherwise
+    // the resulting TASK.md silently drops everything past the preview cutoff.
+    issueSvc.list.mockResolvedValue([
+      {
+        id: "issue-1",
+        identifier: "PAP-1",
+        title: "Big body",
+        description: truncatedFromList,
+        projectId: "project-1",
+        projectWorkspaceId: null,
+        assigneeAgentId: null,
+        status: "todo",
+        priority: "medium",
+        labelIds: [],
+        billingCode: null,
+        executionWorkspaceSettings: null,
+        assigneeAdapterOverrides: null,
+      },
+    ]);
+    // getById returns the full, untruncated description for the same row.
+    issueSvc.getById.mockResolvedValue({
+      id: "issue-1",
+      identifier: "PAP-1",
+      title: "Big body",
+      description: fullDescription,
+      projectId: "project-1",
+      projectWorkspaceId: null,
+      assigneeAgentId: null,
+      status: "todo",
+      priority: "medium",
+      labelIds: [],
+      billingCode: null,
+      executionWorkspaceSettings: null,
+      assigneeAdapterOverrides: null,
+    });
+
+    const exported = await portability.exportBundle("company-1", {
+      include: { company: true, agents: false, projects: true, issues: true },
+    });
+
+    const taskFile = asTextFile(exported.files["tasks/pap-1/TASK.md"]);
+    expect(taskFile).not.toContain(truncatedFromList);
+    expect(taskFile.length).toBeGreaterThan(fullDescription.length);
+    expect((taskFile.match(/portable-data/g) ?? []).length).toBe(12_000);
+
+    companySvc.create.mockResolvedValue({ id: "company-imported", name: "Imported" });
+    accessSvc.ensureMembership.mockResolvedValue(undefined);
+    agentSvc.list.mockResolvedValue([]);
+    projectSvc.list.mockResolvedValue([]);
+    projectSvc.create.mockResolvedValue({ id: "project-imported", name: "Launch", urlKey: "launch" });
+    issueSvc.create.mockResolvedValue({ id: "issue-imported", title: "Big body" });
+
+    await portability.importBundle({
+      source: { type: "inline", rootPath: exported.rootPath, files: exported.files },
+      include: { company: true, agents: false, projects: true, issues: true },
+      target: { mode: "new_company", newCompanyName: "Imported" },
+      agents: "all",
+      collisionStrategy: "rename",
+    }, "user-1");
+
+    const roundTrippedDescription = fullDescription.replace(/\r\n/g, "\n").trim();
+    expect(issueSvc.create).toHaveBeenCalledWith(
+      "company-imported",
+      expect.objectContaining({
+        description: roundTrippedDescription,
+      }),
+    );
+  });
+
   it("preserves issue comment presentation fields through export and import", async () => {
     const portability = companyPortabilityService({} as any);
     const presentation = { kind: "system_notice", tone: "warning", detailsDefaultOpen: false };
