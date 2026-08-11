@@ -194,6 +194,7 @@ function createMemoryStore(): AdapterAuthSessionStore & { rows: Map<string, Adap
         providerLeaseId: null,
         status: "starting",
         expiresAt: input.expiresAt,
+        promotionExpiresAt: null,
         finishedAt: null,
         failureReason: null,
       });
@@ -208,7 +209,18 @@ function createMemoryStore(): AdapterAuthSessionStore & { rows: Map<string, Adap
       row.status = input.status;
       if (input.failureReason !== undefined) row.failureReason = input.failureReason;
       if (input.finishedAt !== undefined) row.finishedAt = input.finishedAt;
+      if (input.promotionExpiresAt !== undefined) row.promotionExpiresAt = input.promotionExpiresAt;
       if (!isActive(input.status)) activeSlots.delete(slotKey(row.companyId, row.adapterType));
+    },
+    async compareAndSetStatus(input) {
+      const row = rows.get(input.sessionId);
+      if (!row || !input.expectedStatuses.includes(row.status)) return false;
+      row.status = input.status;
+      if (input.failureReason !== undefined) row.failureReason = input.failureReason;
+      if (input.finishedAt !== undefined) row.finishedAt = input.finishedAt;
+      if (input.promotionExpiresAt !== undefined) row.promotionExpiresAt = input.promotionExpiresAt;
+      if (!isActive(input.status)) activeSlots.delete(slotKey(row.companyId, row.adapterType));
+      return true;
     },
     async get(sessionId) {
       const row = rows.get(sessionId);

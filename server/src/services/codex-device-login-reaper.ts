@@ -140,9 +140,10 @@ export function createCodexDeviceLoginReaper(deps: CodexDeviceLoginReaperDeps) {
     return { retried, cleared, remaining };
   }
 
-  // Delete the sandbox for every expired non-terminal session and mark it
-  // `timed_out`. A failed delete records `cleanup_pending`, so the next sweep
-  // retries it.
+  // Terminate every expired non-terminal session and mark it `timed_out`. A
+  // failed delete records `cleanup_pending`, so the next sweep retries it. The
+  // scan already excludes a session that still holds a live promotion claim, so
+  // the reaper never releases a slot whose credential write is in progress.
   async function sweepExpiredSessions(at: Date): Promise<{
     timedOut: number;
     newlyPending: number;
@@ -151,6 +152,25 @@ export function createCodexDeviceLoginReaper(deps: CodexDeviceLoginReaperDeps) {
     let timedOut = 0;
     let newlyPending = 0;
     for (const row of expired) {
+      // Claim the terminalization with a conditional write from the row's current
+      // status. The claim reserves `cleanup_pending` and releases the company
+      // slot. A lost claim means the session owner reached a terminal first, so
+      // the reaper deletes nothing and leaves the row alone. This closes the
+      // lost-update race on the slot.
+      const pendingWrite = terminalCleanupWrite(false, "timed_out", null);
+      const claimed = await store.compareAndSetStatus({
+        sessionId: row.id,
+        expectedStatuses: [row.status],
+        status: pendingWrite.status,
+        at: now(),
+        failureReason: pendingWrite.failureReason,
+        finishedAt: now(),
+        promotionExpiresAt: null,
+      });
+      if (!claimed) continue;
+
+      // The reaper owns the row now. Delete the sandbox, then finalize the
+      // terminal only from the reserved `cleanup_pending` state.
       const observation = row.providerLeaseId
         ? await observeSandboxDelete(() =>
             runtime.deleteSandbox({
@@ -161,16 +181,20 @@ export function createCodexDeviceLoginReaper(deps: CodexDeviceLoginReaperDeps) {
         : // No lease reference on the row. There is no sandbox to delete through
           // it. Any orphan provider lease is caught by the tagged-lease scan.
           { observed: false, confirmed: true };
-      const write = terminalCleanupWrite(observation.confirmed, "timed_out", null);
-      await store.setStatus({
-        sessionId: row.id,
-        status: write.status,
-        at: now(),
-        failureReason: write.failureReason,
-        finishedAt: now(),
-      });
-      if (observation.confirmed) timedOut += 1;
-      else newlyPending += 1;
+      if (observation.confirmed) {
+        await store.compareAndSetStatus({
+          sessionId: row.id,
+          expectedStatuses: ["cleanup_pending"],
+          status: "timed_out",
+          at: now(),
+          failureReason: null,
+          finishedAt: now(),
+        });
+        timedOut += 1;
+      } else {
+        // The delete failed. Keep `cleanup_pending` for the next sweep to retry.
+        newlyPending += 1;
+      }
     }
     return { timedOut, newlyPending };
   }

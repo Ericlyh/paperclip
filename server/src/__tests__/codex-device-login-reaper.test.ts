@@ -37,6 +37,7 @@ function createMemoryReaperStore(): AdapterAuthReaperStore & {
         providerLeaseId: input.providerLeaseId ?? null,
         status: input.status ?? "starting",
         expiresAt: input.expiresAt ?? null,
+        promotionExpiresAt: input.promotionExpiresAt ?? null,
         finishedAt: input.finishedAt ?? null,
         failureReason: input.failureReason ?? null,
       };
@@ -44,8 +45,16 @@ function createMemoryReaperStore(): AdapterAuthReaperStore & {
       return row;
     },
     async listExpiredActiveSessions(now) {
+      // Mirror the database scan: skip a `promoting` row that still holds a live
+      // promotion claim, so the reaper never terminates a live credential write.
       return [...rows.values()].filter(
-        (row) => isActive(row.status) && row.expiresAt != null && row.expiresAt <= now,
+        (row) =>
+          isActive(row.status) &&
+          row.expiresAt != null &&
+          row.expiresAt <= now &&
+          (row.status !== "promoting" ||
+            row.promotionExpiresAt == null ||
+            row.promotionExpiresAt <= now),
       );
     },
     async listCleanupPendingSessions() {
@@ -62,6 +71,16 @@ function createMemoryReaperStore(): AdapterAuthReaperStore & {
       row.status = input.status;
       if (input.failureReason !== undefined) row.failureReason = input.failureReason;
       if (input.finishedAt !== undefined) row.finishedAt = input.finishedAt;
+      if (input.promotionExpiresAt !== undefined) row.promotionExpiresAt = input.promotionExpiresAt;
+    },
+    async compareAndSetStatus(input) {
+      const row = rows.get(input.sessionId);
+      if (!row || !input.expectedStatuses.includes(row.status)) return false;
+      row.status = input.status;
+      if (input.failureReason !== undefined) row.failureReason = input.failureReason;
+      if (input.finishedAt !== undefined) row.finishedAt = input.finishedAt;
+      if (input.promotionExpiresAt !== undefined) row.promotionExpiresAt = input.promotionExpiresAt;
+      return true;
     },
     async get(sessionId) {
       const row = rows.get(sessionId);
@@ -129,6 +148,50 @@ describe("codex device login reaper", () => {
     expect(deleteCalls).toHaveLength(0);
     expect(result.expiredTimedOut).toBe(0);
     expect((await store.get(seeded.id))?.status).toBe("waiting_for_user");
+  });
+
+  it("never terminates an expired promoting row that still holds a live claim", async () => {
+    const store = createMemoryReaperStore();
+    const seeded = store.seed({
+      id: randomUUID(),
+      status: "promoting",
+      providerLeaseId: "lease-1",
+      // The login window expired, but the promotion claim is still live.
+      expiresAt: PAST,
+      promotionExpiresAt: FUTURE,
+    });
+    const { runtime, deleteCalls } = createFakeRuntime();
+    const reaper = createCodexDeviceLoginReaper({ store, runtime, now: () => NOW });
+
+    const result = await reaper.sweep();
+
+    // The reaper leaves the live claim alone: no delete, no slot release.
+    expect(deleteCalls).toHaveLength(0);
+    expect(result.expiredTimedOut).toBe(0);
+    expect((await store.get(seeded.id))?.status).toBe("promoting");
+  });
+
+  it("reclaims an expired promoting row after its promotion claim goes stale", async () => {
+    const store = createMemoryReaperStore();
+    const environmentId = randomUUID();
+    const seeded = store.seed({
+      id: randomUUID(),
+      environmentId,
+      status: "promoting",
+      providerLeaseId: "lease-1",
+      expiresAt: PAST,
+      // The promotion claim deadline passed, so the claim is stale.
+      promotionExpiresAt: PAST,
+    });
+    const { runtime, deleteCalls } = createFakeRuntime();
+    const reaper = createCodexDeviceLoginReaper({ store, runtime, now: () => NOW });
+
+    const result = await reaper.sweep();
+
+    // The stale claim is reclaimed: the reaper deletes the sandbox and times out.
+    expect(deleteCalls).toEqual([{ environmentId, providerLeaseId: "lease-1" }]);
+    expect(result.expiredTimedOut).toBe(1);
+    expect((await store.get(seeded.id))?.status).toBe("timed_out");
   });
 
   it("marks an expired session with no lease reference timed_out without a delete", async () => {

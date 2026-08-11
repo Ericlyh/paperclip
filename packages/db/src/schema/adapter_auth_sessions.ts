@@ -24,6 +24,13 @@ export const adapterAuthSessions = pgTable(
     providerLeaseId: text("provider_lease_id"),
     status: text("status").$type<AdapterAuthSessionInternalStatus>().notNull().default("starting"),
     expiresAt: timestamp("expires_at", { withTimezone: true }),
+    // The promotion claim deadline. The service sets this column when it moves the
+    // row to `promoting`. While the deadline is in the future, the claim is live,
+    // so the reaper does not terminate the session or release the company slot.
+    // A null or past deadline means no live claim, so the reaper can reclaim a
+    // stalled `promoting` row. The service clears the column on every terminal
+    // transition.
+    promotionExpiresAt: timestamp("promotion_expires_at", { withTimezone: true }),
     finishedAt: timestamp("finished_at", { withTimezone: true }),
     // The fixed, non-secret failure code. The public response reads it.
     failureReason: text("failure_reason"),

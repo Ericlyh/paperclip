@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { and, eq, inArray, isNotNull, lte } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, lte, ne, or } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import { adapterAuthSessions } from "@paperclipai/db";
 import type {
@@ -217,6 +217,10 @@ export interface AdapterAuthSessionRow {
   providerLeaseId: string | null;
   status: AdapterAuthSessionInternalStatus;
   expiresAt: Date | null;
+  /** The promotion claim deadline. A future value means the claim is live, so
+   *  the reaper leaves the `promoting` row alone. A null or past value means no
+   *  live claim. */
+  promotionExpiresAt: Date | null;
   finishedAt: Date | null;
   failureReason: string | null;
 }
@@ -237,6 +241,22 @@ export interface SetAdapterAuthSessionStatusInput {
   at: Date;
   failureReason?: string | null;
   finishedAt?: Date | null;
+  /**
+   * Set or clear the promotion claim deadline. `undefined` leaves the column
+   * unchanged. A `Date` sets a live claim; `null` clears the claim.
+   */
+  promotionExpiresAt?: Date | null;
+}
+
+/**
+ * The input for a conditional status write. The write updates the row only when
+ * the current status is one of `expectedStatuses`. The method reports whether it
+ * changed a row, so the caller can detect a lost race.
+ */
+export interface CompareAndSetAdapterAuthSessionStatusInput
+  extends SetAdapterAuthSessionStatusInput {
+  /** The write succeeds only when the current status is one of these. */
+  expectedStatuses: readonly AdapterAuthSessionInternalStatus[];
 }
 
 /** The store for the login-session rows. The service inserts, transitions, and
@@ -249,6 +269,8 @@ export interface AdapterAuthSessionStore {
     at: Date;
   }): Promise<void>;
   setStatus(input: SetAdapterAuthSessionStatusInput): Promise<void>;
+  /** A conditional status write. It returns true only when it changed one row. */
+  compareAndSetStatus(input: CompareAndSetAdapterAuthSessionStatusInput): Promise<boolean>;
   get(sessionId: string): Promise<AdapterAuthSessionRow | null>;
 }
 
@@ -259,6 +281,16 @@ export const ADAPTER_AUTH_ACTIVE_STATUSES: readonly AdapterAuthSessionInternalSt
   "waiting_for_user",
   "promoting",
 ];
+
+/**
+ * The promotion claim window. The service sets `promotion_expires_at` to this
+ * far in the future when it moves a row to `promoting`. While the deadline is in
+ * the future, the reaper leaves the row alone, so the credential write finishes
+ * without a slot release. The window is far longer than the filesystem writes,
+ * so a healthy promotion always finishes first. A crashed promotion lets the
+ * deadline pass, so the reaper reclaims the stalled row on a later sweep.
+ */
+export const ADAPTER_AUTH_PROMOTION_CLAIM_MS = 60_000;
 
 /**
  * The read side the reaper needs. The reaper sweeps three sets: the expired
@@ -274,6 +306,8 @@ export interface AdapterAuthReaperStore {
   /** Every provider lease reference a session row still holds. */
   listLeaseReferences(): Promise<string[]>;
   setStatus(input: SetAdapterAuthSessionStatusInput): Promise<void>;
+  /** A conditional status write. It returns true only when it changed one row. */
+  compareAndSetStatus(input: CompareAndSetAdapterAuthSessionStatusInput): Promise<boolean>;
   get(sessionId: string): Promise<AdapterAuthSessionRow | null>;
 }
 
@@ -306,8 +340,23 @@ function toRow(row: typeof adapterAuthSessions.$inferSelect): AdapterAuthSession
     providerLeaseId: row.providerLeaseId ?? null,
     status: row.status,
     expiresAt: row.expiresAt ?? null,
+    promotionExpiresAt: row.promotionExpiresAt ?? null,
     finishedAt: row.finishedAt ?? null,
     failureReason: row.failureReason ?? null,
+  };
+}
+
+/** Build the `update` patch for a status write. An omitted optional field stays
+ *  unchanged; a present field writes its value, including a `null` clear. */
+function buildStatusPatch(input: SetAdapterAuthSessionStatusInput) {
+  return {
+    status: input.status,
+    updatedAt: input.at,
+    ...(input.failureReason !== undefined ? { failureReason: input.failureReason } : {}),
+    ...(input.finishedAt !== undefined ? { finishedAt: input.finishedAt } : {}),
+    ...(input.promotionExpiresAt !== undefined
+      ? { promotionExpiresAt: input.promotionExpiresAt }
+      : {}),
   };
 }
 
@@ -347,15 +396,25 @@ export function createDbAdapterAuthSessionStore(
     async setStatus(input) {
       await db
         .update(adapterAuthSessions)
-        .set({
-          status: input.status,
-          updatedAt: input.at,
-          ...(input.failureReason !== undefined
-            ? { failureReason: input.failureReason }
-            : {}),
-          ...(input.finishedAt !== undefined ? { finishedAt: input.finishedAt } : {}),
-        })
+        .set(buildStatusPatch(input))
         .where(eq(adapterAuthSessions.id, input.sessionId));
+    },
+    async compareAndSetStatus(input) {
+      // The conditional write. It changes the row only when the current status is
+      // one of `expectedStatuses`. The `returning` clause reports the changed
+      // rows, so a lost race returns an empty array. The active-slot partial
+      // unique index still serializes the company slot on the write.
+      const changed = await db
+        .update(adapterAuthSessions)
+        .set(buildStatusPatch(input))
+        .where(
+          and(
+            eq(adapterAuthSessions.id, input.sessionId),
+            inArray(adapterAuthSessions.status, [...input.expectedStatuses]),
+          ),
+        )
+        .returning({ id: adapterAuthSessions.id });
+      return changed.length > 0;
     },
     async get(sessionId) {
       const rows = await db
@@ -369,7 +428,10 @@ export function createDbAdapterAuthSessionStore(
     async listExpiredActiveSessions(nowAt) {
       // The partial index on the active statuses and the index on `expiresAt`
       // both support this scan. The scan is bounded by the active-status set, so
-      // it never reads a terminal row.
+      // it never reads a terminal row. The scan skips a `promoting` row that
+      // still holds a live promotion claim, so the reaper never terminates a row
+      // whose credential write is in progress. It reclaims a `promoting` row only
+      // after the claim deadline passes.
       const rows = await db
         .select()
         .from(adapterAuthSessions)
@@ -378,6 +440,11 @@ export function createDbAdapterAuthSessionStore(
             inArray(adapterAuthSessions.status, [...ADAPTER_AUTH_ACTIVE_STATUSES]),
             isNotNull(adapterAuthSessions.expiresAt),
             lte(adapterAuthSessions.expiresAt, nowAt),
+            or(
+              ne(adapterAuthSessions.status, "promoting"),
+              isNull(adapterAuthSessions.promotionExpiresAt),
+              lte(adapterAuthSessions.promotionExpiresAt, nowAt),
+            ),
           ),
         );
       return rows.map(toRow);
@@ -640,6 +707,32 @@ export function createCodexDeviceLoginService(deps: CodexDeviceLoginServiceDeps)
       return run;
     }
 
+    // The serialized conditional status write. It runs after the previous write
+    // and changes the row only when the current status is one of
+    // `expectedStatuses`. It returns whether it changed the row, so a caller can
+    // detect a lost race with the reaper. A failed write never blocks the next.
+    function conditionalTransition(
+      expectedStatuses: readonly AdapterAuthSessionInternalStatus[],
+      status: AdapterAuthSessionInternalStatus,
+      patch?: {
+        failureReason?: string | null;
+        finishedAt?: Date | null;
+        promotionExpiresAt?: Date | null;
+      },
+    ): Promise<boolean> {
+      const run = statusTail.then(
+        () =>
+          store.compareAndSetStatus({ sessionId, expectedStatuses, status, at: now(), ...patch }),
+        () =>
+          store.compareAndSetStatus({ sessionId, expectedStatuses, status, at: now(), ...patch }),
+      );
+      statusTail = run.then(
+        () => {},
+        () => {},
+      );
+      return run;
+    }
+
     let authBytes: Buffer | null = null;
     let outcome: DeviceLoginOutcome;
     try {
@@ -668,9 +761,20 @@ export function createCodexDeviceLoginService(deps: CodexDeviceLoginServiceDeps)
     }
 
     if (outcome === "success") {
-      // Hold the active claim through the mandatory promotion. The internal
-      // `promoting` state keeps the slot held.
-      await transition("promoting");
+      // Claim the slot for the mandatory promotion. The claim is a conditional
+      // write from a pre-promotion active status to `promoting`, and it sets the
+      // promotion deadline. While the deadline is in the future, the reaper never
+      // terminates the row or releases the company slot, so the credential write
+      // finishes without a race. A lost claim means the reaper already reclaimed
+      // an expired row; the service then promotes nothing and authenticates
+      // nothing.
+      const claimDeadline = new Date(now().getTime() + ADAPTER_AUTH_PROMOTION_CLAIM_MS);
+      const claimed = await conditionalTransition(["starting", "waiting_for_user"], "promoting", {
+        promotionExpiresAt: claimDeadline,
+      });
+      if (!claimed) {
+        return await abandonAfterLostClaim({ sessionId, lease, activity });
+      }
       activity("promoting");
       try {
         // Fail closed. A success outcome must carry a non-empty credential, and
@@ -690,22 +794,27 @@ export function createCodexDeviceLoginService(deps: CodexDeviceLoginServiceDeps)
       } catch {
         // The promotion failed. The login did not finish, so fall through to the
         // failed terminal. The service writes nothing and still deletes the
-        // sandbox.
+        // sandbox. The terminal write is conditional on the held claim.
         return await terminate({
           sessionId,
           lease,
           terminal: "failed",
           reason: "promotion_failed",
-          transition,
+          expectedStatuses: ["promoting"],
+          conditionalTransition,
           activity,
         });
       }
+      // Publish `authenticated` only when the final conditional write still finds
+      // the held claim. A lost write means the claim expired and the reaper
+      // reclaimed the row, so the service never publishes `authenticated`.
       return await terminate({
         sessionId,
         lease,
         terminal: "authenticated",
         reason: null,
-        transition,
+        expectedStatuses: ["promoting"],
+        conditionalTransition,
         activity,
       });
     }
@@ -717,7 +826,40 @@ export function createCodexDeviceLoginService(deps: CodexDeviceLoginServiceDeps)
           ? "cancelled"
           : "failed";
     const reason = terminal === "failed" ? "login_command_failed" : null;
-    return await terminate({ sessionId, lease, terminal, reason, transition, activity });
+    // The pre-promotion terminal writes race the reaper at the expiry boundary.
+    // The conditional write on the active pre-promotion statuses lets the reaper
+    // win without a clobber; the service never revives a reaped row.
+    return await terminate({
+      sessionId,
+      lease,
+      terminal,
+      reason,
+      expectedStatuses: ["starting", "waiting_for_user"],
+      conditionalTransition,
+      activity,
+    });
+  }
+
+  // Abandon a success outcome whose promotion claim was lost. The reaper already
+  // terminated this session, so the service writes no status and no credential.
+  // It deletes the sandbox best-effort; the reaper delete is idempotent.
+  async function abandonAfterLostClaim(ctx: {
+    sessionId: string;
+    lease: LoginSessionLease;
+    activity: (phase: LoginSessionActivityPhase) => void;
+  }): Promise<CodexDeviceLoginOutcome> {
+    const { sessionId, lease, activity } = ctx;
+    const observation = await observeSandboxDelete(() => lease.deleteSandbox());
+    if (observation.confirmed) {
+      activity("sandbox_deleted");
+    }
+    activity("timed_out");
+    return {
+      sessionId,
+      status: "timed_out",
+      cleanupPending: false,
+      sandboxDeleteObserved: observation.observed,
+    };
   }
 
   async function terminate(ctx: {
@@ -725,13 +867,21 @@ export function createCodexDeviceLoginService(deps: CodexDeviceLoginServiceDeps)
     lease: LoginSessionLease;
     terminal: AdapterAuthSessionStatus;
     reason: string | null;
-    transition: (
+    /** The statuses the terminal write may replace. The write is conditional. */
+    expectedStatuses: readonly AdapterAuthSessionInternalStatus[];
+    conditionalTransition: (
+      expectedStatuses: readonly AdapterAuthSessionInternalStatus[],
       status: AdapterAuthSessionInternalStatus,
-      patch?: { failureReason?: string | null; finishedAt?: Date | null },
-    ) => Promise<void>;
+      patch?: {
+        failureReason?: string | null;
+        finishedAt?: Date | null;
+        promotionExpiresAt?: Date | null;
+      },
+    ) => Promise<boolean>;
     activity: (phase: LoginSessionActivityPhase) => void;
   }): Promise<CodexDeviceLoginOutcome> {
-    const { sessionId, lease, terminal, reason, transition, activity } = ctx;
+    const { sessionId, lease, terminal, reason, expectedStatuses, conditionalTransition, activity } =
+      ctx;
 
     // The cleanup-state handoff. The service owns and observes the provider
     // delete on every terminal path. The reaper path shares the same delete
@@ -745,8 +895,25 @@ export function createCodexDeviceLoginService(deps: CodexDeviceLoginServiceDeps)
 
     // A failed delete records the durable internal `cleanup_pending` state before
     // the terminal outcome, so a reaper retries the delete. A confirmed delete
-    // records the terminal public status and releases the active claim.
-    await transition(write.status, { finishedAt, failureReason: write.failureReason });
+    // records the terminal public status and releases the active claim. The write
+    // is conditional and clears the promotion claim, so a lost race leaves the
+    // reaper terminal in place.
+    const committed = await conditionalTransition(expectedStatuses, write.status, {
+      finishedAt,
+      failureReason: write.failureReason,
+      promotionExpiresAt: null,
+    });
+    if (!committed) {
+      // The reaper already terminated the row. Leave its terminal in place. The
+      // sandbox delete above is idempotent, so no sandbox survives.
+      activity("timed_out");
+      return {
+        sessionId,
+        status: "timed_out",
+        cleanupPending: false,
+        sandboxDeleteObserved: observation.observed,
+      };
+    }
     activity(observation.confirmed ? (terminal as LoginSessionActivityPhase) : "cleanup_pending");
     return {
       sessionId,

@@ -42,6 +42,22 @@ const ADAPTER_TYPE: AgentAdapterType = "codex_local";
 const OWNER_A = "user-a";
 const OWNER_B = "user-b";
 
+// Poll the store until the row reaches the wanted status. The login run writes
+// the status through a serialized tail, so a test waits for the write to land
+// before it drives the next step.
+async function waitForStatus(
+  store: { get(sessionId: string): Promise<AdapterAuthSessionRow | null> },
+  sessionId: string,
+  status: AdapterAuthSessionRow["status"],
+): Promise<void> {
+  for (let attempt = 0; attempt < 1000; attempt += 1) {
+    const row = await store.get(sessionId);
+    if (row?.status === status) return;
+    await new Promise((resolve) => setImmediate(resolve));
+  }
+  throw new Error(`the session did not reach status ${status}`);
+}
+
 // A valid device-login output. The parser accepts the exact URL and a code of
 // four characters, a hyphen, and five characters, on a dedicated line after the
 // "one-time code" preamble.
@@ -135,6 +151,7 @@ function createMemoryStore(): AdapterAuthSessionStore & {
         providerLeaseId: null,
         status: "starting",
         expiresAt: input.expiresAt,
+        promotionExpiresAt: null,
         finishedAt: null,
         failureReason: null,
       });
@@ -149,7 +166,18 @@ function createMemoryStore(): AdapterAuthSessionStore & {
       row.status = input.status;
       if (input.failureReason !== undefined) row.failureReason = input.failureReason;
       if (input.finishedAt !== undefined) row.finishedAt = input.finishedAt;
+      if (input.promotionExpiresAt !== undefined) row.promotionExpiresAt = input.promotionExpiresAt;
       if (!isActive(input.status)) activeSlots.delete(slotKey(row.companyId, row.adapterType));
+    },
+    async compareAndSetStatus(input) {
+      const row = rows.get(input.sessionId);
+      if (!row || !input.expectedStatuses.includes(row.status)) return false;
+      row.status = input.status;
+      if (input.failureReason !== undefined) row.failureReason = input.failureReason;
+      if (input.finishedAt !== undefined) row.finishedAt = input.finishedAt;
+      if (input.promotionExpiresAt !== undefined) row.promotionExpiresAt = input.promotionExpiresAt;
+      if (!isActive(input.status)) activeSlots.delete(slotKey(row.companyId, row.adapterType));
+      return true;
     },
     async get(sessionId) {
       const row = rows.get(sessionId);
@@ -482,6 +510,57 @@ describe("codex device login service", () => {
     expect(row?.status).toBe("authenticated");
   });
 
+  it("never promotes or authenticates when the reaper wins the slot before the claim", async () => {
+    const store = createMemoryStore();
+    let releaseGate!: () => void;
+    const gate = new Promise<void>((resolve) => {
+      releaseGate = resolve;
+    });
+    // Emit the prompt, then hold the login until the test releases the gate. The
+    // test uses the hold to terminate the row before the promotion claim runs.
+    const execGatedSuccess: ExecBehavior = async ({ onStdout }) => {
+      onStdout(PROMPT_OUTPUT);
+      await gate;
+      return { exitCode: 0 };
+    };
+    const { runtime, deleteCalls } = createFakeRuntime({
+      exec: execGatedSuccess,
+      authBytes: Buffer.from("{}"),
+    });
+    const promote = vi.fn(() => {});
+    const service = makeService({ store, runtime, promotion: { promote } });
+    const { session, completed } = await service.start({
+      companyId: randomUUID(),
+      environmentId: randomUUID(),
+      adapterType: ADAPTER_TYPE,
+      startedByUserId: OWNER_A,
+    });
+
+    // The prompt moves the row to the active `waiting_for_user` state.
+    await waitForStatus(store, session.sessionId, "waiting_for_user");
+
+    // The reaper wins the slot: it terminates the row before the promotion claim.
+    await store.setStatus({
+      sessionId: session.sessionId,
+      status: "timed_out",
+      at: new Date(),
+      finishedAt: new Date(),
+    });
+
+    // Release the login. The success outcome now reaches the promotion claim, but
+    // the row no longer holds an active pre-promotion status.
+    releaseGate();
+    const outcome = await completed;
+
+    // The lost claim writes no credential and never authenticates.
+    expect(promote).not.toHaveBeenCalled();
+    expect(outcome.status).not.toBe("authenticated");
+    const row = await store.get(session.sessionId);
+    expect(row?.status).toBe("timed_out");
+    // The service still deletes its own sandbox on the lost-claim path.
+    expect(deleteCalls).toHaveLength(1);
+  });
+
   describe("five-minute host timeout", () => {
     it("holds the session active until exactly five minutes, then times out and deletes", async () => {
       vi.useFakeTimers();
@@ -718,4 +797,48 @@ describeEmbeddedPostgres("codex device login service concurrency (embedded postg
       await fulfilled[0]!.value.completed;
     },
   );
+
+  it("rejects a second start with a 409 while the first login holds the promotion claim", async () => {
+    const { companyId, environmentId } = await seedCompanyEnvironment();
+    const store = createDbAdapterAuthSessionStore(db);
+    const { runtime } = createFakeRuntime({ exec: execSuccess, authBytes: Buffer.from("{}") });
+
+    // A promotion that never resolves. The first login stays in `promoting`, so
+    // it holds the active company slot through the claim window.
+    let releasePromotion!: () => void;
+    const promotionGate = new Promise<void>((resolve) => {
+      releasePromotion = resolve;
+    });
+    const service = makeService({
+      store,
+      runtime,
+      promotion: { promote: () => promotionGate },
+    });
+
+    const first = await service.start({
+      companyId,
+      environmentId,
+      adapterType: ADAPTER_TYPE,
+      startedByUserId: OWNER_A,
+    });
+
+    // The first login reaches the `promoting` claim and holds it.
+    await waitForStatus(store, first.session.sessionId, "promoting");
+
+    // A second start for the same company and adapter conflicts on the active
+    // slot, even though the first login is mid-promotion.
+    await expect(
+      service.start({
+        companyId,
+        environmentId,
+        adapterType: ADAPTER_TYPE,
+        startedByUserId: OWNER_B,
+      }),
+    ).rejects.toBeInstanceOf(AdapterAuthSessionConflictError);
+
+    // Release the first promotion so the run ends and no timer survives.
+    releasePromotion();
+    const outcome = await first.completed;
+    expect(outcome.status).toBe("authenticated");
+  });
 });
