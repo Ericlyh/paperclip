@@ -5,5 +5,22 @@
       "description": "회사를 만들어 시작하세요.",
       "newCompany": "새 회사"
     }
+  },
+  "sidebar": {
+    "newIssue": "New Issue",
+    "openSearch": "Open search",
+    "dashboard": "Dashboard",
+    "inbox": "Inbox",
+    "workSection": "Work",
+    "tasks": "Issues",
+    "routines": "Routines",
+    "goals": "Goals",
+    "workspaces": "Workspaces",
+    "companySection": "Company",
+    "org": "Org",
+    "skills": "Skills",
+    "costs": "Costs",
+    "activity": "Activity",
+    "settings": "Settings"
   }
 }

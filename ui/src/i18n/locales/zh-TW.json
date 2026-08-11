@@ -5,5 +5,22 @@
       "description": "從建立公司開始。",
       "newCompany": "新公司"
     }
+  },
+  "sidebar": {
+    "newIssue": "新增議題",
+    "openSearch": "開啟搜尋",
+    "dashboard": "儀表板",
+    "inbox": "收件匣",
+    "workSection": "工作",
+    "tasks": "議題",
+    "routines": "定期任務",
+    "goals": "目標",
+    "workspaces": "工作區",
+    "companySection": "公司",
+    "org": "組織",
+    "skills": "技能",
+    "costs": "成本",
+    "activity": "活動",
+    "settings": "設定"
   }
 }

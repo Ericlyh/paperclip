@@ -5,5 +5,22 @@
       "description": "కంపెనీని సృష్టించడం ద్వారా ప్రారంభించండి.",
       "newCompany": "కొత్త కంపెనీ"
     }
+  },
+  "sidebar": {
+    "newIssue": "New Issue",
+    "openSearch": "Open search",
+    "dashboard": "Dashboard",
+    "inbox": "Inbox",
+    "workSection": "Work",
+    "tasks": "Issues",
+    "routines": "Routines",
+    "goals": "Goals",
+    "workspaces": "Workspaces",
+    "companySection": "Company",
+    "org": "Org",
+    "skills": "Skills",
+    "costs": "Costs",
+    "activity": "Activity",
+    "settings": "Settings"
   }
 }

@@ -5,5 +5,22 @@
       "description": "Kom i gang ved å opprette et selskap.",
       "newCompany": "Nytt selskap"
     }
+  },
+  "sidebar": {
+    "newIssue": "New Issue",
+    "openSearch": "Open search",
+    "dashboard": "Dashboard",
+    "inbox": "Inbox",
+    "workSection": "Work",
+    "tasks": "Issues",
+    "routines": "Routines",
+    "goals": "Goals",
+    "workspaces": "Workspaces",
+    "companySection": "Company",
+    "org": "Org",
+    "skills": "Skills",
+    "costs": "Costs",
+    "activity": "Activity",
+    "settings": "Settings"
   }
 }

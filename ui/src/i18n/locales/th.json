@@ -5,5 +5,22 @@
       "description": "เริ่มต้นด้วยการสร้างบริษัท",
       "newCompany": "บริษัทใหม่"
     }
+  },
+  "sidebar": {
+    "newIssue": "New Issue",
+    "openSearch": "Open search",
+    "dashboard": "Dashboard",
+    "inbox": "Inbox",
+    "workSection": "Work",
+    "tasks": "Issues",
+    "routines": "Routines",
+    "goals": "Goals",
+    "workspaces": "Workspaces",
+    "companySection": "Company",
+    "org": "Org",
+    "skills": "Skills",
+    "costs": "Costs",
+    "activity": "Activity",
+    "settings": "Settings"
   }
 }

@@ -5,5 +5,22 @@
       "description": "একটি কোম্পানি তৈরি করে শুরু করুন।",
       "newCompany": "নতুন কোম্পানি"
     }
+  },
+  "sidebar": {
+    "newIssue": "New Issue",
+    "openSearch": "Open search",
+    "dashboard": "Dashboard",
+    "inbox": "Inbox",
+    "workSection": "Work",
+    "tasks": "Issues",
+    "routines": "Routines",
+    "goals": "Goals",
+    "workspaces": "Workspaces",
+    "companySection": "Company",
+    "org": "Org",
+    "skills": "Skills",
+    "costs": "Costs",
+    "activity": "Activity",
+    "settings": "Settings"
   }
 }
