@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { and, eq, inArray, isNotNull, isNull, lte, ne, or } from "drizzle-orm";
+import { and, eq, inArray, isNotNull, isNull, lte, ne, or, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import { adapterAuthSessions } from "@paperclipai/db";
 import type {
@@ -272,6 +272,50 @@ export interface AdapterAuthSessionStore {
   /** A conditional status write. It returns true only when it changed one row. */
   compareAndSetStatus(input: CompareAndSetAdapterAuthSessionStatusInput): Promise<boolean>;
   get(sessionId: string): Promise<AdapterAuthSessionRow | null>;
+  /** Run `fn` while the process holds the promotion critical-section lock for the
+   *  company and adapter. The reaper reclaims a stale `promoting` row inside this
+   *  lock, so a reclaim never interleaves with a live credential write. */
+  withCompanyAdapterPromotionLock<T>(
+    companyId: string,
+    adapterType: AgentAdapterType,
+    fn: () => Promise<T>,
+  ): Promise<T>;
+}
+
+/** Build the advisory-lock key for the promotion critical section. The key is
+ *  company-scoped and adapter-scoped, so two different company slots never
+ *  contend. The credential-promotion path and the reaper reclaim both derive the
+ *  key from this function, so they take the exact same lock. */
+export function adapterLoginPromotionLockKey(
+  companyId: string,
+  adapterType: AgentAdapterType,
+): string {
+  return `paperclip:adapter-login-promotion:${companyId}:${adapterType}`;
+}
+
+/**
+ * Run `fn` inside the promotion critical section for one company and adapter.
+ *
+ * The function opens a database transaction and takes a transaction-scoped
+ * PostgreSQL advisory lock. The lock serializes the credential-promotion path
+ * against the reaper reclaim, so a reaper never releases the company slot while a
+ * credential write runs, and a stale promotion never writes after the reaper
+ * reclaims the slot. The transaction holds the lock through `fn`, so the caller
+ * runs the ownership check and the credential write in one mutually-exclusive
+ * section. A process crash drops the connection and releases the lock, so a
+ * stalled owner never blocks recovery.
+ */
+export async function withAdapterLoginPromotionLock<T>(
+  db: Db,
+  companyId: string,
+  adapterType: AgentAdapterType,
+  fn: () => Promise<T>,
+): Promise<T> {
+  const key = adapterLoginPromotionLockKey(companyId, adapterType);
+  return db.transaction(async (tx) => {
+    await tx.execute(sql`select pg_advisory_xact_lock(hashtextextended(${key}, 0))`);
+    return fn();
+  });
 }
 
 /** The three active statuses. A row in one of these states holds the company
@@ -309,6 +353,14 @@ export interface AdapterAuthReaperStore {
   /** A conditional status write. It returns true only when it changed one row. */
   compareAndSetStatus(input: CompareAndSetAdapterAuthSessionStatusInput): Promise<boolean>;
   get(sessionId: string): Promise<AdapterAuthSessionRow | null>;
+  /** Run `fn` while the process holds the promotion critical-section lock for the
+   *  company and adapter. The reaper reclaims a stale `promoting` row inside this
+   *  lock, so a reclaim never interleaves with a live credential write. */
+  withCompanyAdapterPromotionLock<T>(
+    companyId: string,
+    adapterType: AgentAdapterType,
+    fn: () => Promise<T>,
+  ): Promise<T>;
 }
 
 // The Postgres unique-violation code. The database driver sets it on the error,
@@ -464,6 +516,9 @@ export function createDbAdapterAuthSessionStore(
       return rows
         .map((row) => row.providerLeaseId)
         .filter((value): value is string => value != null);
+    },
+    async withCompanyAdapterPromotionLock(companyId, adapterType, fn) {
+      return withAdapterLoginPromotionLock(db, companyId, adapterType, fn);
     },
   };
 }
@@ -695,17 +750,6 @@ export function createCodexDeviceLoginService(deps: CodexDeviceLoginServiceDeps)
     // callback never overwrites a later transition. Each write runs after the
     // previous one settles, and a failed write never blocks the next one.
     let statusTail: Promise<unknown> = Promise.resolve();
-    function transition(
-      status: AdapterAuthSessionInternalStatus,
-      patch?: { failureReason?: string | null; finishedAt?: Date | null },
-    ): Promise<void> {
-      const run = statusTail.then(
-        () => store.setStatus({ sessionId, status, at: now(), ...patch }),
-        () => store.setStatus({ sessionId, status, at: now(), ...patch }),
-      );
-      statusTail = run.catch(() => {});
-      return run;
-    }
 
     // The serialized conditional status write. It runs after the previous write
     // and changes the row only when the current status is one of
@@ -742,12 +786,16 @@ export function createCodexDeviceLoginService(deps: CodexDeviceLoginServiceDeps)
         signal: input.signal,
         authPath: lease.authPath,
         onPrompt: (prompt) => {
-          // Hold the prompt in memory and expose it through the owner read path.
-          promptsBySession.set(sessionId, prompt);
-          // Move to the active `waiting_for_user` state. The active claim stays
-          // held. The write is serialized, so a later transition wins.
-          void transition("waiting_for_user");
-          activity("prompt_surfaced");
+          // Move the row to the active `waiting_for_user` state with a
+          // conditional write from `starting`. Retain and surface the prompt only
+          // when the write wins. A lost write means the reaper already reclaimed
+          // the expired row, so the service never resurrects a reaped session and
+          // never surfaces a prompt for a slot it no longer owns.
+          void conditionalTransition(["starting"], "waiting_for_user").then((won) => {
+            if (!won) return;
+            promptsBySession.set(sessionId, prompt);
+            activity("prompt_surfaced");
+          });
         },
         onCredential: (bytes) => {
           authBytes = bytes;

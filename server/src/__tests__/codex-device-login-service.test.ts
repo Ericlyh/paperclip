@@ -25,6 +25,26 @@ import {
   type LoginSessionRuntime,
   type SandboxDeleteResult,
 } from "../services/codex-device-login-service.ts";
+import {
+  createCodexDeviceLoginReaper,
+  type LoginSessionCleanupRuntime,
+} from "../services/codex-device-login-reaper.ts";
+
+// A cleanup runtime for the reaper. It confirms every delete and reports no
+// tagged lease, so the reaper only reclaims the seeded session rows.
+function createReaperRuntime() {
+  const deletes: string[] = [];
+  const runtime: LoginSessionCleanupRuntime = {
+    async deleteSandbox(ref) {
+      deletes.push(ref.providerLeaseId);
+      return { outcome: "deleted" };
+    },
+    async listTaggedLeases() {
+      return [];
+    },
+  };
+  return { runtime, deletes };
+}
 
 // A passing promotion for the lifecycle tests. The mandatory promotion is a
 // required dependency, so a test that does not exercise the credential write
@@ -183,6 +203,11 @@ function createMemoryStore(): AdapterAuthSessionStore & {
       const row = rows.get(sessionId);
       return row ? { ...row } : null;
     },
+    async withCompanyAdapterPromotionLock(_companyId, _adapterType, fn) {
+      // The in-memory store runs on a single event loop, so it needs no real
+      // lock. The pass-through keeps the store contract satisfied.
+      return fn();
+    },
   };
 }
 
@@ -246,6 +271,12 @@ describe("codex device login service", () => {
       adapterType: ADAPTER_TYPE,
       startedByUserId: OWNER_A,
     });
+
+    // The prompt is surfaced only after the conditional move to
+    // `waiting_for_user` wins, so wait for that surface, then drain the microtask
+    // that retains the prompt before the owner reads it.
+    await waitForStatus(store, session.sessionId, "waiting_for_user");
+    await new Promise((resolve) => setImmediate(resolve));
 
     // The owner reads the one-time prompt through the owner read path.
     const owner = await service.readOwnerSession(session.sessionId, OWNER_A);
@@ -840,5 +871,165 @@ describeEmbeddedPostgres("codex device login service concurrency (embedded postg
     releasePromotion();
     const outcome = await first.completed;
     expect(outcome.status).toBe("authenticated");
+  });
+
+  // Insert a `promoting` row whose promotion claim already expired, so the reaper
+  // scan selects it. The tests below race the reaper reclaim against the
+  // promotion critical section through the real advisory lock.
+  async function seedStalePromotingRow(companyId: string, environmentId: string): Promise<string> {
+    const sessionId = randomUUID();
+    const past = new Date(Date.now() - 5 * 60_000);
+    await db.insert(adapterAuthSessions).values({
+      id: sessionId,
+      companyId,
+      environmentId,
+      adapterType: ADAPTER_TYPE,
+      startedByUserId: OWNER_A,
+      providerLeaseId: `lease-${sessionId}`,
+      status: "promoting",
+      expiresAt: past,
+      promotionExpiresAt: past,
+      createdAt: past,
+      updatedAt: past,
+    });
+    return sessionId;
+  }
+
+  it("holds the promotion lock so the reaper cannot reclaim a live credential write", async () => {
+    const { companyId, environmentId } = await seedCompanyEnvironment();
+    const store = createDbAdapterAuthSessionStore(db);
+    const sessionId = await seedStalePromotingRow(companyId, environmentId);
+
+    const { runtime } = createReaperRuntime();
+    const reaper = createCodexDeviceLoginReaper({ store, runtime, now: () => new Date() });
+
+    // Run the ownership check and the credential write inside the promotion lock.
+    // The write flag stands in for the filesystem credential write. A gate holds
+    // the section open, so the test can start the reaper while the lock is held.
+    let wroteCredential = false;
+    let releaseSection!: () => void;
+    const sectionGate = new Promise<void>((resolve) => {
+      releaseSection = resolve;
+    });
+    let markSectionActive!: () => void;
+    const sectionActive = new Promise<void>((resolve) => {
+      markSectionActive = resolve;
+    });
+    const promotion = store.withCompanyAdapterPromotionLock(companyId, ADAPTER_TYPE, async () => {
+      markSectionActive();
+      await sectionGate;
+      // Decision H: the write proceeds only while the session still owns the slot.
+      const row = await store.get(sessionId);
+      if (row?.status === "promoting" && row.companyId === companyId) {
+        wroteCredential = true;
+      }
+    });
+
+    // The promotion holds the lock now. Start the reaper. It must block on the
+    // advisory lock, so it cannot reclaim the row while the write section runs.
+    await sectionActive;
+    const reaped = reaper.sweep();
+    await new Promise((resolve) => setTimeout(resolve, 100));
+    expect((await store.get(sessionId))?.status).toBe("promoting");
+
+    // Release the section. The ownership check sees the live claim and writes.
+    releaseSection();
+    await promotion;
+    const sweep = await reaped;
+
+    // The credential write stood, because the session owned the slot at the
+    // write. The reaper reclaimed the row only after the write finished.
+    expect(wroteCredential).toBe(true);
+    expect(sweep.expiredTimedOut).toBe(1);
+    expect((await store.get(sessionId))?.status).toBe("timed_out");
+  });
+
+  it("skips the credential write when the reaper reclaimed the stale slot first", async () => {
+    const { companyId, environmentId } = await seedCompanyEnvironment();
+    const store = createDbAdapterAuthSessionStore(db);
+    const sessionId = await seedStalePromotingRow(companyId, environmentId);
+
+    const { runtime } = createReaperRuntime();
+    const reaper = createCodexDeviceLoginReaper({ store, runtime, now: () => new Date() });
+
+    // The reaper reclaims the stale row first and times it out.
+    const sweep = await reaper.sweep();
+    expect(sweep.expiredTimedOut).toBe(1);
+    expect((await store.get(sessionId))?.status).toBe("timed_out");
+
+    // A delayed promotion now runs its section. The ownership check reads the
+    // reclaimed row, so it writes no credential and the terminal claim fails.
+    let wroteCredential = false;
+    await store.withCompanyAdapterPromotionLock(companyId, ADAPTER_TYPE, async () => {
+      const row = await store.get(sessionId);
+      if (row?.status === "promoting" && row.companyId === companyId) {
+        wroteCredential = true;
+      }
+    });
+    expect(wroteCredential).toBe(false);
+
+    const authenticated = await store.compareAndSetStatus({
+      sessionId,
+      expectedStatuses: ["promoting"],
+      status: "authenticated",
+      at: new Date(),
+    });
+    expect(authenticated).toBe(false);
+    expect((await store.get(sessionId))?.status).toBe("timed_out");
+  });
+
+  it("does not resurrect a reaped starting row when a delayed prompt arrives", async () => {
+    const { companyId, environmentId } = await seedCompanyEnvironment();
+    const store = createDbAdapterAuthSessionStore(db);
+
+    // The login emits the prompt only after the test opens the gate, so the
+    // reaper reclaims the expired `starting` row before the prompt arrives.
+    let releasePrompt!: () => void;
+    const promptGate = new Promise<void>((resolve) => {
+      releasePrompt = resolve;
+    });
+    const execGatedPrompt: ExecBehavior = async ({ onStdout }) => {
+      await promptGate;
+      onStdout(PROMPT_OUTPUT);
+      return new Promise<{ exitCode: number | null }>(() => {});
+    };
+    const { runtime } = createFakeRuntime({ exec: execGatedPrompt });
+    const service = makeService({ store, runtime });
+
+    const controller = new AbortController();
+    const started = await service.start({
+      companyId,
+      environmentId,
+      adapterType: ADAPTER_TYPE,
+      startedByUserId: OWNER_A,
+      signal: controller.signal,
+    });
+    const sessionId = started.session.sessionId;
+    await waitForStatus(store, sessionId, "starting");
+
+    // The reaper reclaims the expired row and times it out.
+    const { runtime: reaperRuntime } = createReaperRuntime();
+    const reaper = createCodexDeviceLoginReaper({
+      store,
+      runtime: reaperRuntime,
+      now: () => new Date(Date.now() + CODEX_DEVICE_LOGIN_TIMEOUT_MS + 60_000),
+    });
+    const sweep = await reaper.sweep();
+    expect(sweep.expiredTimedOut).toBe(1);
+    expect((await store.get(sessionId))?.status).toBe("timed_out");
+
+    // The delayed prompt arrives now. The conditional transition must not revive
+    // the reaped row, and the owner must not read a prompt for it.
+    releasePrompt();
+    await new Promise((resolve) => setImmediate(resolve));
+    await new Promise((resolve) => setImmediate(resolve));
+
+    const owner = await service.readOwnerSession(sessionId, OWNER_A);
+    expect((await store.get(sessionId))?.status).toBe("timed_out");
+    expect(owner?.prompt ?? null).toBeNull();
+
+    // End the run so no timer survives.
+    controller.abort();
+    await started.completed;
   });
 });

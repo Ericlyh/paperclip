@@ -226,6 +226,11 @@ function createMemoryStore(): AdapterAuthSessionStore & { rows: Map<string, Adap
       const row = rows.get(sessionId);
       return row ? { ...row } : null;
     },
+    async withCompanyAdapterPromotionLock(_companyId, _adapterType, fn) {
+      // The route test runs on a single event loop, so it needs no real lock. The
+      // pass-through keeps the promotion contract satisfied.
+      return fn();
+    },
   };
 }
 

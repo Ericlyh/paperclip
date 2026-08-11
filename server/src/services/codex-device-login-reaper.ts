@@ -157,16 +157,27 @@ export function createCodexDeviceLoginReaper(deps: CodexDeviceLoginReaperDeps) {
       // slot. A lost claim means the session owner reached a terminal first, so
       // the reaper deletes nothing and leaves the row alone. This closes the
       // lost-update race on the slot.
+      //
+      // Take the promotion critical-section lock around the claim. The credential
+      // promotion holds the same lock across its ownership check and its
+      // credential write, so the reclaim of a stale `promoting` row never
+      // interleaves with a live write. A crashed owner drops the lock, so the
+      // reaper still reclaims the stalled row on a later sweep.
       const pendingWrite = terminalCleanupWrite(false, "timed_out", null);
-      const claimed = await store.compareAndSetStatus({
-        sessionId: row.id,
-        expectedStatuses: [row.status],
-        status: pendingWrite.status,
-        at: now(),
-        failureReason: pendingWrite.failureReason,
-        finishedAt: now(),
-        promotionExpiresAt: null,
-      });
+      const claimed = await store.withCompanyAdapterPromotionLock(
+        row.companyId,
+        row.adapterType,
+        () =>
+          store.compareAndSetStatus({
+            sessionId: row.id,
+            expectedStatuses: [row.status],
+            status: pendingWrite.status,
+            at: now(),
+            failureReason: pendingWrite.failureReason,
+            finishedAt: now(),
+            promotionExpiresAt: null,
+          }),
+      );
       if (!claimed) continue;
 
       // The reaper owns the row now. Delete the sandbox, then finalize the

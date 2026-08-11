@@ -86,6 +86,11 @@ function createMemoryReaperStore(): AdapterAuthReaperStore & {
       const row = rows.get(sessionId);
       return row ? { ...row } : null;
     },
+    async withCompanyAdapterPromotionLock(_companyId, _adapterType, fn) {
+      // The in-memory store runs on a single event loop, so it needs no real
+      // lock. The pass-through keeps the reaper contract satisfied.
+      return fn();
+    },
   };
 }
 

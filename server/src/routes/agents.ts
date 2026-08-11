@@ -262,24 +262,39 @@ export function agentRoutes(
     // or unready credential fails the session and writes nothing.
     promotion: {
       async promote(authBytes, context) {
-        const outcome = await promoteDeviceLoginCredential({
-          authBytes,
-          companyId: context.companyId,
-          userInitiated: true,
-          checkReadiness: (bytes) => checkStagedCredentialReadiness(bytes),
-          isSoleActiveOwner: async () => {
-            // The partial unique index allows one active row per company and
-            // adapter. So a `promoting` row for this session is the sole active
-            // owner of the company credential slot.
-            const row = await adapterLoginStore.get(context.sessionId);
-            return row?.status === "promoting" && row.companyId === context.companyId;
-          },
-          log: (line) => {
-            // The promotion lines carry no token bytes and no raw account id, so
-            // it is safe to log them with the session identifier.
-            logger.info({ sessionId: context.sessionId }, line);
-          },
-        });
+        // Hold the promotion critical-section lock across the ownership check and
+        // the credential write. The reaper takes the same lock before it reclaims
+        // a stale `promoting` row. So a reclaim never interleaves with a live
+        // write: the reaper either wins the lock first and the ownership check
+        // then reads a reclaimed row and writes nothing, or the write finishes
+        // first under the lock and the reaper reclaims only after it completes. A
+        // read-only fence is not enough, because the filesystem write can start
+        // after the fence; the lock spans the whole section.
+        const outcome = await adapterLoginStore.withCompanyAdapterPromotionLock(
+          context.companyId,
+          context.adapterType,
+          () =>
+            promoteDeviceLoginCredential({
+              authBytes,
+              companyId: context.companyId,
+              userInitiated: true,
+              checkReadiness: (bytes) => checkStagedCredentialReadiness(bytes),
+              isSoleActiveOwner: async () => {
+                // The partial unique index allows one active row per company and
+                // adapter. So a `promoting` row for this session is the sole
+                // active owner of the company credential slot. The read runs
+                // inside the lock, so it observes a reaper reclaim that committed
+                // before this section acquired the lock.
+                const row = await adapterLoginStore.get(context.sessionId);
+                return row?.status === "promoting" && row.companyId === context.companyId;
+              },
+              log: (line) => {
+                // The promotion lines carry no token bytes and no raw account id,
+                // so it is safe to log them with the session identifier.
+                logger.info({ sessionId: context.sessionId }, line);
+              },
+            }),
+        );
         // A resolved promotion is not necessarily an accepted promotion. In
         // particular, a reaper/expiry race can revoke this session's sole
         // ownership between the service transition and Decision H. Fail closed:
