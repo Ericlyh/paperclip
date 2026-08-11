@@ -1046,11 +1046,20 @@ export function sessionCredentialPath(sessionId: string): string {
  *
  * - `execStreaming` sets an empty session-specific Codex home before the fixed
  *   login command runs, exports `CODEX_HOME`, and streams standard output to the
- *   runner. The command runs one-shot; it never joins the persistent session.
+ *   runner. It passes the command through `sh -c`, so the runtime runs the whole
+ *   compound command in one shell. It sets `forceSession`, so the command opens
+ *   the persistent session and streams each standard-output chunk while the
+ *   login command waits for the user. A one-shot exec returns the output only at
+ *   the end, so the login prompt would never reach the user in time.
  * - `readFile` reads the credential from the fixed session-specific path with a
- *   one-shot command. No caller controls the path.
+ *   one-shot `cat` command. No caller controls the path.
  * - `dispose` is a no-op. The service owns the sandbox delete through a separate
  *   seam, so the runner's swallowed dispose must not delete the sandbox.
+ *
+ * The runtime passes `command` and `args` to the provider as a program and its
+ * argument vector. The provider quotes each element as one shell token. So a
+ * compound command must run through a shell (`sh -c "<script>"`); a bare
+ * compound string in `command` becomes one token and never runs.
  */
 export function buildSandboxLoginDriver(deps: {
   environmentRuntime: Pick<EnvironmentRuntimeService, "execute">;
@@ -1062,13 +1071,17 @@ export function buildSandboxLoginDriver(deps: {
   const { environmentRuntime, environment, lease, sessionHome, timeoutMs } = deps;
   return {
     async execStreaming(command, onStdout) {
-      const fullCommand = `rm -rf ${sessionHome} && mkdir -p ${sessionHome} && CODEX_HOME=${sessionHome} ${command}`;
+      const script = `rm -rf ${sessionHome} && mkdir -p ${sessionHome} && CODEX_HOME=${sessionHome} ${command}`;
       const result = await environmentRuntime.execute({
         environment,
         lease,
-        command: fullCommand,
+        command: "sh",
+        args: ["-c", script],
         timeoutMs,
-        bypassSession: true,
+        // Open the persistent session, so the runtime streams each output chunk
+        // to the runner while the login command waits. A one-shot exec returns
+        // the output only at the end, so the prompt would arrive too late.
+        forceSession: true,
         onLog: (stream, chunk) => {
           if (stream === "stdout") onStdout(chunk);
         },
@@ -1079,7 +1092,8 @@ export function buildSandboxLoginDriver(deps: {
       const result = await environmentRuntime.execute({
         environment,
         lease,
-        command: `cat ${path}`,
+        command: "cat",
+        args: [path],
         timeoutMs,
         bypassSession: true,
       });

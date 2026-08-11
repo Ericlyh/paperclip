@@ -662,17 +662,35 @@ describe("codex device login service", () => {
   });
 
   it("builds a production driver that sets an empty session home and reads the fixed credential path", async () => {
-    const commands: string[] = [];
+    // Record the program and the argument vector for each call. The provider
+    // quotes each element as one shell token, so the driver must pass a program
+    // plus its arguments, never one compound string. A one-shot exec streams no
+    // output, so the login command must set `forceSession` to open the session.
+    const calls: {
+      command: string;
+      args?: string[];
+      forceSession?: boolean;
+      bypassSession?: boolean;
+    }[] = [];
     const sessionId = randomUUID();
     const sessionHome = sessionCodexHomePath(sessionId);
     const authPath = sessionCredentialPath(sessionId);
     const environmentRuntime = {
       execute: async (input: {
         command: string;
+        args?: string[];
+        forceSession?: boolean;
+        bypassSession?: boolean;
         onLog?: (stream: "stdout" | "stderr", chunk: string) => void | Promise<void>;
       }) => {
-        commands.push(input.command);
-        if (input.command.includes("codex login")) {
+        calls.push({
+          command: input.command,
+          args: input.args,
+          forceSession: input.forceSession,
+          bypassSession: input.bypassSession,
+        });
+        const script = input.args?.join(" ") ?? "";
+        if (script.includes("codex login")) {
           await input.onLog?.("stdout", PROMPT_OUTPUT);
           return { exitCode: 0, stdout: "", stderr: "" };
         }
@@ -693,14 +711,22 @@ describe("codex device login service", () => {
     const result = await driver.execStreaming("codex login --device-auth", (chunk) => chunks.push(chunk));
     expect(result.exitCode).toBe(0);
     expect(chunks.join("")).toContain(DEVICE_LOGIN_URL);
-    // The command sets an empty session-specific Codex home before the login.
-    expect(commands[0]).toBe(
+    // The login command runs through `sh -c`, so the runtime runs the whole
+    // compound command in one shell. It sets an empty session-specific Codex
+    // home before the login. It opens the session, so the prompt streams.
+    expect(calls[0].command).toBe("sh");
+    expect(calls[0].args).toEqual([
+      "-c",
       `rm -rf ${sessionHome} && mkdir -p ${sessionHome} && CODEX_HOME=${sessionHome} codex login --device-auth`,
-    );
+    ]);
+    expect(calls[0].forceSession).toBe(true);
 
     const authBytes = await driver.readFile(authPath);
     expect(authBytes.toString("utf8")).toBe('{"token":"secret"}');
-    expect(commands[1]).toBe(`cat ${authPath}`);
+    // The credential read runs `cat` with the path as one argument, one-shot.
+    expect(calls[1].command).toBe("cat");
+    expect(calls[1].args).toEqual([authPath]);
+    expect(calls[1].bypassSession).toBe(true);
   });
 });
 
