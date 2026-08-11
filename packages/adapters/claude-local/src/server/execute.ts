@@ -54,6 +54,7 @@ import {
   isClaudeMaxTurnsResult,
   isClaudeTransientUpstreamError,
   isClaudeUnknownSessionError,
+  isClaudeContextOverflowError,
 } from "./parse.js";
 import { prepareClaudeConfigSeed } from "./claude-config.js";
 import { resolveClaudeDesiredSkillNames } from "./skills.js";
@@ -881,6 +882,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
     const clearSessionForMaxTurns = isClaudeMaxTurnsResult(parsed);
     const parsedIsError = asBoolean(parsed.is_error, false);
     const failed = (proc.exitCode ?? 0) !== 0 || parsedIsError;
+    const contextOverflow = failed && isClaudeContextOverflowError(parsed);
     const errorMessage = failed
       ? describeClaudeFailure(parsed) ?? `Claude exited with code ${proc.exitCode ?? -1}`
       : null;
@@ -888,6 +890,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
       failed &&
       !loginMeta.requiresLogin &&
       !clearSessionForMaxTurns &&
+      !contextOverflow &&
       isClaudeTransientUpstreamError({
         parsed,
         stdout: proc.stdout,
@@ -906,12 +909,15 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
       ? "claude_auth_required"
       : failed && clearSessionForMaxTurns
       ? "max_turns_exhausted"
+      : contextOverflow
+      ? "claude_context_overflow"
       : transientUpstream
       ? "claude_transient_upstream"
       : null;
     const mergedResultJson: Record<string, unknown> = {
       ...parsed,
       ...(failed && clearSessionForMaxTurns ? { stopReason: "max_turns_exhausted" } : {}),
+      ...(contextOverflow ? { stopReason: "context_overflow" } : {}),
       ...(transientUpstream ? { errorFamily: "transient_upstream" } : {}),
       ...(transientRetryNotBefore ? { retryNotBefore: transientRetryNotBefore.toISOString() } : {}),
       ...(transientRetryNotBefore ? { transientRetryNotBefore: transientRetryNotBefore.toISOString() } : {}),
@@ -937,7 +943,10 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
       costUsd: parsedStream.costUsd ?? asNumber(parsed.total_cost_usd, 0),
       resultJson: mergedResultJson,
       summary: parsedStream.summary || asString(parsed.result, ""),
-      clearSession: clearSessionForMaxTurns || Boolean(opts.clearSessionOnMissingSession && !resolvedSessionId),
+      clearSession:
+        clearSessionForMaxTurns ||
+        contextOverflow ||
+        Boolean(opts.clearSessionOnMissingSession && !resolvedSessionId),
     };
   };
 

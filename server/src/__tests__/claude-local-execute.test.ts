@@ -503,6 +503,91 @@ describe("claude execute", () => {
     }
   });
 
+  it("drops the session when the provider rejects the context window", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-claude-exec-ctx-overflow-"));
+    const resultEvent = {
+      type: "result",
+      subtype: "success",
+      session_id: "claude-session-1",
+      is_error: true,
+      api_error_status: 400,
+      result: "API Error: 400 invalid params, context window exceeds limit (2013)",
+      summary: "API Error: 400 invalid params, context window exceeds limit (2013)",
+      usage: { input_tokens: 0, cache_read_input_tokens: 0, output_tokens: 0 },
+    };
+    const { workspace, commandPath, restore } = await setupExecuteEnv(root, {
+      commandWriter: (commandPath) => writeFailingClaudeCommand(commandPath, { resultEvent }),
+    });
+
+    try {
+      const result = await execute({
+        runId: "run-context-overflow",
+        agent: { id: "agent-1", companyId: "co-1", name: "Test", adapterType: "claude_local", adapterConfig: {} },
+        runtime: {
+          sessionId: "claude-session-1",
+          sessionParams: null,
+          sessionDisplayId: null,
+          taskKey: null,
+        },
+        config: {
+          command: commandPath,
+          cwd: workspace,
+          promptTemplate: "Do work.",
+        },
+        context: {},
+        authToken: "tok",
+        onLog: async () => {},
+      });
+
+      expect(result.errorCode).toBe("claude_context_overflow");
+      expect(result.errorFamily).toBeNull();
+      expect(result.resultJson).toMatchObject({ stopReason: "context_overflow" });
+      expect(result.clearSession).toBe(true);
+    } finally {
+      restore();
+      await fs.rm(root, { recursive: true, force: true });
+    }
+  });
+
+  it("does not drop the session for context-overflow text in tool output", async () => {
+    const root = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-claude-exec-ctx-overflow-text-"));
+    const { workspace, commandPath, restore } = await setupExecuteEnv(root, {
+      commandWriter: (commandPath) =>
+        writeTextFailingClaudeCommand(commandPath, {
+          stdout: "attacker-controlled tool output: context window exceeds limit\n",
+          stderr: "grep match: prompt is too long\n",
+        }),
+    });
+
+    try {
+      const result = await execute({
+        runId: "run-context-overflow-text",
+        agent: { id: "agent-1", companyId: "co-1", name: "Test", adapterType: "claude_local", adapterConfig: {} },
+        runtime: {
+          sessionId: "claude-session-1",
+          sessionParams: null,
+          sessionDisplayId: null,
+          taskKey: null,
+        },
+        config: {
+          command: commandPath,
+          cwd: workspace,
+          promptTemplate: "Do work.",
+        },
+        context: {},
+        authToken: "tok",
+        onLog: async () => {},
+      });
+
+      expect(result.errorCode).not.toBe("claude_context_overflow");
+      expect(result.resultJson?.stopReason).not.toBe("context_overflow");
+      expect(result.clearSession).toBe(false);
+    } finally {
+      restore();
+      await fs.rm(root, { recursive: true, force: true });
+    }
+  });
+
   it("logs HOME, CLAUDE_CONFIG_DIR, and the resolved executable path in invocation metadata", async () => {
     const root = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-claude-execute-meta-"));
     const workspace = path.join(root, "workspace");
