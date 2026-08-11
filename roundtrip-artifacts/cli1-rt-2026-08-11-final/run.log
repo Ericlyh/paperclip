@@ -1,0 +1,29 @@
+[STEP] Waiting for server at http://127.0.0.1:57410
+[OK] Server started at http://127.0.0.1:57410
+[OK] Created source company: 1d1d3a48-9148-40f4-9ae9-56d263074d3d (CLI Validate 1786441183484)
+[OK] Created project: cd89f9fc-080f-4227-8b58-f0e4123b7f96 (Verify Round-Trip 1786441183484)
+[OK] Created issue: CLIAAAAAAAAAAAAAAA-1 (description=168049 chars)
+[STEP] Running CLI export
+[OK] Exported 5 files to /tmp/claude-503/claude-503/paperclip-validate-rt-6nBeQe/exported-company
+[OK] Export directory contains: .paperclip.yaml, COMPANY.md, README.md, projects, tasks
+[OK] COMPANY.md contains source company name
+[OK] .paperclip.yaml present
+[OK] Exported task markdown is 168137 bytes with 12000 portable-data occurrences
+[STEP] Running CLI import to new company
+[OK] Imported to new company: ad732a3a-b7d2-4b63-a7ca-0a8c6179b415 (action: created)
+[OK] Projects imported: 1
+[OK] Verified imported company: Round-trip CLI Validate 1786441183484
+[OK] Verified imported project: Verify Round-Trip 1786441183484
+[OK] Verified imported issue: ROUAAAAAAAAAAAA-1
+[OK] Imported issue description is 168048 chars with 12000 portable-data occurrences
+[STEP] Running CLI import preview against existing company
+[OK] Preview OK: company=none, projects=1, issues=1
+[STEP] Running CLI apply to existing company
+[OK] Applied to existing company: company=unchanged, projects created=1
+[OK] Final project count after rename import: 2 (expected 2)
+
+=== ROUND-TRIP VALIDATION PASSED ===
+Source: 1d1d3a48-9148-40f4-9ae9-56d263074d3d CLI Validate 1786441183484
+Imported (new): ad732a3a-b7d2-4b63-a7ca-0a8c6179b415 Round-trip CLI Validate 1786441183484
+Applied to existing: ad732a3a-b7d2-4b63-a7ca-0a8c6179b415 (unchanged)
+Final project count: 2
