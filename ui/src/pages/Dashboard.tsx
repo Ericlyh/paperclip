@@ -34,6 +34,7 @@ import {
   getRecentDashboardIssues,
 } from "../lib/dashboard-feed";
 import { isProductivityReviewIssue } from "../lib/issue-filters";
+import { useTranslation } from "../i18n";
 
 // Auto-generated "Review productivity for OOP-*" issues carry this origin kind.
 // They are internal bookkeeping and should not clutter the dashboard surfaces
@@ -114,6 +115,7 @@ export function Dashboard() {
   const { selectedCompanyId, companies } = useCompany();
   const { openOnboarding } = useDialogActions();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const [animatedActivityIds, setAnimatedActivityIds] = useState<Set<string>>(new Set());
   const [filterState, setFilterState] = useState<DashboardFilterState>({
     ...DEFAULT_DASHBOARD_FILTER_STATE,
@@ -129,8 +131,8 @@ export function Dashboard() {
   });
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Dashboard" }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: t("dashboard.title") }]);
+  }, [setBreadcrumbs, t]);
 
   useEffect(() => {
     setFilterState(readDashboardFilterState(selectedCompanyId));
@@ -387,67 +389,67 @@ export function Dashboard() {
             <MetricCard
               icon={Bot}
               value={data.agents.active + data.agents.running + data.agents.paused + data.agents.error}
-              label="Agents Enabled"
+              label={t("dashboard.agentsEnabled")}
               to="/agents"
               description={
                 <span>
-                  {data.agents.running} running{", "}
-                  {data.agents.paused} paused{", "}
-                  {data.agents.error} errors
+                  {data.agents.running} {t("dashboard.running")}{", "}
+                  {data.agents.paused} {t("dashboard.paused")}{", "}
+                  {data.agents.error} {t("dashboard.errors")}
                 </span>
               }
             />
             <MetricCard
               icon={CircleDot}
               value={data.tasks.inProgress}
-              label="Tasks In Progress"
+              label={t("dashboard.tasksInProgress")}
               to="/issues"
               description={
                 <span>
-                  {data.tasks.open} open{", "}
-                  {data.tasks.blocked} blocked
+                  {data.tasks.open} {t("dashboard.open")}{", "}
+                  {data.tasks.blocked} {t("dashboard.blocked")}
                 </span>
               }
             />
             <MetricCard
               icon={DollarSign}
               value={formatCents(data.costs.monthSpendCents)}
-              label="Month Spend"
+              label={t("dashboard.monthSpend")}
               to="/costs"
               description={
                 <span>
                   {data.costs.monthBudgetCents > 0
-                    ? `${data.costs.monthUtilizationPercent}% of ${formatCents(data.costs.monthBudgetCents)} budget`
-                    : "Unlimited budget"}
+                    ? `${data.costs.monthUtilizationPercent} ${t("dashboard.ofBudget")} (${formatCents(data.costs.monthBudgetCents)})`
+                    : t("dashboard.unlimitedBudget")}
                 </span>
               }
             />
             <MetricCard
               icon={ShieldCheck}
               value={data.pendingApprovals + data.budgets.pendingApprovals}
-              label="Pending Approvals"
+              label={t("dashboard.pendingApprovals")}
               to="/approvals"
               description={
                 <span>
                   {data.budgets.pendingApprovals > 0
-                    ? `${data.budgets.pendingApprovals} budget overrides awaiting board review`
-                    : "Awaiting board review"}
+                    ? `${data.budgets.pendingApprovals} ${t("dashboard.budgetOverridesAwaitingBoardReview")}`
+                    : t("dashboard.awaitingBoardReview")}
                 </span>
               }
             />
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <ChartCard title="Run Activity" subtitle="Last 14 days">
+            <ChartCard title={t("dashboard.runActivity")} subtitle={t("dashboard.last14days")}>
               <RunActivityChart activity={data.runActivity} />
             </ChartCard>
-            <ChartCard title="Issues by Priority" subtitle="Last 14 days">
+            <ChartCard title={t("dashboard.issuesByPriority")} subtitle={t("dashboard.last14days")}>
               <PriorityChart issues={visibleIssues} />
             </ChartCard>
-            <ChartCard title="Issues by Status" subtitle="Last 14 days">
+            <ChartCard title={t("dashboard.issuesByStatus")} subtitle={t("dashboard.last14days")}>
               <IssueStatusChart issues={visibleIssues} />
             </ChartCard>
-            <ChartCard title="Success Rate" subtitle="Last 14 days">
+            <ChartCard title={t("dashboard.successRate")} subtitle={t("dashboard.last14days")}>
               <SuccessRateChart activity={data.runActivity} />
             </ChartCard>
           </div>

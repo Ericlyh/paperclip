@@ -22,5 +22,33 @@
     "costs": "成本",
     "activity": "活動",
     "settings": "設定"
+  },
+  "mobileNav": {
+    "home": "首頁",
+    "issues": "議題",
+    "create": "建立",
+    "agents": "代理",
+    "inbox": "收件匣"
+  },
+  "dashboard": {
+    "title": "儀表板",
+    "agentsEnabled": "已啟用代理",
+    "tasksInProgress": "進行中的任務",
+    "monthSpend": "本月支出",
+    "pendingApprovals": "待核准",
+    "running": "執行中",
+    "paused": "已暫停",
+    "errors": "錯誤",
+    "open": "開啟",
+    "blocked": "已封鎖",
+    "ofBudget": "% 預算",
+    "unlimitedBudget": "無限預算",
+    "awaitingBoardReview": "等待 board 審核",
+    "budgetOverridesAwaitingBoardReview": "筆預算覆寫正在等待 board 審核",
+    "runActivity": "執行活動",
+    "issuesByPriority": "依優先順序的議題",
+    "issuesByStatus": "依狀態的議題",
+    "successRate": "成功率",
+    "last14days": "過去 14 天"
   }
 }

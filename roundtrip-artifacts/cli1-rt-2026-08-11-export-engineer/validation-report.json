@@ -1,0 +1,37 @@
+{
+  "issue": "CLI-1",
+  "title": "Validate company import/export",
+  "completedAt": "2026-08-11T09:48:21.087Z",
+  "passed": true,
+  "by": "Export Engineer (158a4f01-747e-4e7d-a180-b24d5370f2fb)",
+  "summary": "Re-ran the standalone round-trip validation script. The CLI export/import round-trip continues to pass end-to-end: 168 KB description (12000 portable-data occurrences) survives export -> import -> preview -> apply with full fidelity.",
+  "run": {
+    "command": "node cli/validate-roundtrip.mjs",
+    "result": "ROUND-TRIP VALIDATION PASSED",
+    "sourceCompanyId": "38d00511-c3c8-4648-bb94-ca092545f591",
+    "importedCompanyId": "a2723327-fa96-4b27-b2f8-cd55d673b9ab",
+    "sourceDescriptionChars": 168049,
+    "exportedTaskMarkdownBytes": 168137,
+    "exportedPortableDataOccurrences": 12000,
+    "importedIssueDescriptionChars": 168048,
+    "importedPortableDataOccurrences": 12000,
+    "note": "1-char delta between source and imported is the trailing newline that buildMarkdown strips; content fidelity is exact."
+  },
+  "priorWork": {
+    "fix": "server/src/services/company-portability.ts",
+    "fixCommit": "3309340a fix(server): preserve full issue descriptions on company export (CLI-1)",
+    "docsCommit": "72ab1bcc docs(roundtrip): CLI-1 round-trip validation artifacts",
+    "priorValidationReport": "roundtrip-artifacts/cli1-rt-2026-08-11-final/validation-report.json",
+    "priorRunLog": "roundtrip-artifacts/cli1-rt-2026-08-11-final/run.log"
+  },
+  "checks": [
+    {
+      "name": "cli validate-roundtrip.mjs",
+      "command": "node cli/validate-roundtrip.mjs",
+      "result": "ROUND-TRIP VALIDATION PASSED in 2026-08-11-export-engineer artifact dir",
+      "passed": true
+    }
+  ],
+  "disposition": "done",
+  "dispositionNotes": "CLI-1 was previously fixed and validated (commits 3309340a + 72ab1bcc). Export Engineer re-ran the standalone script after re-arrival to confirm the fix is still green: full-fidelity round-trip across company, projects, issues, and the 12000-occurrence description blob survives export -> import -> preview -> apply."
+}

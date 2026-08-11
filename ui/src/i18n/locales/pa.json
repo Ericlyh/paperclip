@@ -22,5 +22,33 @@
     "costs": "Costs",
     "activity": "Activity",
     "settings": "Settings"
+  },
+  "mobileNav": {
+    "home": "Home",
+    "issues": "Issues",
+    "create": "Create",
+    "agents": "Agents",
+    "inbox": "Inbox"
+  },
+  "dashboard": {
+    "title": "Dashboard",
+    "agentsEnabled": "Agents Enabled",
+    "tasksInProgress": "Tasks In Progress",
+    "monthSpend": "Month Spend",
+    "pendingApprovals": "Pending Approvals",
+    "running": "running",
+    "paused": "paused",
+    "errors": "errors",
+    "open": "open",
+    "blocked": "blocked",
+    "ofBudget": "% of budget",
+    "unlimitedBudget": "Unlimited budget",
+    "awaitingBoardReview": "Awaiting board review",
+    "budgetOverridesAwaitingBoardReview": "budget overrides awaiting board review",
+    "runActivity": "Run Activity",
+    "issuesByPriority": "Issues by Priority",
+    "issuesByStatus": "Issues by Status",
+    "successRate": "Success Rate",
+    "last14days": "Last 14 days"
   }
 }

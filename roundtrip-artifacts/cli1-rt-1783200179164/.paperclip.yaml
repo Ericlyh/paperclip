@@ -1,0 +1,15 @@
+schema: "paperclip/v1"
+company:
+  attachmentMaxBytes: 10485760
+projects:
+  round-trip-project-1783200215405:
+    color: "#6366f1"
+    status: "in_progress"
+sidebar:
+  projects:
+    - "round-trip-project-1783200215405"
+tasks:
+  cliaaaaaaaaaaa-1:
+    identifier: "CLIAAAAAAAAAAA-1"
+    priority: "medium"
+    status: "todo"

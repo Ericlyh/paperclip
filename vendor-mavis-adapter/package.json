@@ -1,0 +1,17 @@
+{
+  "name": "@paperclipai/adapter-mavis-local",
+  "version": "0.1.0",
+  "description": "Paperclip adapter for the mavis daemon (the engine behind MiniMax Code) — drives mavis via its CLI: mavis session new <agent> --from root --prompt <task>",
+  "license": "MIT",
+  "type": "module",
+  "main": "index.js",
+  "exports": {
+    ".": "./index.js",
+    "./server": "./server.js"
+  },
+  "files": [
+    "index.js",
+    "server.js"
+  ],
+  "dependencies": {}
+}
