@@ -632,6 +632,120 @@ describeEmbeddedPostgres("executionWorkspaceService.getCloseReadiness", () => {
     }
   }, 20_000);
 
+  it("revisits an eligible workspace behind the cursor despite continuous newer churn", async () => {
+    // Reproduce the rotation-starvation case. The scan cursor advances past a
+    // workspace while it is not eligible. The workspace then becomes eligible
+    // but keeps its old updatedAt, so it stays behind the cursor. Meanwhile a
+    // steady stream of newer candidates keeps every page full. Without a frozen
+    // per-rotation upper bound, the cursor never reaches the end, never resets,
+    // and never revisits the eligible workspace. The bound makes each rotation
+    // cover a finite set, so the cursor resets and the workspace is archived.
+    let clockMs = Date.UTC(2021, 6, 1);
+    const service = executionWorkspaceService(db, {
+      resolvePullRequestDetails: async () => ({ state: "unknown", headRef: null, headSha: null }),
+      now: () => new Date(clockMs),
+    });
+
+    // An eligible ancestry workspace with an old updatedAt. Its source issue
+    // starts non-terminal, so the first sweeps skip it and pass the cursor.
+    const eligible = await seedAncestryTerminalWorkspace({ updatedAt: new Date(Date.UTC(2021, 0, 2)) });
+    await db
+      .update(issues)
+      .set({ status: "in_progress" })
+      .where(eq(issues.id, eligible.sourceIssueId));
+
+    // One older skipped candidate. With a single-row page it sorts before the
+    // eligible workspace, so the first sweep advances the cursor onto it.
+    const olderSkippedId = randomUUID();
+    const olderOpenIssueId = randomUUID();
+    await db.insert(executionWorkspaces).values({
+      id: olderSkippedId,
+      companyId: eligible.companyId,
+      projectId: eligible.projectId,
+      mode: "isolated_workspace",
+      strategyType: "local_fs",
+      name: "skip-older",
+      status: "active",
+      providerType: "local_fs",
+      updatedAt: new Date(Date.UTC(2021, 0, 1)),
+    });
+    await db.insert(issues).values({
+      id: olderOpenIssueId,
+      companyId: eligible.companyId,
+      projectId: eligible.projectId,
+      title: "Older open",
+      status: "in_progress",
+      priority: "medium",
+      executionWorkspaceId: olderSkippedId,
+    });
+    await db
+      .update(executionWorkspaces)
+      .set({ sourceIssueId: olderOpenIssueId, updatedAt: new Date(Date.UTC(2021, 0, 1)) })
+      .where(eq(executionWorkspaces.id, olderSkippedId));
+
+    // Sweep once per row so the cursor lands on the eligible workspace while it
+    // is still non-terminal.
+    await service.sweepTerminalWorkspaces(1); // reads olderSkipped
+    await service.sweepTerminalWorkspaces(1); // reads eligible, still non-terminal
+
+    const [afterSkip] = await db
+      .select({ status: executionWorkspaces.status })
+      .from(executionWorkspaces)
+      .where(eq(executionWorkspaces.id, eligible.executionWorkspaceId));
+    expect(afterSkip?.status).toBe("active");
+
+    // The workspace becomes eligible now. Its updatedAt stays old, so it is
+    // behind the cursor.
+    await db
+      .update(issues)
+      .set({ status: "done" })
+      .where(eq(issues.id, eligible.sourceIssueId));
+
+    // Drive continuous churn. Each sweep, advance the clock and add a newer
+    // skipped candidate ahead of the cursor. Without the frozen bound the cursor
+    // would chase this churn forever and never revisit the eligible workspace.
+    let archived = false;
+    for (let attempt = 0; attempt < 8 && !archived; attempt += 1) {
+      clockMs += 24 * 60 * 60 * 1000;
+      const churnId = randomUUID();
+      const churnIssueId = randomUUID();
+      await db.insert(executionWorkspaces).values({
+        id: churnId,
+        companyId: eligible.companyId,
+        projectId: eligible.projectId,
+        mode: "isolated_workspace",
+        strategyType: "local_fs",
+        name: `churn-${attempt}`,
+        status: "active",
+        providerType: "local_fs",
+        updatedAt: new Date(clockMs),
+      });
+      await db.insert(issues).values({
+        id: churnIssueId,
+        companyId: eligible.companyId,
+        projectId: eligible.projectId,
+        title: `Churn ${attempt}`,
+        status: "in_progress",
+        priority: "medium",
+        executionWorkspaceId: churnId,
+      });
+      await db
+        .update(executionWorkspaces)
+        .set({ sourceIssueId: churnIssueId, updatedAt: new Date(clockMs) })
+        .where(eq(executionWorkspaces.id, churnId));
+
+      const sweep = await service.sweepTerminalWorkspaces(1);
+      if (sweep.archived > 0) archived = true;
+    }
+
+    expect(archived).toBe(true);
+    const [finalState] = await db
+      .select({ status: executionWorkspaces.status })
+      .from(executionWorkspaces)
+      .where(eq(executionWorkspaces.id, eligible.executionWorkspaceId));
+    expect(finalState?.status).toBe("archived");
+  }, 30_000);
+
   it("does not treat an unrelated inbound issue mention as delivery evidence", async () => {
     const seeded = await seedTerminalWorkspace();
     const unrelatedIssueId = randomUUID();

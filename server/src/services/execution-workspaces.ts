@@ -3,7 +3,7 @@ import { createHash } from "node:crypto";
 import fs from "node:fs/promises";
 import path from "node:path";
 import { promisify } from "node:util";
-import { and, asc, desc, eq, gt, inArray, isNull, ne, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, isNull, lte, ne, or, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import {
   executionWorkspaces,
@@ -1070,6 +1070,14 @@ export function executionWorkspaceService(db: Db, opts: ExecutionWorkspaceServic
   // sweep and starves eligible rows behind them. The cursor resets to the start
   // when a sweep reaches the end of the candidate set.
   let terminalSweepCursor: { updatedAt: Date; id: string } | null = null;
+  // The reaper freezes an upper bound on updatedAt at the start of each
+  // rotation. The scan only reads candidates at or below the bound, so a steady
+  // stream of newer candidates cannot keep every page full and stop the cursor
+  // from ever reaching the end. A frozen set is finite, so the cursor always
+  // reaches a short page and resets, and older candidates that became eligible
+  // are revisited on the next rotation. The next rotation captures a new bound,
+  // so candidates updated after the previous bound enter the scan then.
+  let terminalSweepBoundary: Date | null = null;
 
   async function listWorkspaceIssueTree(workspace: Pick<ExecutionWorkspaceRow, "companyId" | "sourceIssueId">) {
     if (!workspace.sourceIssueId) return [];
@@ -2051,6 +2059,18 @@ export function executionWorkspaceService(db: Db, opts: ExecutionWorkspaceServic
       // sweep advances past the rows it already inspected instead of re-reading
       // the oldest ineligible candidates.
       const cursor = terminalSweepCursor;
+      // Freeze an upper bound on updatedAt at the start of each rotation. Without
+      // a bound, a steady stream of newer candidates keeps every page full, so
+      // the cursor never reaches the end and never resets, and older candidates
+      // that became eligible are never revisited. The frozen bound makes the
+      // rotation cover a finite set, so the cursor always reaches a short page.
+      if (!cursor) {
+        terminalSweepBoundary = now();
+      }
+      const boundary = terminalSweepBoundary;
+      const boundaryFilter = boundary
+        ? lte(executionWorkspaces.updatedAt, boundary)
+        : undefined;
       const cursorFilter = cursor
         ? or(
             gt(executionWorkspaces.updatedAt, cursor.updatedAt),
@@ -2060,17 +2080,19 @@ export function executionWorkspaceService(db: Db, opts: ExecutionWorkspaceServic
             ),
           )
         : undefined;
+      const scanFilter = and(baseCandidateFilter, boundaryFilter, cursorFilter);
       const candidates = await db
         .select()
         .from(executionWorkspaces)
-        .where(cursorFilter ? and(baseCandidateFilter, cursorFilter) : baseCandidateFilter)
+        .where(scanFilter)
         .orderBy(asc(executionWorkspaces.updatedAt), asc(executionWorkspaces.id))
         .limit(limit);
       // Advance the cursor to this page's last row. A short page means the scan
-      // reached the end of the candidate set, so reset to the start for the next
-      // rotation.
+      // reached the end of the bounded candidate set, so reset the cursor and
+      // the bound to start a new rotation on the next sweep.
       if (candidates.length < limit) {
         terminalSweepCursor = null;
+        terminalSweepBoundary = null;
       } else {
         const lastCandidate = candidates[candidates.length - 1]!;
         terminalSweepCursor = { updatedAt: lastCandidate.updatedAt, id: lastCandidate.id };
