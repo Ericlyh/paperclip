@@ -592,6 +592,98 @@ describe("codex device login service", () => {
     expect(deleteCalls).toHaveLength(1);
   });
 
+  describe("durable cancel", () => {
+    it("cancels a waiting session, releases the slot, and hands cleanup to the reaper", async () => {
+      const store = createMemoryStore();
+      let releaseGate!: () => void;
+      const gate = new Promise<void>((resolve) => {
+        releaseGate = resolve;
+      });
+      // Emit the prompt, then hold the login. The hold keeps the row in the active
+      // `waiting_for_user` state while the test cancels it.
+      const execGated: ExecBehavior = async ({ onStdout }) => {
+        onStdout(PROMPT_OUTPUT);
+        await gate;
+        return { exitCode: 0 };
+      };
+      const { runtime } = createFakeRuntime({ exec: execGated, authBytes: Buffer.from("{}") });
+      const service = makeService({ store, runtime });
+      const companyId = randomUUID();
+      const environmentId = randomUUID();
+      const { session, completed } = await service.start({
+        companyId,
+        environmentId,
+        adapterType: ADAPTER_TYPE,
+        startedByUserId: OWNER_A,
+      });
+      await waitForStatus(store, session.sessionId, "waiting_for_user");
+
+      // A non-owner cannot cancel the session.
+      expect(await service.cancelOwnerSession(session.sessionId, OWNER_B)).toBeNull();
+
+      // The owner cancel resolves the public terminal status at once.
+      const cancelled = await service.cancelOwnerSession(session.sessionId, OWNER_A);
+      expect(cancelled?.status).toBe("cancelled");
+
+      // The row holds the internal cleanup_pending state that encodes the
+      // cancelled terminal, so the reaper deletes the sandbox and finalizes it.
+      const row = await store.get(session.sessionId);
+      expect(row?.status).toBe("cleanup_pending");
+      expect(row?.finishedAt).not.toBeNull();
+
+      // The durable write released the company slot, so a fresh start for the same
+      // company and adapter wins. This proves the cancel does not depend on the
+      // in-flight run ending.
+      const second = await service.start({
+        companyId,
+        environmentId,
+        adapterType: ADAPTER_TYPE,
+        startedByUserId: OWNER_A,
+      });
+      expect(second.session.sessionId).not.toBe(session.sessionId);
+
+      // Release the held runs, so both `completed` promises settle and clear their
+      // timers.
+      releaseGate();
+      await completed;
+      await second.completed;
+    });
+
+    it("does not cancel a session whose promotion is in flight", async () => {
+      const store = createMemoryStore();
+      let releasePromotion!: () => void;
+      const promotionGate = new Promise<void>((resolve) => {
+        releasePromotion = resolve;
+      });
+      // A promotion that resolves only when the test releases it, so the row stays
+      // in the `promoting` state while the test tries to cancel it.
+      const promote = vi.fn(async () => {
+        await promotionGate;
+      });
+      const { runtime } = createFakeRuntime({ exec: execSuccess, authBytes: Buffer.from("{}") });
+      const service = makeService({ store, runtime, promotion: { promote } });
+      const { session, completed } = await service.start({
+        companyId: randomUUID(),
+        environmentId: randomUUID(),
+        adapterType: ADAPTER_TYPE,
+        startedByUserId: OWNER_A,
+      });
+      await waitForStatus(store, session.sessionId, "promoting");
+
+      // The cancel skips the promoting row, so the credential write finishes. The
+      // public projection of a promoting row is `waiting_for_user`.
+      const result = await service.cancelOwnerSession(session.sessionId, OWNER_A);
+      expect(result?.status).toBe("waiting_for_user");
+      const row = await store.get(session.sessionId);
+      expect(row?.status).toBe("promoting");
+
+      // Release the promotion, so the run reaches its own terminal.
+      releasePromotion();
+      const outcome = await completed;
+      expect(outcome.status).toBe("authenticated");
+    });
+  });
+
   describe("five-minute host timeout", () => {
     it("holds the session active until exactly five minutes, then times out and deletes", async () => {
       vi.useFakeTimers();

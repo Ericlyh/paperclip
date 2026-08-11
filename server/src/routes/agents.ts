@@ -2245,16 +2245,23 @@ export function agentRoutes(
       const ownerUserId = await assertCanManageAdapterLogin(req, companyId);
       assertCodexLoginAdapter(type);
 
+      // Scope the cancel to this company, adapter, and owner. A non-owner and a
+      // cross-company caller both receive a 404 and cannot cancel a session.
       const owner = await readOwnerLoginSession(companyId, type, sessionId, ownerUserId);
       if (!owner) {
         res.status(404).json({ error: "Adapter login session not found" });
         return;
       }
-      // Abort the in-flight run this process owns. A run in another process, or
-      // an already-terminal run, has no controller here; the response returns the
-      // current owner status either way.
+      // Durably release the company slot. The durable write terminates the row
+      // even when this process does not own the in-flight run, so a cross-process
+      // cancel or a cancel after a restart does not leave the slot held until the
+      // expiry. The reaper deletes the sandbox and finalizes the terminal.
+      const cancelled = await adapterLoginService.cancelOwnerSession(sessionId, ownerUserId);
+      // Abort the in-flight run this process owns, so the local login stops at
+      // once instead of waiting for the reaper. A run in another process, or an
+      // already-terminal run, has no controller here.
       adapterLoginAbortControllers.get(sessionId)?.abort();
-      res.json(owner);
+      res.json(cancelled ?? owner);
     },
   );
 

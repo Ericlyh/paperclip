@@ -998,7 +998,38 @@ export function createCodexDeviceLoginService(deps: CodexDeviceLoginServiceDeps)
     };
   }
 
-  return { start, readOwnerSession };
+  // Cancel a login session for its owner. The write is durable, so a cancel
+  // releases the company slot even when the calling process does not own the
+  // in-flight run. A cross-process cancel, or a cancel after a restart, has no
+  // in-memory controller to abort, so a process-local abort alone would leave the
+  // row in an active state until the expiry. The durable write closes that gap.
+  //
+  // The transition is a conditional write from a pre-promotion active status to
+  // the internal `cleanup_pending` state that encodes the `cancelled` terminal.
+  // This releases the slot at once and hands the sandbox delete and the terminal
+  // finalize to the reaper's cleanup-pending sweep. The write skips a `promoting`
+  // row, so a cancel never interrupts an in-flight credential write; that
+  // promotion runs to its own terminal.
+  async function cancelOwnerSession(
+    sessionId: string,
+    requestingUserId: string,
+  ): Promise<AdapterAuthSessionOwnerResponse | null> {
+    const row = await store.get(sessionId);
+    if (!row || row.startedByUserId !== requestingUserId) return null;
+    const write = terminalCleanupWrite(false, "cancelled", null);
+    await store.compareAndSetStatus({
+      sessionId,
+      expectedStatuses: ["starting", "waiting_for_user"],
+      status: write.status,
+      at: now(),
+      failureReason: write.failureReason,
+      finishedAt: now(),
+      promotionExpiresAt: null,
+    });
+    return readOwnerSession(sessionId, requestingUserId);
+  }
+
+  return { start, readOwnerSession, cancelOwnerSession };
 }
 
 export type CodexDeviceLoginService = ReturnType<typeof createCodexDeviceLoginService>;

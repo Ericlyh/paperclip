@@ -494,7 +494,7 @@ describe("adapter device-login routes", () => {
     expect(status.body.prompt).toBeUndefined();
   });
 
-  it("cancels a login for the owner", async () => {
+  it("durably cancels a login for the owner and releases the company slot", async () => {
     const app = await createApp();
 
     const start = await request(app)
@@ -506,6 +506,17 @@ describe("adapter device-login routes", () => {
     const cancel = await request(app).post(`${loginPath(COMPANY_1)}/${sessionId}/cancel`);
     expect(cancel.status, JSON.stringify(cancel.body)).toBe(200);
     expect(cancel.body.sessionId).toBe(sessionId);
+    // The cancel resolves the public terminal status at once.
+    expect(cancel.body.status).toBe("cancelled");
+
+    // The durable write released the company slot, so a fresh start for the same
+    // company and adapter succeeds without a wait for the in-flight run or the
+    // reaper. This proves the cancel does not depend on the process-local abort.
+    const restart = await request(app)
+      .post(loginPath(COMPANY_1))
+      .send({ environmentId: SANDBOX_ENV_1 });
+    expect(restart.status, JSON.stringify(restart.body)).toBe(201);
+    expect(restart.body.sessionId).not.toBe(sessionId);
   });
 
   it("returns 409 for a second active start by a different owner", async () => {
