@@ -1,0 +1,15 @@
+schema: "paperclip/v1"
+company:
+  attachmentMaxBytes: 10485760
+projects:
+  clirtr-project-1783199291406-341:
+    color: "#6366f1"
+    status: "in_progress"
+sidebar:
+  projects:
+    - "clirtr-project-1783199291406-341"
+tasks:
+  cliaaaaaaaa-1:
+    identifier: "CLIAAAAAAAA-1"
+    priority: "medium"
+    status: "todo"

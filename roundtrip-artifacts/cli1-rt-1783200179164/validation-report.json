@@ -1,0 +1,43 @@
+{
+  "steps": [
+    {
+      "step": "server-up",
+      "ok": true,
+      "port": 60526
+    },
+    {
+      "step": "export",
+      "ok": true,
+      "files": 5,
+      "rootPath": "cli-1-validate-1783200215405"
+    },
+    {
+      "step": "import-new",
+      "ok": true,
+      "companyId": "e4339ecb-9d21-4c32-b50a-4ae941fc94a9",
+      "projects": 1
+    },
+    {
+      "step": "apply-existing-rename",
+      "ok": true,
+      "companyAction": "unchanged",
+      "projectsCreated": 1
+    },
+    {
+      "step": "verify-final",
+      "ok": true,
+      "projectCount": 2
+    }
+  ],
+  "source": {
+    "id": "bd00f41d-ef68-464f-b872-c420064080c4",
+    "name": "CLI-1 Validate 1783200215405",
+    "issuePrefix": "CLIAAAAAAAAAAA"
+  },
+  "imported": {
+    "id": "e4339ecb-9d21-4c32-b50a-4ae941fc94a9",
+    "name": "Round-trip CLI-1 Validate 1783200215405",
+    "action": "created"
+  },
+  "passed": true
+}
