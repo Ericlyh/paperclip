@@ -11,7 +11,7 @@ import {
 } from "./adapter-auth-promotion.js";
 import { MAX_AUTH_JSON_BYTES } from "./device-login-export.js";
 import { resolveManagedCodexHomeDir, resolveSharedCodexHomeDir } from "./codex-home.js";
-import { resolveCodexAuthCacheEntryPath } from "./codex-auth-cache.js";
+import { resolveCodexAuthCacheDir, resolveCodexAuthCacheEntryPath } from "./codex-auth-cache.js";
 
 const COMPANY_A = "company-a";
 const COMPANY_B = "company-b";
@@ -250,6 +250,43 @@ describe("device-login credential promotion", () => {
     await expect(
       lstat(resolveCodexAuthCacheEntryPath(env, ACCOUNT, COMPANY_A)),
     ).rejects.toThrow();
+  });
+
+  it("a cache write failure keeps the promotion successful and the company home durable", async () => {
+    const home = await makeInstanceRoot();
+    const env = envFor(home);
+    // Force the per-identity cache write to fail. Plant a regular file where the
+    // cache expects the identity directory, so the private-directory guard throws
+    // before the cache slot is written. The company home write runs first, so the
+    // credential is already durable when the cache write fails.
+    const cacheDir = resolveCodexAuthCacheDir(env, COMPANY_A);
+    await mkdir(cacheDir, { recursive: true, mode: 0o700 });
+    const entryPath = resolveCodexAuthCacheEntryPath(env, ACCOUNT, COMPANY_A);
+    await writeFile(path.dirname(entryPath), "not-a-directory");
+
+    const logs: string[] = [];
+    const outcome = await promoteDeviceLoginCredential({
+      authBytes: subscriptionAuth({ accountId: ACCOUNT, lastRefresh: NEWER }),
+      companyId: COMPANY_A,
+      userInitiated: true,
+      checkReadiness: ready,
+      isSoleActiveOwner: soleOwner,
+      env,
+      log: (line) => {
+        logs.push(line);
+      },
+    });
+
+    // The company home holds a usable credential, so the promotion still reports
+    // success rather than a failed login.
+    expect(outcome).toBe("promoted");
+    const homeAuth = JSON.parse(await readFile(companyHomeAuthPath(env, COMPANY_A), "utf8"));
+    expect(homeAuth.tokens.account_id).toBe(ACCOUNT);
+    // The cache failure is observable and carries no secret bytes.
+    const haystack = logs.join("\n");
+    expect(haystack).toContain("the per-identity cache write failed");
+    expect(haystack).not.toContain(TOKEN_SENTINEL);
+    expect(haystack).not.toContain(ACCOUNT);
   });
 
   it("rejects malformed, API-key, non-subscription, and oversized credentials and writes nothing", async () => {

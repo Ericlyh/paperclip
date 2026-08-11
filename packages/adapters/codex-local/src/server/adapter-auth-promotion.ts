@@ -94,10 +94,12 @@ export async function checkStagedCredentialReadiness(
  * The promotion outcome.
  *
  * - `promoted`: the helper wrote the company home (a seed or a strictly-newer
- *   same-identity update). The cache slot was also written when the cache is on.
+ *   same-identity update). The helper then tries the per-identity cache slot when
+ *   the cache is on. The cache write is best-effort: a cache failure keeps the
+ *   `promoted` outcome, because the company home is already durable.
  * - `kept`: the credential was valid and the session held the slot, but the
  *   company home already held a newer same-identity or a different identity, so
- *   the home was kept. A per-identity cache slot may still have been written.
+ *   the home was kept. The helper still tries the best-effort cache write.
  * - `not_sole_owner`: Decision H rejected the write. Nothing was written.
  * - `background_skipped`: Decision C rejected the write (an automatic background
  *   path never seeds a company slot). Nothing was written.
@@ -219,9 +221,23 @@ export async function promoteDeviceLoginCredential(
   //     run can vend a strictly-newer copy. The cache write respects the
   //     off-switch. It is company-scoped and per identity, so it never crosses a
   //     company boundary and never clobbers a different identity.
+  //
+  //     The company home write above already made the credential durable, so a
+  //     later run authenticates from the home even when the cache slot is absent.
+  //     The cache is only a vend optimization. So a cache write failure (a
+  //     permission error, a full disk, or a lock timeout) must not fail the
+  //     promotion, or the operator sees a failed login for a credential that is
+  //     already usable. Log the failure and keep the home outcome; a later run
+  //     re-seeds the cache slot from the durable home.
   if (isCodexAuthCacheEnabled(env)) {
-    const cacheEntryPath = await ensureCodexAuthCacheEntryDir(env, accountId, companyId);
-    await writeCodexAuthCacheEntry({ sandboxAuthBytes: authBytes, cacheEntryPath, log });
+    try {
+      const cacheEntryPath = await ensureCodexAuthCacheEntryDir(env, accountId, companyId);
+      await writeCodexAuthCacheEntry({ sandboxAuthBytes: authBytes, cacheEntryPath, log });
+    } catch {
+      await log(
+        "[paperclip] Codex device-login promotion: the per-identity cache write failed; the company credential home is durable, so the login stays successful.",
+      );
+    }
   }
 
   return homeOutcome === "written" ? "promoted" : "kept";
