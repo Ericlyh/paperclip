@@ -88,6 +88,12 @@ type AgentConfigFormProps = {
   onTestFeedbackChange?: (feedback: {
     errorMessage: string | null;
     result: AdapterEnvironmentTestResult | null;
+    // The login panel descriptor when the current target is a sandbox with no
+    // ready authentication, otherwise null. A parent that lifts the test
+    // feedback must render `AdapterLoginPanel` from this descriptor. The inline
+    // feedback branch renders the panel itself, so this descriptor is the only
+    // way the panel reaches a parent that hides the inline branch.
+    login: AdapterLoginDescriptor | null;
   }) => void;
   hideInlineSave?: boolean;
   showAdapterTypeField?: boolean;
@@ -866,11 +872,26 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
             ? "Environment test failed"
             : null),
       result: testEnvironment.data ?? null,
+      // `showAdapterLogin` already requires a selected company and a non-empty
+      // environment id, so both are present here.
+      login:
+        showAdapterLogin && selectedCompanyId && effectiveLoginEnvironmentId
+          ? { companyId: selectedCompanyId, adapterType, environmentId: effectiveLoginEnvironmentId }
+          : null,
     });
     return () => {
-      props.onTestFeedbackChange?.({ errorMessage: null, result: null });
+      props.onTestFeedbackChange?.({ errorMessage: null, result: null, login: null });
     };
-  }, [props.onTestFeedbackChange, testActionError, testEnvironment.data, testEnvironment.error]);
+  }, [
+    props.onTestFeedbackChange,
+    testActionError,
+    testEnvironment.data,
+    testEnvironment.error,
+    showAdapterLogin,
+    selectedCompanyId,
+    adapterType,
+    effectiveLoginEnvironmentId,
+  ]);
 
   // Current model for display
   const currentModelValue = isCreate
@@ -1782,15 +1803,20 @@ function AdapterLoginTerminalState({
 // The panel holds its own session state. The parent gives it a stable `key` from
 // the adapter type and the environment id, so a change to either remounts the
 // panel with a fresh session state.
+// The props that identify one login panel: one adapter in one sandbox
+// environment for one company. A parent that lifts the test feedback renders
+// the panel from this descriptor.
+export type AdapterLoginDescriptor = {
+  companyId: string;
+  adapterType: string;
+  environmentId: string;
+};
+
 export function AdapterLoginPanel({
   companyId,
   adapterType,
   environmentId,
-}: {
-  companyId: string;
-  adapterType: string;
-  environmentId: string;
-}) {
+}: AdapterLoginDescriptor) {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [startError, setStartError] = useState<string | null>(null);
   // The server delivers the one-time prompt on the first owner read only. Latch

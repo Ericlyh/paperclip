@@ -1,5 +1,6 @@
 // @vitest-environment jsdom
 
+import { useState } from "react";
 import { createRoot, type Root } from "react-dom/client";
 import { flushSync } from "react-dom";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -7,7 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Agent, Environment } from "@paperclipai/shared";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ToastProvider } from "../context/ToastContext";
-import { AgentConfigForm } from "./AgentConfigForm";
+import { AgentConfigForm, AdapterLoginPanel, type AdapterLoginDescriptor } from "./AgentConfigForm";
 import { defaultCreateValues } from "./agent-config-defaults";
 
 const mockAgentsApi = vi.hoisted(() => ({
@@ -718,6 +719,78 @@ describe("AgentConfigForm environment selector", () => {
     await runTest(result.container);
 
     expect(findButton(result.container, "Log in")).toBeTruthy();
+  });
+
+  it("shows the Login button when a parent lifts the test feedback and renders the panel from the descriptor", async () => {
+    // The create page hides the inline feedback branch and renders the test
+    // result and the login panel itself. This harness mirrors that parent: it
+    // lifts the feedback and renders `AdapterLoginPanel` from the lifted login
+    // descriptor. Without the descriptor the Login button never appears.
+    mockAgentsApi.testEnvironment.mockResolvedValue(AUTH_MISSING_RESULT);
+    mockEnvironmentsApi.list.mockResolvedValue([
+      makeEnvironment({ id: "local-1", name: "Local", driver: "local" }),
+      makeEnvironment({
+        id: "sandbox-1",
+        name: "E2B",
+        driver: "sandbox",
+        config: { provider: "e2b" },
+      }),
+    ]);
+
+    const container = document.createElement("div");
+    document.body.appendChild(container);
+    const root = createRoot(container);
+    roots.push(root);
+    const queryClient = new QueryClient({
+      defaultOptions: { queries: { retry: false }, mutations: { retry: false } },
+    });
+
+    function LiftedFeedbackHarness() {
+      const [login, setLogin] = useState<AdapterLoginDescriptor | null>(null);
+      return (
+        <>
+          <AgentConfigForm
+            mode="create"
+            values={{
+              ...defaultCreateValues,
+              adapterType: "codex_local",
+              defaultEnvironmentId: "sandbox-1",
+            }}
+            onChange={() => {}}
+            hidePromptTemplate
+            showAdapterTypeField={false}
+            showAdapterTestEnvironmentButton
+            onTestFeedbackChange={(feedback) => setLogin(feedback.login)}
+          />
+          {login && (
+            <AdapterLoginPanel
+              companyId={login.companyId}
+              adapterType={login.adapterType}
+              environmentId={login.environmentId}
+            />
+          )}
+        </>
+      );
+    }
+
+    await act(async () => {
+      root.render(
+        <QueryClientProvider client={queryClient}>
+          <ToastProvider>
+            <TooltipProvider>
+              <LiftedFeedbackHarness />
+            </TooltipProvider>
+          </ToastProvider>
+        </QueryClientProvider>,
+      );
+    });
+    await flushReact();
+
+    expect(findButton(container, "Log in")).toBeFalsy();
+
+    await runTest(container);
+
+    expect(findButton(container, "Log in")).toBeTruthy();
   });
 
   it("does not show the Login button when the Test result has no adapter_auth_missing check", async () => {
