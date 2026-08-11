@@ -91,6 +91,8 @@ export function BlockedInboxView({
         true,
         liveIssueIds,
         workspaceFilterContext,
+        true,
+        true,
       ).map((issue) => issue.id),
     );
     return filteredRows.filter((row) => visibleIssueIds.has(row.issue.id));

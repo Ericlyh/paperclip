@@ -326,4 +326,58 @@ describe("BlockedInboxView", () => {
 
     act(() => root.unmount());
   });
+
+  it("filters out productivity-review and lint-residual issues when their hide toggles are on", async () => {
+    const sourceIssueRef = (id: string, identifier: string, title: string) => ({
+      id,
+      identifier,
+      title,
+      status: "in_progress" as const,
+      priority: "medium" as const,
+      assigneeAgentId: null,
+      assigneeUserId: null,
+    });
+    const reviewIssue = makeIssue(
+      "review-1",
+      "PAP-R1",
+      "Review productivity for OOP-1",
+      attention({ sourceIssue: sourceIssueRef("review-1", "PAP-R1", "Review productivity for OOP-1") }),
+    );
+    (reviewIssue as Issue & { originKind?: string }).originKind = "issue_productivity_review";
+    const lintIssue = makeIssue(
+      "lint-1",
+      "PAP-L1",
+      "Paperclip: Close lint residuals on PR merge",
+      attention({ sourceIssue: sourceIssueRef("lint-1", "PAP-L1", "Paperclip: Close lint residuals on PR merge") }),
+    );
+    const normalIssue = makeIssue(
+      "normal-1",
+      "PAP-N1",
+      "Regular blocked work",
+      attention({ sourceIssue: sourceIssueRef("normal-1", "PAP-N1", "Regular blocked work") }),
+    );
+
+    mockIssuesApi.list.mockResolvedValue([reviewIssue, lintIssue, normalIssue]);
+
+    const { root } = renderWithClient(
+      <BlockedInboxView
+        {...blockedViewProps}
+        issueFilters={{
+          ...defaultIssueFilterState,
+          hideProductivityReviewIssues: true,
+          hideLintResidualTasks: true,
+        }}
+      />,
+      container,
+    );
+
+    await waitFor(() => container.textContent?.includes("PAP-N1") === true);
+
+    const links = Array.from(container.querySelectorAll("a")).map((a) => a.textContent ?? "");
+    expect(links.some((t) => t.includes("PAP-R1"))).toBe(false);
+    expect(links.some((t) => t.includes("PAP-L1"))).toBe(false);
+    expect(links.some((t) => t.includes("PAP-N1"))).toBe(true);
+
+    act(() => root.unmount());
+  });
 });
