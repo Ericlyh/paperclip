@@ -35,6 +35,7 @@ pnpm paperclipai issue release <issue-id>
 ```sh
 pnpm paperclipai company list
 pnpm paperclipai company get <company-id>
+pnpm paperclipai company current [--company-id <company-id>]
 
 # Export to portable folder package (writes manifest + markdown files)
 pnpm paperclipai company export <company-id> --out ./exports/acme --include company,agents
@@ -55,6 +56,13 @@ pnpm paperclipai company import \
   --new-company-name "Acme Imported" \
   --include company,agents
 ```
+
+With agent authentication, use `company list` or `company current` to resolve
+the scoped company. `company list` first tries the board-wide list; if that is
+forbidden, it falls back to `--company-id`, `PAPERCLIP_COMPANY_ID`, context, or
+`/api/agents/me` and returns only that scoped company. `company create` requires
+board/instance-admin authentication because it is an instance-wide setup
+command.
 
 ## Agent Commands
 
@@ -83,7 +91,7 @@ pnpm paperclipai skills import ./skills/my-skill --company-id <company-id>
 pnpm paperclipai skills import owner/repo/path/to/skill --company-id <company-id>
 
 # Attach desired company skills to an agent after install/import
-pnpm paperclipai skills agent sync <agent-id> --skill github-pr-workflow --company-id <company-id>
+pnpm paperclipai skills agent sync <agent-id> --skill github-pr-workflow --mode add --company-id <company-id>
 ```
 
 ## Approval Commands
@@ -125,6 +133,17 @@ pnpm paperclipai activity list [--agent-id <id>] [--entity-type issue] [--entity
 ```sh
 pnpm paperclipai dashboard get
 ```
+
+## Instance Settings
+
+```sh
+pnpm paperclipai instance settings:general
+pnpm paperclipai instance settings:general:update --payload-json '{...}'
+pnpm paperclipai instance settings:experimental
+pnpm paperclipai instance settings:experimental:update --payload-json '{...}'
+```
+
+Experimental features are opt-in and are provided without compatibility guarantees. They may break, change, or be removed at any time. Use them at your own risk.
 
 ## Heartbeat
 
