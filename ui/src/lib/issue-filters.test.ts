@@ -6,6 +6,8 @@ import {
   applyIssueFilters,
   countActiveIssueFilters,
   defaultIssueFilterState,
+  isHourlyLogRotationTask,
+  isHourlyLogRotationTaskTitle,
   isLintResidualTask,
   isLintResidualTaskTitle,
   isProductivityReviewIssue,
@@ -95,6 +97,46 @@ describe("issue filters", () => {
     expect(applyIssueFilters([manualIssue, lintIssue], state)).toEqual([manualIssue, lintIssue]);
     expect(applyIssueFilters([manualIssue, lintIssue], state, null, false, undefined, {}, true)).toEqual([manualIssue]);
     expect(countActiveIssueFilters(state, false, true)).toBe(1);
+  });
+
+  it("matches hourly-log-rotation task title variants without matching unrelated titles", () => {
+    // Canonical prefix (still matches as substring).
+    expect(isHourlyLogRotationTaskTitle("Paperclip: Hourly Log Rotation")).toBe(true);
+    expect(isHourlyLogRotationTaskTitle(" paperclip: hourly log rotation — tick 2026-08-12T11:00Z ")).toBe(true);
+    expect(isHourlyLogRotationTaskTitle("Hourly Log Rotation")).toBe(true);
+    expect(isHourlyLogRotationTask(makeIssue({ title: "Paperclip: Hourly Log Rotation (follow-up)" }))).toBe(true);
+    // Hyphenated follow-ups.
+    expect(isHourlyLogRotationTaskTitle("hourly-log-rotation: stuck on docker volume cleanup")).toBe(true);
+    expect(isHourlyLogRotationTaskTitle("[hourly-log-rotation] lease TTL expired on tick-20260805T1100Z (OOP-3064)")).toBe(true);
+    expect(isHourlyLogRotationTaskTitle("Hourly log rotation stuck from OOP-3247")).toBe(true);
+    // Unrelated titles still don't match.
+    expect(isHourlyLogRotationTaskTitle("Paperclip: Close lint residuals on PR merge")).toBe(false);
+    expect(isHourlyLogRotationTaskTitle("Review productivity for OOP-1")).toBe(false);
+    expect(isHourlyLogRotationTaskTitle(null)).toBe(false);
+    expect(isHourlyLogRotationTaskTitle(undefined)).toBe(false);
+  });
+
+  it("hides hourly-log-rotation tasks only when the dedicated filter is enabled", () => {
+    const manualIssue = makeIssue({ id: "manual", title: "Manual issue" });
+    const hourlyIssue = makeIssue({ id: "hourly", title: "Paperclip: Hourly Log Rotation" });
+    const state = { ...defaultIssueFilterState, hideHourlyLogRotationTasks: true };
+
+    expect(applyIssueFilters([manualIssue, hourlyIssue], state)).toEqual([manualIssue, hourlyIssue]);
+    // 8 trailing positional args: currentUserId=null, enableRoutineVisibilityFilter=false,
+    // liveIssueIds=undefined, workspaceContext={}, enableLintResidualTaskFilter=false,
+    // enableProductivityReviewFilter=false, enableHourlyLogRotationTaskFilter=true.
+    expect(applyIssueFilters(
+      [manualIssue, hourlyIssue],
+      state,
+      null,
+      false,
+      undefined,
+      {},
+      false,
+      false,
+      true,
+    )).toEqual([manualIssue]);
+    expect(countActiveIssueFilters(state, false, false, false, true)).toBe(1);
   });
 
   it("identifies productivity-review issues by originKind and defaults the filter to ON", () => {

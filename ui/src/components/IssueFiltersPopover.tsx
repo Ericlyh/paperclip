@@ -9,6 +9,7 @@ import { PriorityIcon } from "./PriorityIcon";
 import { StatusIcon } from "./StatusIcon";
 import {
   defaultIssueFilterState,
+  HOURLY_LOG_ROTATION_TASK_TITLE_PREFIX,
   LINT_RESIDUAL_TASK_TITLE_PREFIX,
   issueFilterArraysEqual,
   issueFilterLabel,
@@ -59,6 +60,7 @@ export function IssueFiltersPopover({
   enableRoutineVisibilityFilter = false,
   enableLintResidualTaskFilter = false,
   enableProductivityReviewFilter = false,
+  enableHourlyLogRotationTaskFilter = false,
   buttonVariant = "ghost",
   iconOnly = false,
   workspaces,
@@ -74,6 +76,7 @@ export function IssueFiltersPopover({
   enableRoutineVisibilityFilter?: boolean;
   enableLintResidualTaskFilter?: boolean;
   enableProductivityReviewFilter?: boolean;
+  enableHourlyLogRotationTaskFilter?: boolean;
   buttonVariant?: "ghost" | "outline";
   iconOnly?: boolean;
   workspaces?: WorkspaceOption[];
@@ -377,6 +380,18 @@ export function IssueFiltersPopover({
                       onCheckedChange={(checked) => onChange({ hideLintResidualTasks: checked === true })}
                     />
                     <span className="text-sm">Hide lint-residual tasks</span>
+                  </label>
+                ) : null}
+                {enableHourlyLogRotationTaskFilter ? (
+                  <label
+                    className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 hover:bg-accent/50"
+                    title={`Hide issues whose title contains "${HOURLY_LOG_ROTATION_TASK_TITLE_PREFIX}" or related hourly-log-rotation follow-ups`}
+                  >
+                    <Checkbox
+                      checked={state.hideHourlyLogRotationTasks}
+                      onCheckedChange={(checked) => onChange({ hideHourlyLogRotationTasks: checked === true })}
+                    />
+                    <span className="text-sm">Hide hourly-log-rotation tasks</span>
                   </label>
                 ) : null}
                 {enableProductivityReviewFilter ? (

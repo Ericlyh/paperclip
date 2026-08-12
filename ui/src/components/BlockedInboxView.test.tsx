@@ -350,6 +350,12 @@ describe("BlockedInboxView", () => {
       "Paperclip: Close lint residuals on PR merge",
       attention({ sourceIssue: sourceIssueRef("lint-1", "PAP-L1", "Paperclip: Close lint residuals on PR merge") }),
     );
+    const hourlyIssue = makeIssue(
+      "hourly-1",
+      "PAP-H1",
+      "Paperclip: Hourly Log Rotation",
+      attention({ sourceIssue: sourceIssueRef("hourly-1", "PAP-H1", "Paperclip: Hourly Log Rotation") }),
+    );
     const normalIssue = makeIssue(
       "normal-1",
       "PAP-N1",
@@ -357,7 +363,7 @@ describe("BlockedInboxView", () => {
       attention({ sourceIssue: sourceIssueRef("normal-1", "PAP-N1", "Regular blocked work") }),
     );
 
-    mockIssuesApi.list.mockResolvedValue([reviewIssue, lintIssue, normalIssue]);
+    mockIssuesApi.list.mockResolvedValue([reviewIssue, lintIssue, hourlyIssue, normalIssue]);
 
     const { root } = renderWithClient(
       <BlockedInboxView
@@ -366,6 +372,7 @@ describe("BlockedInboxView", () => {
           ...defaultIssueFilterState,
           hideProductivityReviewIssues: true,
           hideLintResidualTasks: true,
+          hideHourlyLogRotationTasks: true,
         }}
       />,
       container,
@@ -376,7 +383,46 @@ describe("BlockedInboxView", () => {
     const links = Array.from(container.querySelectorAll("a")).map((a) => a.textContent ?? "");
     expect(links.some((t) => t.includes("PAP-R1"))).toBe(false);
     expect(links.some((t) => t.includes("PAP-L1"))).toBe(false);
+    expect(links.some((t) => t.includes("PAP-H1"))).toBe(false);
     expect(links.some((t) => t.includes("PAP-N1"))).toBe(true);
+
+    act(() => root.unmount());
+  });
+
+  it("keeps hourly-log-rotation issues visible when the hide toggle is off", async () => {
+    const sourceIssueRef = (id: string, identifier: string, title: string) => ({
+      id,
+      identifier,
+      title,
+      status: "in_progress" as const,
+      priority: "medium" as const,
+      assigneeAgentId: null,
+      assigneeUserId: null,
+    });
+    const hourlyIssue = makeIssue(
+      "hourly-2",
+      "PAP-H2",
+      "Paperclip: Hourly Log Rotation",
+      attention({ sourceIssue: sourceIssueRef("hourly-2", "PAP-H2", "Paperclip: Hourly Log Rotation") }),
+    );
+
+    mockIssuesApi.list.mockResolvedValue([hourlyIssue]);
+
+    const { root } = renderWithClient(
+      <BlockedInboxView
+        {...blockedViewProps}
+        issueFilters={{
+          ...defaultIssueFilterState,
+          hideHourlyLogRotationTasks: false,
+        }}
+      />,
+      container,
+    );
+
+    await waitFor(() => container.textContent?.includes("PAP-H2") === true);
+
+    const links = Array.from(container.querySelectorAll("a")).map((a) => a.textContent ?? "");
+    expect(links.some((t) => t.includes("PAP-H2"))).toBe(true);
 
     act(() => root.unmount());
   });

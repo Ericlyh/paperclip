@@ -1,5 +1,7 @@
 import type { ActivityEvent, Issue } from "@paperclipai/shared";
 import {
+  isHourlyLogRotationTask,
+  isHourlyLogRotationTaskTitle,
   isLintResidualTask,
   isLintResidualTaskTitle,
   isProductivityReviewIssue,
@@ -45,6 +47,19 @@ export function isLintResidualTaskActivity(
     .some((title) => isLintResidualTaskTitle(title));
 }
 
+export function isHourlyLogRotationTaskActivity(
+  event: Pick<ActivityEvent, "entityType" | "entityId" | "details">,
+  issuesById: ReadonlyMap<string, Issue>,
+): boolean {
+  const issueId = activityIssueId(event);
+  const issue = issueId ? issuesById.get(issueId) : undefined;
+  if (issue) return isHourlyLogRotationTask(issue);
+
+  return ["issueTitle", "title"]
+    .map((key) => detailString(event.details, key))
+    .some((title) => isHourlyLogRotationTaskTitle(title));
+}
+
 export function isProductivityReviewActivity(
   event: Pick<ActivityEvent, "entityType" | "entityId" | "details">,
   issuesById: ReadonlyMap<string, Issue>,
@@ -60,9 +75,13 @@ export function getRecentDashboardActivity(
   issuesById: ReadonlyMap<string, Issue>,
   hideLintResidualTasks: boolean,
   hideProductivityReviewIssues: boolean,
+  hideHourlyLogRotationTasks = false,
 ): ActivityEvent[] {
   return events
     .filter((event) => !hideLintResidualTasks || !isLintResidualTaskActivity(event, issuesById))
+    .filter(
+      (event) => !hideHourlyLogRotationTasks || !isHourlyLogRotationTaskActivity(event, issuesById),
+    )
     .filter(
       (event) => !hideProductivityReviewIssues || !isProductivityReviewActivity(event, issuesById),
     )
@@ -73,9 +92,11 @@ export function getRecentDashboardIssues(
   issues: Issue[],
   hideLintResidualTasks: boolean,
   hideProductivityReviewIssues: boolean,
+  hideHourlyLogRotationTasks = false,
 ): Issue[] {
   return issues
     .filter((issue) => !hideLintResidualTasks || !isLintResidualTask(issue))
+    .filter((issue) => !hideHourlyLogRotationTasks || !isHourlyLogRotationTask(issue))
     .filter(
       (issue) => !hideProductivityReviewIssues || !isProductivityReviewIssue(issue),
     )

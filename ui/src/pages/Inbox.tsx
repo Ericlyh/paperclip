@@ -864,11 +864,11 @@ export function Inbox() {
   const mineIssues = useMemo(() => getRecentTouchedIssues(mineIssuesRaw), [mineIssuesRaw]);
   const touchedIssues = useMemo(() => getRecentTouchedIssues(touchedIssuesRaw), [touchedIssuesRaw]);
   const visibleMineIssues = useMemo(
-    () => applyIssueFilters(mineIssues, issueFilters, currentUserId, true, liveIssueIds, {}, true, true),
+    () => applyIssueFilters(mineIssues, issueFilters, currentUserId, true, liveIssueIds, {}, true, true, true),
     [mineIssues, issueFilters, currentUserId, liveIssueIds],
   );
   const visibleTouchedIssues = useMemo(
-    () => applyIssueFilters(touchedIssues, issueFilters, currentUserId, true, liveIssueIds, {}, true, true),
+    () => applyIssueFilters(touchedIssues, issueFilters, currentUserId, true, liveIssueIds, {}, true, true, true),
     [touchedIssues, issueFilters, currentUserId, liveIssueIds],
   );
   const unreadTouchedIssues = useMemo(
@@ -1914,7 +1914,7 @@ export function Inbox() {
   const unreadIssueIds = markAllReadIssues
     .map((issue) => issue.id);
   const canMarkAllRead = unreadIssueIds.length > 0;
-  const activeIssueFilterCount = countActiveIssueFilters(issueFilters, true, true, true);
+  const activeIssueFilterCount = countActiveIssueFilters(issueFilters, true, true, true, true);
   const showGeneralIssueToolbarControls = tab !== "blocked";
   return (
     <div className="space-y-6">
@@ -2010,6 +2010,7 @@ export function Inbox() {
                 enableRoutineVisibilityFilter
                 enableLintResidualTaskFilter
                 enableProductivityReviewFilter
+                enableHourlyLogRotationTaskFilter
                 buttonVariant="outline"
                 iconOnly
                 workspaces={isolatedWorkspacesEnabled ? executionWorkspaces.filter((w) => w.mode === "isolated_workspace").map((w) => ({ id: w.id, name: w.name })) : undefined}
@@ -2109,6 +2110,7 @@ export function Inbox() {
                 enableRoutineVisibilityFilter
                 enableLintResidualTaskFilter
                 enableProductivityReviewFilter
+                enableHourlyLogRotationTaskFilter
                 buttonVariant="outline"
                 iconOnly
                 workspaces={isolatedWorkspacesEnabled ? executionWorkspaces.filter((w) => w.mode === "isolated_workspace").map((w) => ({ id: w.id, name: w.name })) : undefined}

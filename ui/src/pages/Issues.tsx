@@ -196,6 +196,7 @@ export function Issues() {
       enableRoutineVisibilityFilter
       enableLintResidualTaskFilter
       enableProductivityReviewFilter
+      enableHourlyLogRotationTaskFilter
       hasMoreIssues={hasMoreServerIssues}
       onLoadMoreIssues={loadMoreServerIssues}
       onUpdateIssue={(id, data) => updateIssue.mutate({ id, data })}

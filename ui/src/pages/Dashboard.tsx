@@ -45,11 +45,13 @@ const DASHBOARD_FILTER_STORAGE_PREFIX = "paperclip:dashboard-filters";
 type DashboardFilterState = {
   hideLintResidualTasks: boolean;
   hideProductivityReviewIssues: boolean;
+  hideHourlyLogRotationTasks: boolean;
 };
 
 const DEFAULT_DASHBOARD_FILTER_STATE: DashboardFilterState = {
   hideLintResidualTasks: false,
   hideProductivityReviewIssues: true,
+  hideHourlyLogRotationTasks: false,
 };
 
 function dashboardFilterStorageKey(companyId: string): string {
@@ -68,6 +70,7 @@ function readDashboardFilterState(companyId: string | null | undefined): Dashboa
         parsed.hideProductivityReviewIssues === undefined
           ? DEFAULT_DASHBOARD_FILTER_STATE.hideProductivityReviewIssues
           : parsed.hideProductivityReviewIssues === true,
+      hideHourlyLogRotationTasks: parsed.hideHourlyLogRotationTasks === true,
     };
   } catch {
     return { ...DEFAULT_DASHBOARD_FILTER_STATE };
@@ -106,6 +109,17 @@ function DashboardVisibilityFilters({
           data-testid={`${testIdPrefix}-lint-residual-filter`}
         />
         <span>Hide lint-residual tasks</span>
+      </label>
+      <label
+        className="inline-flex cursor-pointer items-center gap-2 hover:text-foreground"
+        title="Hide tasks whose title starts with Paperclip: Hourly Log Rotation"
+      >
+        <Checkbox
+          checked={filterState.hideHourlyLogRotationTasks}
+          onCheckedChange={(checked) => onChange({ hideHourlyLogRotationTasks: checked === true })}
+          data-testid={`${testIdPrefix}-hourly-log-rotation-filter`}
+        />
+        <span>Hide hourly-log-rotation tasks</span>
       </label>
     </div>
   );
@@ -202,11 +216,13 @@ export function Dashboard() {
         visibleIssues,
         filterState.hideLintResidualTasks,
         filterState.hideProductivityReviewIssues,
+        filterState.hideHourlyLogRotationTasks,
       ),
     [
       visibleIssues,
       filterState.hideLintResidualTasks,
       filterState.hideProductivityReviewIssues,
+      filterState.hideHourlyLogRotationTasks,
     ],
   );
   const recentActivity = useMemo(
@@ -216,12 +232,14 @@ export function Dashboard() {
         issueById,
         filterState.hideLintResidualTasks,
         filterState.hideProductivityReviewIssues,
+        filterState.hideHourlyLogRotationTasks,
       ),
     [
       activity,
       issueById,
       filterState.hideLintResidualTasks,
       filterState.hideProductivityReviewIssues,
+      filterState.hideHourlyLogRotationTasks,
     ],
   );
 

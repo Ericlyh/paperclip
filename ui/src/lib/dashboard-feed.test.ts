@@ -6,6 +6,7 @@ import {
   DASHBOARD_VISIBLE_FEED_LIMIT,
   getRecentDashboardActivity,
   getRecentDashboardIssues,
+  isHourlyLogRotationTaskActivity,
   isLintResidualTaskActivity,
   isProductivityReviewActivity,
 } from "./dashboard-feed";
@@ -104,6 +105,45 @@ describe("dashboard feed helpers", () => {
 
     expect(getRecentDashboardActivity(events, new Map([[lintIssue.id, lintIssue]]), true, false)).toEqual([visibleEvent]);
     expect(getRecentDashboardActivity(events, new Map([[lintIssue.id, lintIssue]]), false, false)).toHaveLength(2);
+  });
+
+  it("identifies hourly-log-rotation activity through an issue reference or event title", () => {
+    const hourlyIssue = makeIssue("hourly", "Paperclip: Hourly Log Rotation");
+    const issuesById = new Map([[hourlyIssue.id, hourlyIssue]]);
+
+    expect(isHourlyLogRotationTaskActivity(makeEvent({ entityId: hourlyIssue.id }), issuesById)).toBe(true);
+    expect(isHourlyLogRotationTaskActivity(
+      makeEvent({ entityType: "environment_lease", details: { issueId: hourlyIssue.id } }),
+      issuesById,
+    )).toBe(true);
+    expect(isHourlyLogRotationTaskActivity(
+      makeEvent({ details: { issueTitle: "Paperclip: Hourly Log Rotation" } }),
+      new Map(),
+    )).toBe(true);
+    // Hyphenated follow-ups match too (mirrors lint-residual pattern).
+    expect(isHourlyLogRotationTaskActivity(
+      makeEvent({ details: { issueTitle: "hourly-log-rotation: stuck on docker volume cleanup" } }),
+      new Map(),
+    )).toBe(true);
+  });
+
+  it("excludes hourly-log-rotation events when the dedicated dashboard toggle is on", () => {
+    const hourlyIssue = makeIssue("hourly", "Paperclip: Hourly Log Rotation");
+    const visibleEvent = makeEvent({ id: "visible", entityId: "visible-issue" });
+    const hourlyEvent = makeEvent({ id: "hourly", entityId: hourlyIssue.id });
+    const events = [hourlyEvent, visibleEvent];
+    const issuesById = new Map([[hourlyIssue.id, hourlyIssue]]);
+
+    expect(getRecentDashboardActivity(events, issuesById, false, false, true)).toEqual([visibleEvent]);
+    expect(getRecentDashboardActivity(events, issuesById, false, false, false)).toEqual([hourlyEvent, visibleEvent]);
+  });
+
+  it("excludes hourly-log-rotation issues from the recent-tasks list when the toggle is on", () => {
+    const hourlyIssue = makeIssue("hourly", "Paperclip: Hourly Log Rotation", "2026-08-07T01:00:00.000Z");
+    const manualIssue = makeIssue("manual", "Manual task", "2026-08-07T02:00:00.000Z");
+
+    expect(getRecentDashboardIssues([hourlyIssue, manualIssue], false, false, true)).toEqual([manualIssue]);
+    expect(getRecentDashboardIssues([hourlyIssue, manualIssue], false, false, false)).toEqual([manualIssue, hourlyIssue]);
   });
 
   it("identifies productivity-review activity via issue reference or originKind details", () => {

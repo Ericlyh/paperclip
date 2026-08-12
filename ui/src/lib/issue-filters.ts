@@ -6,6 +6,13 @@ export const LINT_RESIDUAL_TASK_TITLE_PREFIX = "Paperclip: Close lint residuals 
 // and "[lint-residual-prune] ..." that the strict prefix would miss.
 const LINT_RESIDUAL_TITLE_NEEDLES = ["lint residual", "lint-residual"];
 
+export const HOURLY_LOG_ROTATION_TASK_TITLE_PREFIX = "Paperclip: Hourly Log Rotation";
+// Match the canonical "hourly log rotation" phrase in either spaced or
+// hyphenated form, mirroring the lint-residual pattern. This catches
+// follow-up issues like "hourly-log-rotation: ..." that the strict prefix
+// would miss.
+const HOURLY_LOG_ROTATION_TITLE_NEEDLES = ["hourly log rotation", "hourly-log-rotation"];
+
 export const PRODUCTIVITY_REVIEW_ORIGIN_KIND = "issue_productivity_review";
 
 export type IssueFilterWorkspaceLookup = {
@@ -29,6 +36,7 @@ export type IssueFilterState = {
   liveOnly?: boolean;
   hideRoutineExecutions: boolean;
   hideLintResidualTasks?: boolean;
+  hideHourlyLogRotationTasks?: boolean;
   hideProductivityReviewIssues?: boolean;
 };
 
@@ -43,6 +51,7 @@ export const defaultIssueFilterState: IssueFilterState = {
   liveOnly: false,
   hideRoutineExecutions: false,
   hideLintResidualTasks: false,
+  hideHourlyLogRotationTasks: false,
   // Default ON to preserve the prior always-hidden behaviour for
   // auto-generated "Review productivity for OOP-*" issues.
   hideProductivityReviewIssues: true,
@@ -88,6 +97,7 @@ export function normalizeIssueFilterState(value: unknown): IssueFilterState {
     liveOnly: candidate.liveOnly === true,
     hideRoutineExecutions: candidate.hideRoutineExecutions === true,
     hideLintResidualTasks: candidate.hideLintResidualTasks === true,
+    hideHourlyLogRotationTasks: candidate.hideHourlyLogRotationTasks === true,
     hideProductivityReviewIssues:
       candidate.hideProductivityReviewIssues === undefined
         ? defaultIssueFilterState.hideProductivityReviewIssues
@@ -103,6 +113,16 @@ export function isLintResidualTaskTitle(title: string | null | undefined): boole
 
 export function isLintResidualTask(issue: Pick<Issue, "title">): boolean {
   return isLintResidualTaskTitle(issue.title);
+}
+
+export function isHourlyLogRotationTaskTitle(title: string | null | undefined): boolean {
+  const normalized = title?.trim().toLowerCase() ?? "";
+  if (normalized.length === 0) return false;
+  return HOURLY_LOG_ROTATION_TITLE_NEEDLES.some((needle) => normalized.includes(needle));
+}
+
+export function isHourlyLogRotationTask(issue: Pick<Issue, "title">): boolean {
+  return isHourlyLogRotationTaskTitle(issue.title);
 }
 
 export function isProductivityReviewIssue(issue: Pick<Issue, "originKind">): boolean {
@@ -160,6 +180,7 @@ export function applyIssueFilters(
   workspaceContext: IssueFilterWorkspaceContext = {},
   enableLintResidualTaskFilter = false,
   enableProductivityReviewFilter = false,
+  enableHourlyLogRotationTaskFilter = false,
 ): Issue[] {
   let result = issues;
   if (state.liveOnly) {
@@ -170,6 +191,9 @@ export function applyIssueFilters(
   }
   if (enableLintResidualTaskFilter && state.hideLintResidualTasks) {
     result = result.filter((issue) => !isLintResidualTask(issue));
+  }
+  if (enableHourlyLogRotationTaskFilter && state.hideHourlyLogRotationTasks) {
+    result = result.filter((issue) => !isHourlyLogRotationTask(issue));
   }
   if (enableProductivityReviewFilter && state.hideProductivityReviewIssues) {
     result = result.filter((issue) => !isProductivityReviewIssue(issue));
@@ -215,6 +239,7 @@ export function countActiveIssueFilters(
   enableRoutineVisibilityFilter = false,
   enableLintResidualTaskFilter = false,
   enableProductivityReviewFilter = false,
+  enableHourlyLogRotationTaskFilter = false,
 ): number {
   let count = 0;
   if (state.statuses.length > 0) count += 1;
@@ -227,6 +252,7 @@ export function countActiveIssueFilters(
   if (state.liveOnly) count += 1;
   if (enableRoutineVisibilityFilter && state.hideRoutineExecutions) count += 1;
   if (enableLintResidualTaskFilter && state.hideLintResidualTasks) count += 1;
+  if (enableHourlyLogRotationTaskFilter && state.hideHourlyLogRotationTasks) count += 1;
   if (enableProductivityReviewFilter && state.hideProductivityReviewIssues) count += 1;
   return count;
 }
