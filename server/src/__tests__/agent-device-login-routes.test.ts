@@ -578,6 +578,32 @@ describe("adapter device-login routes", () => {
     expect(mockDeviceLoginPromotion).toHaveBeenCalledTimes(1);
   });
 
+  it("fails closed when the login is a different account than the company home", async () => {
+    // The promotion keeps the occupied company home and installs nothing durable
+    // for a different-identity login. The identity-anchored vend can never select
+    // this login, so a later run keeps the existing account. The route must fail
+    // the session instead of a report of `authenticated`.
+    mockDeviceLoginPromotion.mockResolvedValueOnce("kept_foreign_identity");
+    const app = await createApp();
+
+    const start = await request(app)
+      .post(loginPath(COMPANY_1))
+      .send({ environmentId: SANDBOX_ENV_1 });
+    expect(start.status, JSON.stringify(start.body)).toBe(201);
+    const sessionId = start.body.sessionId as string;
+
+    harness.releaseGate();
+    await vi.waitFor(async () => {
+      const status = await request(app).get(`${loginPath(COMPANY_1)}/${sessionId}`);
+      expect(status.body.status).toBe("failed");
+      expect(status.body.failure?.reason).toBe("promotion_failed");
+    });
+
+    const row = (harness.store as ReturnType<typeof createMemoryStore>).rows.get(sessionId);
+    expect(row?.status).toBe("failed");
+    expect(mockDeviceLoginPromotion).toHaveBeenCalledTimes(1);
+  });
+
   it("omits the URL, code, credential bytes, and lease id from logs and activity", async () => {
     const app = await createApp();
 

@@ -1,4 +1,4 @@
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import {
@@ -97,9 +97,16 @@ export async function checkStagedCredentialReadiness(
  *   same-identity update). The helper then tries the per-identity cache slot when
  *   the cache is on. The cache write is best-effort: a cache failure keeps the
  *   `promoted` outcome, because the company home is already durable.
- * - `kept`: the credential was valid and the session held the slot, but the
- *   company home already held a newer same-identity or a different identity, so
- *   the home was kept. The helper still tries the best-effort cache write.
+ * - `kept`: the login carried the SAME identity as the company home, and the home
+ *   already held a newer same-identity credential, so the home was kept. This is a
+ *   successful authentication: a later run vends and uses the same account. The
+ *   helper still tries the best-effort cache write.
+ * - `kept_foreign_identity`: the login carried a DIFFERENT identity than the
+ *   company home. The helper never clobbers an occupied home, so it kept the other
+ *   account and installed nothing durable for this login. The identity-anchored
+ *   vend reads the home identity first, so a later run can never select this
+ *   login. This is NOT a successful authentication; the caller must fail the
+ *   session instead of a report of `authenticated`.
  * - `not_sole_owner`: Decision H rejected the write. Nothing was written.
  * - `background_skipped`: Decision C rejected the write (an automatic background
  *   path never seeds a company slot). Nothing was written.
@@ -107,6 +114,7 @@ export async function checkStagedCredentialReadiness(
 export type PromoteDeviceLoginCredentialOutcome =
   | "promoted"
   | "kept"
+  | "kept_foreign_identity"
   | "not_sole_owner"
   | "background_skipped";
 
@@ -206,9 +214,10 @@ export async function promoteDeviceLoginCredential(
   //     identity. It never touches the instance-global host.
   const companyHome = resolveManagedCodexHomeDir(env, companyId);
   await mkdir(companyHome, { recursive: true, mode: PRIVATE_DIR_MODE });
+  const companyHomeAuthPath = path.join(companyHome, AUTH_FILE_NAME);
   const homeOutcome = await writeCredentialSeedOrNewer({
     sourceBytes: authBytes,
-    destinationPath: path.join(companyHome, AUTH_FILE_NAME),
+    destinationPath: companyHomeAuthPath,
     seedIfDestAbsent: true,
     log,
     writtenLine: "[paperclip] Codex device-login promotion: wrote the company credential home at mode 0600.",
@@ -216,6 +225,23 @@ export async function promoteDeviceLoginCredential(
     tempPrefix: "auth.json.promotion-home",
     errorLabel: "codex device-login promotion",
   });
+
+  // A kept home has two very different meanings. The writer keeps the home when
+  // it already holds a newer SAME-identity credential (a genuine success: a later
+  // run vends and uses the same account), and it also keeps the home when the home
+  // holds a DIFFERENT identity (the writer never clobbers an occupied home). The
+  // second case installed nothing durable for this login: the home still holds the
+  // other account, and the identity-anchored vend reads the home identity first,
+  // so it can never select this login. Compare the login identity with the kept
+  // home identity, so the caller can fail the session instead of a report of
+  // `authenticated`. A home that this helper cannot read as the same identity is
+  // treated as a foreign identity; the caller fails closed.
+  let foreignIdentityKeep = false;
+  if (homeOutcome === "kept") {
+    const homeBytes = await readFile(companyHomeAuthPath).catch(() => null);
+    const homeAccountId = homeBytes ? readSubscriptionAccountId(homeBytes) : null;
+    foreignIdentityKeep = homeAccountId !== accountId;
+  }
 
   // 5b. Record the credential in its per-identity company cache slot, so a later
   //     run can vend a strictly-newer copy. The cache write respects the
@@ -240,5 +266,8 @@ export async function promoteDeviceLoginCredential(
     }
   }
 
-  return homeOutcome === "written" ? "promoted" : "kept";
+  if (homeOutcome === "written") {
+    return "promoted";
+  }
+  return foreignIdentityKeep ? "kept_foreign_identity" : "kept";
 }

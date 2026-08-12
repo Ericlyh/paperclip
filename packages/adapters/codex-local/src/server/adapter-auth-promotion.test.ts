@@ -199,7 +199,7 @@ describe("device-login credential promotion", () => {
     expect(homeAuth.tokens.refresh_token).toContain("keep");
   });
 
-  it("a different-identity login never clobbers an occupied company home", async () => {
+  it("a different-identity login keeps the home and reports a foreign-identity outcome", async () => {
     const home = await makeInstanceRoot();
     const env = envFor(home);
     await promoteDeviceLoginCredential({
@@ -220,9 +220,11 @@ describe("device-login credential promotion", () => {
       env,
       log: noopLog,
     });
-    // The home keeps the first identity. The other identity still lands in its
-    // own per-identity cache slot.
-    expect(outcome).toBe("kept");
+    // The home keeps the first identity. The login did not install the other
+    // account, so the outcome is `kept_foreign_identity`, not a plain `kept`: the
+    // caller must fail the session instead of a report of `authenticated`. The
+    // other identity still lands in its own per-identity cache slot.
+    expect(outcome).toBe("kept_foreign_identity");
     const homeAuth = JSON.parse(await readFile(companyHomeAuthPath(env, COMPANY_A), "utf8"));
     expect(homeAuth.tokens.account_id).toBe(ACCOUNT);
     const otherCache = JSON.parse(

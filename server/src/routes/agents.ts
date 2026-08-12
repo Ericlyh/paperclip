@@ -299,6 +299,17 @@ export function agentRoutes(
         // particular, a reaper/expiry race can revoke this session's sole
         // ownership between the service transition and Decision H. Fail closed:
         // only a credential write or a deliberate safe keep can authenticate.
+        if (outcome === "kept_foreign_identity") {
+          // The login produced a different account than the one the company
+          // credential home already holds. The promotion never clobbers an
+          // occupied home, so this login installed nothing durable, and the
+          // identity-anchored vend can never select it: a later run keeps the
+          // existing account. Fail the session, so the operator never sees a
+          // false `authenticated` for an account the system will not use.
+          throw new Error(
+            "device-login credential promotion rejected: the login is a different account than the one already set for this company; the existing account was kept",
+          );
+        }
         if (outcome !== "promoted" && outcome !== "kept") {
           throw new Error(`device-login credential promotion rejected: ${outcome}`);
         }
