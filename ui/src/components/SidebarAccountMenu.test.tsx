@@ -57,6 +57,13 @@ vi.mock("../context/ThemeContext", () => ({
   }),
 }));
 
+vi.mock("../context/LanguageContext", () => ({
+  useLanguage: () => ({
+    locale: "en",
+    toggleLocale: vi.fn(),
+  }),
+}));
+
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 (globalThis as any).IS_REACT_ACT_ENVIRONMENT = true;
 
