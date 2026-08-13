@@ -48,6 +48,14 @@ Read tools:
 - `paperclipListProjects`
 - `paperclipGetProject`
 - `paperclipGetIssueWorkspaceRuntime`
+- `paperclipGetServiceOwnership` — resolves a workspace runtime service to its
+  owning company, the issue's assignee agents, and any linked approvals so an
+  external coding agent can identify the team responsible for a service in one
+  call. Requires `issueId` plus either `runtimeServiceId` or `serviceName`.
+- `paperclipListRecentSessionsForService` — lists recent agent runs (heartbeat
+  runs) against the issue's workspace runtime service, with optional `limit` and
+  `includeTranscripts` flags. Requires `issueId` plus either `runtimeServiceId`
+  or `serviceName`.
 - `paperclipWaitForIssueWorkspaceService`
 - `paperclipListGoals`
 - `paperclipGetGoal`

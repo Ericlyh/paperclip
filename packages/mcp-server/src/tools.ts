@@ -13,7 +13,7 @@ import {
   upsertIssueDocumentSchema,
   linkIssueApprovalSchema,
 } from "@paperclipai/shared";
-import { PaperclipApiClient } from "./client.js";
+import { PaperclipApiClient, PaperclipApiError } from "./client.js";
 import { formatErrorResponse, formatTextResponse } from "./format.js";
 
 export interface ToolDefinition {
@@ -192,6 +192,31 @@ const waitForIssueWorkspaceServiceSchema = z.object({
   timeoutSeconds: z.number().int().positive().max(300).optional(),
 });
 
+const serviceLookupSchema = z.object({
+  issueId: issueIdSchema,
+  runtimeServiceId: z.string().min(1).optional().nullable(),
+  serviceName: z.string().min(1).optional().nullable(),
+});
+
+const listRecentSessionsForServiceSchema = z.object({
+  issueId: issueIdSchema,
+  runtimeServiceId: z.string().min(1).optional().nullable(),
+  serviceName: z.string().min(1).optional().nullable(),
+  limit: z.number().int().positive().max(100).optional(),
+  includeTranscripts: z.boolean().optional(),
+});
+
+function assertServiceIdentifier(input: {
+  runtimeServiceId?: string | null;
+  serviceName?: string | null;
+}): void {
+  if (!input.runtimeServiceId && !input.serviceName) {
+    throw new Error(
+      "Either runtimeServiceId or serviceName must be provided alongside issueId",
+    );
+  }
+}
+
 function sleep(ms: number) {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
@@ -362,6 +387,89 @@ export function createToolDefinitions(client: PaperclipApiClient): ToolDefinitio
       "Get the current execution workspace and runtime services for an issue, including service URLs",
       z.object({ issueId: issueIdSchema }),
       async ({ issueId }) => getIssueWorkspaceRuntime(client, issueId),
+    ),
+    makeTool(
+      "paperclipGetServiceOwnership",
+      "Resolve ownership and related entities for a workspace runtime service. Provide issueId plus either runtimeServiceId or serviceName. Returns the service record, its owning company, the issue's assignee agents, and any linked approvals so an external coding agent can identify the team responsible for a service in one call.",
+      serviceLookupSchema,
+      async ({ issueId, runtimeServiceId, serviceName }) => {
+        assertServiceIdentifier({ runtimeServiceId, serviceName });
+        const runtime = await getIssueWorkspaceRuntime(client, issueId);
+        const service = selectRuntimeService(runtime.runtimeServices, {
+          runtimeServiceId: runtimeServiceId ?? null,
+          serviceName: serviceName ?? null,
+        });
+        if (!service) {
+          throw new Error(
+            `No runtime service matched runtimeServiceId=${runtimeServiceId ?? "<none>"} serviceName=${serviceName ?? "<none>"} on issue ${issueId}`,
+          );
+        }
+        const [issue, approvals] = await Promise.all([
+          client.requestJson("GET", `/issues/${encodeURIComponent(issueId)}`),
+          client
+            .requestJson("GET", `/issues/${encodeURIComponent(issueId)}/approvals`)
+            .catch((error: unknown) => {
+              if (error instanceof PaperclipApiError && error.status === 404) return [];
+              throw error;
+            }),
+        ]);
+        const assigneeAgentIds = Array.isArray((issue as { assigneeAgentIds?: unknown }).assigneeAgentIds)
+          ? ((issue as { assigneeAgentIds: unknown[] }).assigneeAgentIds.filter(
+              (value): value is string => typeof value === "string",
+            ))
+          : typeof (issue as { assigneeAgentId?: unknown }).assigneeAgentId === "string"
+            ? [((issue as { assigneeAgentId: string }).assigneeAgentId)]
+            : [];
+        return {
+          service,
+          workspace: runtime.workspace,
+          issue,
+          ownership: {
+            companyId:
+              (issue as { companyId?: unknown }).companyId ??
+              (runtime.workspace as { companyId?: unknown } | null)?.companyId ??
+              null,
+            projectId: (issue as { projectId?: unknown }).projectId ?? null,
+            assigneeAgentIds,
+            assigneeUserId:
+              typeof (issue as { assigneeUserId?: unknown }).assigneeUserId === "string"
+                ? ((issue as { assigneeUserId: string }).assigneeUserId)
+                : null,
+          },
+          relatedApprovals: approvals,
+        };
+      },
+    ),
+    makeTool(
+      "paperclipListRecentSessionsForService",
+      "List recent agent runs (heartbeat runs) against an issue's workspace runtime service, optionally including inline transcripts when the run uploaded one. Provide issueId plus either runtimeServiceId or serviceName; the tool resolves the service and then fetches recent runs via /api/issues/:id/runs.",
+      listRecentSessionsForServiceSchema,
+      async ({ issueId, runtimeServiceId, serviceName, limit, includeTranscripts }) => {
+        assertServiceIdentifier({ runtimeServiceId, serviceName });
+        const runtime = await getIssueWorkspaceRuntime(client, issueId);
+        const service = selectRuntimeService(runtime.runtimeServices, {
+          runtimeServiceId: runtimeServiceId ?? null,
+          serviceName: serviceName ?? null,
+        });
+        if (!service) {
+          throw new Error(
+            `No runtime service matched runtimeServiceId=${runtimeServiceId ?? "<none>"} serviceName=${serviceName ?? "<none>"} on issue ${issueId}`,
+          );
+        }
+        const params = new URLSearchParams();
+        if (limit !== undefined) params.set("limit", String(limit));
+        if (includeTranscripts) params.set("includeTranscripts", "true");
+        const qs = params.toString();
+        const runs = await client.requestJson(
+          "GET",
+          `/issues/${encodeURIComponent(issueId)}/runs${qs ? `?${qs}` : ""}`,
+        );
+        return {
+          service,
+          workspace: runtime.workspace,
+          runs,
+        };
+      },
     ),
     makeTool(
       "paperclipControlIssueWorkspaceServices",
