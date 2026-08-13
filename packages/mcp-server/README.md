@@ -48,6 +48,9 @@ Read tools:
 - `paperclipListProjects`
 - `paperclipGetProject`
 - `paperclipGetIssueWorkspaceRuntime`
+- `paperclipGetWorkspaceContext` — project-scoped Workspace context bundle (X-1 / OOP-3448): project + recent issues / decisions / documents / runs + members
+- `paperclipGetIssueWorkspaceContext` — Workspace bundle scoped to an issue's project; gracefully returns `issue_has_no_project` when unassigned
+- `paperclipListWorkspaceMembers` — members (users + agents) associated with a project's Workspace
 - `paperclipGetServiceOwnership` — resolves a workspace runtime service to its
   owning company, the issue's assignee agents, and any linked approvals so an
   external coding agent can identify the team responsible for a service in one

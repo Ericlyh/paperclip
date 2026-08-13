@@ -389,6 +389,106 @@ export function createToolDefinitions(client: PaperclipApiClient): ToolDefinitio
       async ({ issueId }) => getIssueWorkspaceRuntime(client, issueId),
     ),
     makeTool(
+      "paperclipGetWorkspaceContext",
+      "Get the project-scoped Workspace context bundle (X-1 / OOP-3448) for a project: project metadata, recent issues, recent decisions, recent documents, recent heartbeat runs, members (users + agents), and a summary. Mirrors the Xirp Workspace pattern from Backstage so an external coding agent can pick up an issue with full institutional memory of its project. Optional per-array limits via issueLimit / decisionLimit / documentLimit / runLimit.",
+      z.object({
+        projectId: projectIdSchema,
+        companyId: companyIdOptional,
+        issueLimit: z.number().int().positive().max(100).optional(),
+        decisionLimit: z.number().int().positive().max(50).optional(),
+        documentLimit: z.number().int().positive().max(50).optional(),
+        runLimit: z.number().int().positive().max(50).optional(),
+      }),
+      async ({ projectId, companyId, issueLimit, decisionLimit, documentLimit, runLimit }) => {
+        const params = new URLSearchParams();
+        if (typeof issueLimit === "number") params.set("issueLimit", String(issueLimit));
+        if (typeof decisionLimit === "number") params.set("decisionLimit", String(decisionLimit));
+        if (typeof documentLimit === "number") params.set("documentLimit", String(documentLimit));
+        if (typeof runLimit === "number") params.set("runLimit", String(runLimit));
+        const qs = params.toString();
+        const companyQs = companyId ? `companyId=${encodeURIComponent(companyId)}` : "";
+        const combinedQs = [qs, companyQs].filter(Boolean).join("&");
+        const project = await client.requestJson(
+          "GET",
+          `/projects/${encodeURIComponent(projectId)}${combinedQs ? `?${combinedQs}` : ""}`,
+        );
+        const resolvedCompanyId =
+          (project as { companyId?: unknown }).companyId ??
+          (typeof companyId === "string" ? companyId : null);
+        if (typeof resolvedCompanyId !== "string") {
+          throw new Error(`Project ${projectId} did not resolve to a companyId`);
+        }
+        return client.requestJson(
+          "GET",
+          `/companies/${encodeURIComponent(resolvedCompanyId)}/projects/${encodeURIComponent(projectId)}/workspace-context${qs ? `?${qs}` : ""}`,
+        );
+      },
+    ),
+    makeTool(
+      "paperclipGetIssueWorkspaceContext",
+      "Get the project-scoped Workspace context bundle for the project that an issue belongs to. Returns { error: 'issue_has_no_project' } (surfaced as a 404) when the issue has no projectId; returns an empty bundle otherwise. This is the recommended first call at session start so an external coding agent picks up an issue with full institutional memory of its project.",
+      z.object({
+        issueId: issueIdSchema,
+        issueLimit: z.number().int().positive().max(100).optional(),
+        decisionLimit: z.number().int().positive().max(50).optional(),
+        documentLimit: z.number().int().positive().max(50).optional(),
+        runLimit: z.number().int().positive().max(50).optional(),
+      }),
+      async ({ issueId, issueLimit, decisionLimit, documentLimit, runLimit }) => {
+        const params = new URLSearchParams();
+        if (typeof issueLimit === "number") params.set("issueLimit", String(issueLimit));
+        if (typeof decisionLimit === "number") params.set("decisionLimit", String(decisionLimit));
+        if (typeof documentLimit === "number") params.set("documentLimit", String(documentLimit));
+        if (typeof runLimit === "number") params.set("runLimit", String(runLimit));
+        const qs = params.toString();
+        try {
+          return await client.requestJson(
+            "GET",
+            `/issues/${encodeURIComponent(issueId)}/workspace-context${qs ? `?${qs}` : ""}`,
+          );
+        } catch (error) {
+          if (
+            error instanceof PaperclipApiError &&
+            error.status === 404 &&
+            typeof error.body === "object" &&
+            error.body !== null &&
+            (error.body as { error?: unknown }).error === "issue_has_no_project"
+          ) {
+            return {
+              error: "issue_has_no_project",
+              issueId,
+              message: "Issue has no project linkage; Workspace context is not available.",
+            };
+          }
+          throw error;
+        }
+      },
+    ),
+    makeTool(
+      "paperclipListWorkspaceMembers",
+      "List the members (users + agents) associated with a project's Workspace. Aggregates company_memberships and agent_memberships scoped to the project so an external coding agent can identify the humans and agents working on the project in one call.",
+      z.object({
+        projectId: projectIdSchema,
+        companyId: companyIdOptional,
+      }),
+      async ({ projectId, companyId }) => {
+        const project = await client.requestJson(
+          "GET",
+          `/projects/${encodeURIComponent(projectId)}${companyId ? `?companyId=${encodeURIComponent(companyId)}` : ""}`,
+        );
+        const resolvedCompanyId =
+          (project as { companyId?: unknown }).companyId ??
+          (typeof companyId === "string" ? companyId : null);
+        if (typeof resolvedCompanyId !== "string") {
+          throw new Error(`Project ${projectId} did not resolve to a companyId`);
+        }
+        return client.requestJson(
+          "GET",
+          `/companies/${encodeURIComponent(resolvedCompanyId)}/projects/${encodeURIComponent(projectId)}/workspace-members`,
+        );
+      },
+    ),
+    makeTool(
       "paperclipGetServiceOwnership",
       "Resolve ownership and related entities for a workspace runtime service. Provide issueId plus either runtimeServiceId or serviceName. Returns the service record, its owning company, the issue's assignee agents, and any linked approvals so an external coding agent can identify the team responsible for a service in one call.",
       serviceLookupSchema,
