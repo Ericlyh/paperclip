@@ -720,7 +720,7 @@ export function DeleteFolderDialog({
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel disabled={pending}>Cancel</AlertDialogCancel>
+          <AlertDialogCancel disabled={pending} />
           <AlertDialogAction
             className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
             disabled={pending || !folder}

@@ -11,6 +11,7 @@ import { approvalsApi } from "../api/approvals";
 import { issuesApi } from "../api/issues";
 import { projectsApi } from "../api/projects";
 import { queryKeys } from "../lib/queryKeys";
+import { useTranslation } from "@/i18n";
 import { Dialog, DialogPortal } from "@/components/ui/dialog";
 import {
   Popover,
@@ -135,6 +136,7 @@ export function OnboardingWizard() {
   const navigate = useNavigate();
   const location = useLocation();
   const { companyPrefix } = useParams<{ companyPrefix?: string }>();
+  const { t } = useTranslation();
 
   // Support opening the wizard from a route (e.g. /onboarding or an existing
   // company's "add agent" entry point) in addition to the dialog context.
@@ -799,7 +801,7 @@ export function OnboardingWizard() {
             className="absolute top-4 left-4 z-10 rounded-sm p-1.5 text-muted-foreground/60 hover:text-foreground transition-colors"
           >
             <X className="h-5 w-5" />
-            <span className="sr-only">Close</span>
+            <span className="sr-only">{t("common.close")}</span>
           </button>
 
           {/* Step 0: Front Door — full-screen choice */}

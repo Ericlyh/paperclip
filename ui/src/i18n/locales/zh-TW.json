@@ -89,7 +89,9 @@
     "add": "新增",
     "view": "查看",
     "all": "全部",
-    "none": "無"
+    "none": "無",
+    "share": "分享",
+    "openInBrowser": "在瀏覽器中開啟"
   },
   "dashboard": {
     "welcomeTitle": "歡迎使用 Paperclip",
@@ -124,5 +126,21 @@
     "tasksByStatus": "依狀態",
     "successRate": "成功率",
     "last14Days": "最近 14 天"
+  },
+  "toasts": {
+    "copySuccess": "已複製",
+    "copyFailed": "複製失敗",
+    "linkCopied": "連結已複製",
+    "shareUnavailable": "無法使用分享功能",
+    "shareFailed": "分享失敗",
+    "saved": "已儲存",
+    "deleted": "已刪除",
+    "created": "已建立",
+    "updated": "已更新",
+    "couldNotSave": "無法儲存",
+    "couldNotDelete": "無法刪除",
+    "couldNotLoad": "無法載入",
+    "unexpectedError": "發生未預期的錯誤",
+    "shareFailedBody": "請嘗試在瀏覽器中開啟此頁面。"
   }
 }
