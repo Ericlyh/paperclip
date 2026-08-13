@@ -10,30 +10,8 @@ import { TaskChatThreadView } from "@/components/task-chat/TaskChatThreadView";
 import { TaskChatPlanView } from "@/components/task-chat/TaskChatPlanView";
 import { TaskChatBubbleActions } from "@/components/task-chat/TaskChatBubbleActions";
 import { TweakPanel } from "@/components/task-chat/TweakPanel";
-import type {
-  TaskChatItem,
-  TaskChatMessageItem,
-} from "@/components/task-chat/task-chat-model";
-
-/**
- * Demo binding for the agent-bubble copy · 👍 · 👎 cluster (PAP-413). The live
- * thread wires these to the feedback-vote API; here the votes no-op so the
- * harness can show the footer without a control plane.
- */
-function labMessageActions(item: TaskChatMessageItem) {
-  if (item.author !== "agent" || item.optimistic) return null;
-  return (
-    <TaskChatBubbleActions
-      copyText={item.text}
-      feedback={{
-        activeVote: null,
-        sharingPreference: "allowed",
-        termsUrl: null,
-        onVote: async () => {},
-      }}
-    />
-  );
-}
+import type { TaskChatItem } from "@/components/task-chat/task-chat-model";
+import { useTranslation } from "@/i18n";
 
 /** Replay ticks of selfTalk gap between scripted interstitial updates (~0.7s at 1×). */
 const SELF_TALK_GAP_TICKS = 30;
@@ -139,6 +117,7 @@ function useStreamingReplay(
  * 0.1×–10× speed control, and the live motion tweak panel.
  */
 export function TaskChatLab() {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<TaskChatStateId>("agent-message");
   const [speed, setSpeed] = useState(1);
   const [playing, setPlaying] = useState(true);
@@ -153,19 +132,19 @@ export function TaskChatLab() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <header className="border-b border-border px-4 py-2">
-        <h1 className="text-sm font-semibold">Task Chat Lab</h1>
+        <h1 className="text-sm font-semibold">{t("taskChatLab.title")}</h1>
         <p className="text-xs text-muted-foreground">
-          Synthetic harness for the task chat redesign · every state renders here with no live agent.
+          {t("taskChatLab.subtitle")}
         </p>
       </header>
 
       <div className="flex min-h-0 flex-1">
         {/* State switcher */}
-        <nav className="w-56 shrink-0 overflow-y-auto border-r border-border p-2" aria-label="States">
+        <nav className="w-56 shrink-0 overflow-y-auto border-r border-border p-2" aria-label={t("taskChatLab.statesLabel")}>
           {(["live", "tier-b"] as const).map((tier) => (
             <div key={tier} className="mb-3">
               <p className="mb-1 px-1 text-(length:--text-nano) font-semibold uppercase tracking-wide text-muted-foreground">
-                {tier === "live" ? "Live states" : "Tier-B (synthetic)"}
+                {tier === "live" ? t("taskChatLab.liveStates") : t("taskChatLab.tierBSynthetic")}
               </p>
               <ul className="flex flex-col gap-0.5">
                 {TASK_CHAT_STATE_LIST.filter((m) => m.tier === tier).map((m) => (
@@ -200,7 +179,7 @@ export function TaskChatLab() {
               className="flex items-center gap-1 rounded border border-border px-2 py-1 hover:bg-accent"
             >
               {playing ? <Pause className="h-3.5 w-3.5" /> : <Play className="h-3.5 w-3.5" />}
-              {playing ? "Pause" : "Play"}
+              {playing ? t("taskChatLab.pause") : t("taskChatLab.play")}
             </button>
             <button
               type="button"
@@ -208,10 +187,10 @@ export function TaskChatLab() {
               className="flex items-center gap-1 rounded border border-border px-2 py-1 hover:bg-accent"
             >
               <RotateCcw className="h-3.5 w-3.5" />
-              Replay
+              {t("taskChatLab.replay")}
             </button>
             <label className="flex items-center gap-2">
-              <span className="text-muted-foreground">Speed</span>
+              <span className="text-muted-foreground">{t("taskChatLab.speed")}</span>
               <input
                 type="range"
                 min={0.1}
@@ -219,7 +198,7 @@ export function TaskChatLab() {
                 step={0.1}
                 value={speed}
                 onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                aria-label="Streaming speed"
+                aria-label={t("taskChatLab.streamingSpeed")}
                 className="w-32"
               />
               <span className="w-10 tabular-nums">{speed.toFixed(1)}×</span>

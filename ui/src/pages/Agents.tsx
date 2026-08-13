@@ -10,6 +10,7 @@ import { useCompany } from "../context/CompanyContext";
 import { useDialogActions } from "../context/DialogContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { useSidebar } from "../context/SidebarContext";
+import { useTranslation } from "../i18n";
 import { queryKeys } from "../lib/queryKeys";
 import { AgentStatusBadge, AgentStatusCapsule } from "../components/StatusBadge";
 import { AgentActionButtons } from "../components/AgentActionButtons";
@@ -189,6 +190,7 @@ export function Agents() {
   const { selectedCompanyId } = useCompany();
   const { openNewAgent } = useDialogActions();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const location = useLocation();
   const { isMobile } = useSidebar();
@@ -315,8 +317,8 @@ export function Agents() {
   }, [agents, environmentsById, environmentCapabilities, instanceSettings?.defaultEnvironmentId]);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Agents" }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: t("agents.breadcrumb") }]);
+  }, [setBreadcrumbs, t]);
 
   useEffect(() => {
     if (selectedCompanyId && requestedTab === "builtin" && instanceSettings && !builtInAgentsEnabled) {
@@ -325,7 +327,7 @@ export function Agents() {
   }, [builtInAgentsEnabled, instanceSettings, navigate, requestedTab, selectedCompanyId]);
 
   if (!selectedCompanyId) {
-    return <EmptyState icon={Bot} message="Select a company to view agents." />;
+    return <EmptyState icon={Bot} message={t("agents.selectCompany")} />;
   }
 
   if (isLoading) {
@@ -505,15 +507,15 @@ export function Agents() {
         <div className="flex items-center gap-2">
           {/* View toggle */}
           {!forceListView && (
-            <div className="flex items-center border border-border" role="group" aria-label="View mode">
+            <div className="flex items-center border border-border" role="group" aria-label={t("agents.viewMode")}>
               <button
                 className={cn(
                   "p-1.5 transition-colors",
                   effectiveView === "list" ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent/50"
                 )}
                 onClick={() => setView("list")}
-                title="List view"
-                aria-label="List view"
+                title={t("agents.listView")}
+                aria-label={t("agents.listView")}
                 aria-pressed={effectiveView === "list"}
               >
                 <List className="h-3.5 w-3.5" />
@@ -524,8 +526,8 @@ export function Agents() {
                   effectiveView === "org" ? "bg-accent text-foreground" : "text-muted-foreground hover:bg-accent/50"
                 )}
                 onClick={() => setView("org")}
-                title="Org chart view"
-                aria-label="Org chart view"
+                title={t("agents.orgChartView")}
+                aria-label={t("agents.orgChartView")}
                 aria-pressed={effectiveView === "org"}
               >
                 <GitBranch className="h-3.5 w-3.5" />
@@ -534,7 +536,7 @@ export function Agents() {
           )}
           <Button size="sm" variant="outline" onClick={openNewAgent}>
             <Plus className="h-3.5 w-3.5 mr-1.5" />
-            New Agent
+            {t("agents.newAgent")}
           </Button>
         </div>
       </div>
@@ -548,8 +550,8 @@ export function Agents() {
       {agents && agents.length === 0 && (
         <EmptyState
           icon={Bot}
-          message="Create your first agent to get started."
-          action="New Agent"
+          message={t("agents.createFirstAgent")}
+          action={t("agents.newAgent")}
           onAction={openNewAgent}
         />
       )}

@@ -10,6 +10,7 @@ import { decisionsApi } from "../api/decisions";
 import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { useToastActions } from "../context/ToastContext";
+import { useTranslation } from "../i18n";
 import { useInboxDismissals } from "../hooks/useInboxBadge";
 import { queryKeys } from "../lib/queryKeys";
 import {
@@ -87,6 +88,7 @@ function findScrollContainer(element: HTMLElement | null): HTMLElement | null {
 export function WhatNeedsMe() {
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [selectedAttentionId, setSelectedAttentionId] = useState<string | null>(null);
   // How the current selection was made. The selection ring is the keyboard
@@ -135,8 +137,8 @@ export function WhatNeedsMe() {
   );
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Decisions" }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: t("whatNeedsMe.breadcrumbDecisions") }]);
+  }, [setBreadcrumbs, t]);
 
   // Re-hydrate per-company preferences when the company changes.
   useEffect(() => {
@@ -507,7 +509,7 @@ export function WhatNeedsMe() {
   }, [handleDismiss, keyboardItems, navigate, selectedAttentionId]);
 
   if (!selectedCompanyId) {
-    return <p className="text-sm text-muted-foreground">Select a company first.</p>;
+    return <p className="text-sm text-muted-foreground">{t("whatNeedsMe.selectCompany")}</p>;
   }
 
   if (isLoading) {
@@ -717,7 +719,7 @@ export function WhatNeedsMe() {
           onToggle={() => setDecidedOpen((prev) => !prev)}
         >
           {decidedDecisionsLoading ? (
-            <p className="text-xs text-muted-foreground">Loading decided decisions…</p>
+            <p className="text-xs text-muted-foreground">{t("whatNeedsMe.decidedDecisions")}</p>
           ) : (decidedDecisions?.length ?? 0) > 0 ? (
             decidedDecisions!.slice(0, DECISION_HISTORY_VISIBLE_LIMIT).map((decision) => (
               <DecisionResolver
@@ -729,7 +731,7 @@ export function WhatNeedsMe() {
               />
             ))
           ) : (
-            <p className="text-xs text-muted-foreground">No decided decisions.</p>
+            <p className="text-xs text-muted-foreground">{t("whatNeedsMe.noDecided")}</p>
           )}
         </Curtain>
 
@@ -740,7 +742,7 @@ export function WhatNeedsMe() {
           onToggle={() => setExpiredOpen((prev) => !prev)}
         >
           {expiredDecisionsLoading ? (
-            <p className="text-xs text-muted-foreground">Loading expired decisions…</p>
+            <p className="text-xs text-muted-foreground">{t("whatNeedsMe.expiredDecisions")}</p>
           ) : (expiredDecisions?.length ?? 0) > 0 ? (
             expiredDecisions!.slice(0, DECISION_HISTORY_VISIBLE_LIMIT).map((decision) => (
               <DecisionResolver
@@ -752,7 +754,7 @@ export function WhatNeedsMe() {
               />
             ))
           ) : (
-            <p className="text-xs text-muted-foreground">No expired decisions.</p>
+            <p className="text-xs text-muted-foreground">{t("whatNeedsMe.noExpired")}</p>
           )}
         </Curtain>
       </div>
@@ -776,11 +778,12 @@ export function DecisionBundleHeader({
   originIssue: AttentionSubject | null;
   count: number;
 }) {
+  const { t } = useTranslation();
   const noun = count === 1 ? "decision" : "decisions";
   return (
     <div className="flex flex-wrap items-center gap-x-1.5 gap-y-0.5 rounded-sm border-l-2 border-violet-500/60 bg-violet-500/5 px-3 py-1.5 text-xs">
       <span className="font-semibold text-violet-800 dark:text-violet-200">
-        {agentName ?? "An agent"} proposed {count} {noun}
+        {agentName ?? t("whatNeedsMe.anAgent")} proposed {count} {noun}
       </span>
       {originIssue && (originIssue.identifier || originIssue.title) && (
         <span className="text-muted-foreground">
@@ -801,25 +804,27 @@ export function DecisionBundleHeader({
 }
 
 function CaughtUpNote({ filtered }: { filtered: boolean }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-xl border border-dashed border-border py-10 text-center">
       <p className="text-sm font-medium text-foreground">
-        {filtered ? "No decisions match your filters." : "You're all caught up."}
+        {filtered ? t("whatNeedsMe.noDecisionsMatch") : t("whatNeedsMe.allCaughtUp2")}
       </p>
       {filtered && (
-        <p className="mt-1 text-xs text-muted-foreground">Adjust or clear the filters to see the rest.</p>
+        <p className="mt-1 text-xs text-muted-foreground">{t("whatNeedsMe.adjustOrClear")}</p>
       )}
     </div>
   );
 }
 
 function ZeroState() {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-20 text-center">
       <div className="mb-4 rounded-full bg-green-500/10 p-4">
         <CheckCircle2 className="h-10 w-10 text-green-500" />
       </div>
-      <p className="text-lg font-semibold text-foreground">You're all caught up</p>
+      <p className="text-lg font-semibold text-foreground">{t("whatNeedsMe.allCaughtUp1")}</p>
       <p className="mt-1 flex items-center gap-1.5 text-sm text-muted-foreground">
         <Inbox className="h-4 w-4" />
         Nothing needs a decision from you right now.
