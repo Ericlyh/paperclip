@@ -45,6 +45,9 @@ tool. Configure the server with:
 | `paperclipListProjects` | List projects in a company | `companyId?` |
 | `paperclipGetProject` | Get one project | `projectId`, `companyId?` |
 | `paperclipGetIssueWorkspaceRuntime` | Workspace + runtime services for an issue | `issueId` |
+| `paperclipGetWorkspaceContext` | Project-scoped Workspace context bundle (X-1 / OOP-3448): project + recent issues / decisions / documents / runs + members | `projectId`, `companyId?`, `issueLimit?`, `decisionLimit?`, `documentLimit?`, `runLimit?` |
+| `paperclipGetIssueWorkspaceContext` | Workspace context bundle scoped to an issue's project; gracefully returns `error: "issue_has_no_project"` when no project | `issueId`, `issueLimit?`, `decisionLimit?`, `documentLimit?`, `runLimit?` |
+| `paperclipListWorkspaceMembers` | Members (users + agents) associated with a project's Workspace | `projectId`, `companyId?` |
 | `paperclipGetServiceOwnership` | Owner team + related entities for a service | `issueId`, `runtimeServiceId` or `serviceName` |
 | `paperclipListRecentSessionsForService` | Recent agent runs against a service | `issueId`, `runtimeServiceId` or `serviceName`, `limit?`, `includeTranscripts?` |
 | `paperclipWaitForIssueWorkspaceService` | Block until a service is ready | `issueId`, `serviceName?` or `runtimeServiceId?`, `timeoutSeconds?` |
@@ -115,3 +118,66 @@ should use the `inputSchema` and `outputSchema` returned by `tools/list` to
 self-correct when the schema evolves. Breaking changes are gated on a schema
 version bump in the package and a release note under
 `doc/RELEASE-NOTES-mcp-access-governance.md`.
+## Workspace context (X-1 / OOP-3448)
+
+The Workspace pattern (mirroring Xirp / Backstage `Workspaces`) gives an
+external coding agent a single-call institutional-memory view of the project an
+issue belongs to. Use it at session start before any other Paperclip call.
+
+### Recommended session-start flow
+
+1. `paperclipGetIssue` to load the issue you were asked to work on.
+2. `paperclipGetIssueWorkspaceContext({ issueId })` to pull the project-scoped
+   Workspace bundle. Inspect:
+   - `project` for upstream ownership, status, lead agent, goals.
+   - `recentIssues` (≤20) for sibling work, blockers, in-flight tickets.
+   - `recentDecisions` (≤10) for prior decisions recorded against project
+     issues.
+   - `recentDocuments` (≤10) for runbooks, plans, and wiki pages attached to
+     project issues.
+   - `recentRuns` (≤10) for the most recent heartbeat runs against project
+     issues (useful for "what did the team try last").
+   - `members` for the humans and agents that touch the project.
+   - `summary` for aggregate counts (issues, open issues, decisions, docs,
+     runs, members) and `generatedAt` for freshness.
+3. If `paperclipGetIssueWorkspaceContext` returns
+   `{ error: "issue_has_no_project" }`, the issue is unassigned to a project —
+   fall back to `paperclipGetHeartbeatContext` for issue-scoped context and
+   `paperclipListIssues({ projectId })` to suggest a project.
+4. Optional follow-up: `paperclipListWorkspaceMembers({ projectId })` to get
+   just the membership roster, and `paperclipGetWorkspaceContext({ projectId,
+   issueLimit: 50, decisionLimit: 25, … })` to widen any individual slice.
+
+### How the HTTP and MCP surfaces line up
+
+| MCP tool | HTTP route |
+| --- | --- |
+| `paperclipGetWorkspaceContext` | `GET /api/companies/:companyId/projects/:projectId/workspace-context` |
+| `paperclipGetIssueWorkspaceContext` | `GET /api/issues/:id/workspace-context` |
+| `paperclipListWorkspaceMembers` | `GET /api/companies/:companyId/projects/:projectId/workspace-members` |
+
+Bundle shape is the canonical `WorkspaceContextBundle` zod schema in
+`packages/shared/src/validators/workspace-context.ts`. All `recent*` arrays are
+sorted by `updatedAt` desc (with `createdAt` as a stable tiebreak) and capped
+at the documented limits (`WORKSPACE_CONTEXT_DEFAULTS`).
+
+### Why a Workspace instead of just `paperclipGetHeartbeatContext`
+
+`paperclipGetHeartbeatContext` is optimized for a single issue's wake-up: a
+flat map of ancestors, attention, recovery actions, productivity review, and
+the current execution workspace. The Workspace bundle is optimized for
+**picking up an issue cold** — what does this project own, who works on it,
+what's been decided, what's been tried. Together they form a two-step
+"context on demand" pattern that scales to long-running agent work without
+loading every fact into every prompt.
+
+### UI surface (OOP-3462)
+
+The same `WorkspaceContextBundle` is rendered in the Paperclip board as a
+read-only **Workspace** tab on the issue-detail page (issues with a
+`projectId` only; the tab gracefully shows a "no project linkage" placeholder
+when the issue is unassigned). The tab renders the project header, summary
+counts, recent issues / decisions / documents / runs, and members — exactly
+the same fields the MCP tools return. No caching or write-back at the UI
+layer; the panel is a thin read-only view layered on top of the existing
+`GET /api/issues/:id/workspace-context` HTTP route.

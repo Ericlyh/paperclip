@@ -124,6 +124,7 @@ import { IssueFieldChangeReceipt } from "../components/IssueFieldChangeReceipt";
 import { IssueWriteDenialNotice } from "../components/IssueWriteDenialNotice";
 import { issueWriteDenialForActivity } from "../lib/issue-write-denial-activity";
 import { IssueRelatedWorkPanel } from "../components/IssueRelatedWorkPanel";
+import { IssueWorkspaceContextTab } from "../components/IssueWorkspaceContextTab";
 import {
   IssueMonitorBanner,
   IssueMonitorComposerStrip,
@@ -193,6 +194,7 @@ import {
   ScanEye,
   Flag,
   FileCode2,
+  FolderKanban,
   ListTree,
   MessageSquare,
   MoreHorizontal,
@@ -5009,6 +5011,10 @@ export function IssueDetail() {
             <ListTree className="h-3.5 w-3.5" />
             Related work
           </TabsTrigger>
+          <TabsTrigger value="workspace" className="gap-1.5">
+            <FolderKanban className="h-3.5 w-3.5" />
+            Workspace
+          </TabsTrigger>
           {issuePluginTabItems.map((item) => (
             <TabsTrigger key={item.value} value={item.value}>
               {item.label}
@@ -5196,6 +5202,10 @@ export function IssueDetail() {
             externalObjectsError={externalObjectsState.isEnabled ? externalObjectsState.isError : undefined}
             onRetryExternalObjects={externalObjectsState.isEnabled ? externalObjectsState.refetch : undefined}
           />
+        </TabsContent>
+
+        <TabsContent value="workspace" className={shellSectionClass}>
+          <IssueWorkspaceContextTab issueId={issue.id} />
         </TabsContent>
 
         {activePluginTab && (
