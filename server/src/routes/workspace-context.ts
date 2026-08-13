@@ -62,8 +62,7 @@ export function workspaceContextRoutes(db: Db) {
       query,
     );
     if (!bundle.project) {
-      notFound(res);
-      return;
+      throw notFound("Project not found");
     }
     res.json(bundle);
   });
@@ -80,8 +79,7 @@ export function workspaceContextRoutes(db: Db) {
     const rawId = req.params.id as string;
     const issue = await resolveIssueByRef(rawId);
     if (!issue) {
-      notFound(res);
-      return;
+      throw notFound("Issue not found");
     }
     assertCompanyAccess(req, issue.companyId);
 
