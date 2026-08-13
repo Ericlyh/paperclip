@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useReducer, useRef, useState } from "react";
 import { Link, useLocation } from "@/lib/router";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
@@ -295,7 +295,15 @@ function SidebarAgentItem({
 export function SidebarAgents({ streamlined = false }: { streamlined?: boolean } = {}) {
   const [open, setOpen] = useState(true);
   const [pendingAgentIds, setPendingAgentIds] = useState<Set<string>>(() => new Set());
-  const [liveLingerVersion, setLiveLingerVersion] = useState(0);
+  // Force-render ticker for the linger window. The previous implementation used
+  // `setLiveLingerVersion(v => v + 1)` and listed the version in this tick
+  // effect's deps, so every timeout fire bounced the effect, scheduled another
+  // timeout, and on the OOP company (13 agents whose linger expiries cluster)
+  // chained into React's MAX_UPDATE_DEPTH (#185). With `useReducer` we only
+  // call `forceRerender()` once per actual linger expiry — outside React's
+  // commit phase — and let the timeout chain schedule its own successor so the
+  // effect does not have to re-run.
+  const [, forceRerender] = useReducer((x: number) => x + 1, 0);
   const lastSeenLiveAtRef = useRef<Map<string, number>>(new Map());
   const queryClient = useQueryClient();
   const { selectedCompanyId } = useCompany();
@@ -415,15 +423,15 @@ export function SidebarAgents({ streamlined = false }: { streamlined?: boolean }
   // to up to RECENT_AGENT_LIMIT agents. Either way a "See all agents" link is
   // shown so the full list is always reachable.
   // Classic mode (PAP-89, flag OFF) restores the show-all behavior.
-  const runningAgents = useMemo(() => {
-    const nowForLiveLinger = Date.now();
-    const lastSeenLiveAtByAgent = lastSeenLiveAtRef.current;
-    return sortedAgents.filter((agent: Agent) => {
-      if ((liveCountByAgent.get(agent.id) ?? 0) > 0) return true;
-      const lastSeenLiveAt = lastSeenLiveAtByAgent.get(agent.id);
-      return lastSeenLiveAt !== undefined && nowForLiveLinger - lastSeenLiveAt <= LIVE_AGENT_LINGER_MS;
-    });
-  }, [liveCountByAgent, liveLingerVersion, sortedAgents]);
+  // Compute the active-agent set inline on every render. The linger map is a
+  // ref (mutable), and the tick effect calls `forceRerender()` when an entry
+  // expires — that is the only path that ever changes `runningAgents` without
+  // a real data update. O(N) over `sortedAgents`, cheap.
+  const runningAgents = sortedAgents.filter((agent: Agent) => {
+    if ((liveCountByAgent.get(agent.id) ?? 0) > 0) return true;
+    const lastSeenLiveAt = lastSeenLiveAtRef.current.get(agent.id);
+    return lastSeenLiveAt !== undefined && Date.now() - lastSeenLiveAt <= LIVE_AGENT_LINGER_MS;
+  });
   const hasActiveAgents = runningAgents.length > 0;
   const displayedAgents = !streamlined
     ? sortedAgents
@@ -471,26 +479,48 @@ export function SidebarAgents({ streamlined = false }: { streamlined?: boolean }
   useEffect(() => {
     if (!streamlined) return;
 
-    const now = Date.now();
-    let nextExpiryAt: number | null = null;
-    for (const agent of sortedAgents) {
-      if ((liveCountByAgent.get(agent.id) ?? 0) > 0) continue;
-      const lastSeenLiveAt = lastSeenLiveAtRef.current.get(agent.id);
-      if (lastSeenLiveAt === undefined) continue;
-      const expiresAt = lastSeenLiveAt + LIVE_AGENT_LINGER_MS;
-      if (expiresAt < now) continue;
-      nextExpiryAt = nextExpiryAt === null ? expiresAt : Math.min(nextExpiryAt, expiresAt);
-    }
-    if (nextExpiryAt === null) return;
+    let cancelled = false;
+    let pendingTimeoutId: number | null = null;
 
-    const timeoutId = window.setTimeout(() => {
-      setLiveLingerVersion((version) => version + 1);
-    }, Math.max(0, nextExpiryAt - now + 1));
+    const tick = () => {
+      if (cancelled) return;
+      const now = Date.now();
+      let nextExpiryAt: number | null = null;
+      for (const agent of sortedAgents) {
+        if ((liveCountByAgent.get(agent.id) ?? 0) > 0) continue;
+        const lastSeenLiveAt = lastSeenLiveAtRef.current.get(agent.id);
+        if (lastSeenLiveAt === undefined) continue;
+        const expiresAt = lastSeenLiveAt + LIVE_AGENT_LINGER_MS;
+        if (expiresAt < now) continue;
+        nextExpiryAt = nextExpiryAt === null ? expiresAt : Math.min(nextExpiryAt, expiresAt);
+      }
+      if (nextExpiryAt === null) return;
 
-    return () => {
-      window.clearTimeout(timeoutId);
+      pendingTimeoutId = window.setTimeout(() => {
+        // The linger window just rolled forward. Drop the expired entries from
+        // the ref and schedule the next tick from inside the timeout so the
+        // effect itself does not need to re-run on every render — that
+        // re-run-on-every-tick pattern is what produced the MAX_UPDATE_DEPTH
+        // crash on the OOP company when many agents' linger expiries clustered.
+        for (const agent of sortedAgents) {
+          if ((liveCountByAgent.get(agent.id) ?? 0) > 0) continue;
+          const lastSeenLiveAt = lastSeenLiveAtRef.current.get(agent.id);
+          if (lastSeenLiveAt === undefined) continue;
+          if (lastSeenLiveAt + LIVE_AGENT_LINGER_MS <= now) {
+            lastSeenLiveAtRef.current.delete(agent.id);
+          }
+        }
+        forceRerender();
+        tick();
+      }, Math.max(0, nextExpiryAt - now + 1));
     };
-  }, [streamlined, sortedAgents, liveCountByAgent, liveLingerVersion]);
+
+    tick();
+    return () => {
+      cancelled = true;
+      if (pendingTimeoutId !== null) window.clearTimeout(pendingTimeoutId);
+    };
+  }, [streamlined, sortedAgents, liveCountByAgent]);
 
   const persistSortMode = useCallback(
     (value: string) => {
