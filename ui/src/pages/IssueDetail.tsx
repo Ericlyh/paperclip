@@ -19,6 +19,7 @@ import { authApi } from "../api/auth";
 import { projectsApi } from "../api/projects";
 import { executionWorkspacesApi } from "../api/execution-workspaces";
 import { useCompany } from "../context/CompanyContext";
+import { t } from "@/i18n";
 import { useDialogActions } from "../context/DialogContext";
 import { usePanel } from "../context/PanelContext";
 import { useSidebar } from "../context/SidebarContext";
@@ -508,7 +509,7 @@ function mergeOptimisticFeedbackVote(
 }
 
 function ActorIdentity({ evt, agentMap, userProfileMap }: { evt: ActivityEvent; agentMap: Map<string, Agent>; userProfileMap?: Map<string, import("../lib/company-members").CompanyUserProfile> }) {
-  const id = evt.actorId;
+    const id = evt.actorId;
   if (evt.actorType === "agent") {
     const agent = agentMap.get(id);
     return <Identity name={agent?.name ?? id.slice(0, 8)} size="sm" />;
@@ -637,7 +638,7 @@ function IssueAttributionByline({
 
   return (
     <TooltipProvider>
-      <AvatarGroup className="-space-x-1.5" aria-label="Task people" data-testid="issue-attribution-avatar-stack">
+      <AvatarGroup className="-space-x-1.5" aria-label={t("issueDetail.action.taskPeople")} data-testid="issue-attribution-avatar-stack">
         {assignee ? <AttributionAvatar label="Assignee" actor={assignee} /> : null}
         {originator ? <AttributionAvatar label="Originating" actor={originator} via={originatorVia} /> : null}
       </AvatarGroup>
@@ -652,7 +653,7 @@ function IssueSectionSkeleton({
   titleWidth?: string;
   rows?: number;
 }) {
-  return (
+    return (
     <div className="space-y-3 rounded-lg border border-border p-3">
       <Skeleton className={cn("h-4", titleWidth)} />
       <div className="space-y-2">
@@ -829,7 +830,7 @@ function InboxMobileToolbar({
             navigate(backHref);
           }
         }}
-        aria-label="Back to inbox"
+        aria-label={t("issueDetail.action.backToInbox")}
       >
         <ArrowLeft className="h-5 w-5" />
       </Button>
@@ -841,7 +842,7 @@ function InboxMobileToolbar({
             size="icon-sm"
             onClick={onArchive}
             disabled={archivePending}
-            aria-label="Archive from inbox"
+            aria-label={t("issueDetail.action.archiveFromInbox")}
           >
             <Archive className="h-5 w-5" />
           </Button>
@@ -849,7 +850,7 @@ function InboxMobileToolbar({
 
         <Popover open={menuOpen} onOpenChange={setMenuOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon-sm" aria-label="More actions">
+            <Button variant="ghost" size="icon-sm" aria-label={t("issueDetail.action.moreActions")}>
               <MoreVertical className="h-5 w-5" />
             </Button>
           </PopoverTrigger>
@@ -1617,16 +1618,6 @@ function IssueDetailActivityTab({
 export function IssueDetail() {
   const { issueId } = useParams<{ issueId: string }>();
   const { selectedCompanyId } = useCompany();
-  // Classic Task Interface (flag: enableClassicTaskInterface): with the flag
-  // OFF (the default) the chat-style thread owns the center column — the
-  // legacy title/description block, sub-tasks table, plan decompositions and
-  // Documents section are gated off (plan lives in the properties-pane Plan
-  // tab). Flag ON restores the legacy page.
-  const { enabled: classicTaskInterfaceEnabled } = useClassicTaskInterfaceEnabled();
-  const taskChatShellEnabled = !classicTaskInterfaceEnabled;
-  // Chat-style: the page wrapper spans the full center pane so the thread's
-  // scroll viewport (and its scrollbar) reaches the properties-pane border;
-  // every non-thread section re-centers itself at the 60rem shell cap instead.
   const shellSectionClass = taskChatShellEnabled
     ? "mx-auto w-full max-w-(--tc-shell-max-w)"
     : undefined;
@@ -2325,7 +2316,7 @@ export function IssueDetail() {
         queryClient.setQueryData(queryKeys.issues.list(context.selectedCompanyId), context.previousList);
       }
       pushToast({
-        title: "Task update failed",
+        title: t("issueDetail.error.taskUpdateFailed"),
         body: err instanceof Error ? err.message : "Unable to save task changes",
         tone: "error",
       });
@@ -2353,7 +2344,7 @@ export function IssueDetail() {
     },
     onError: (err) => {
       pushToast({
-        title: "Recovery resolution failed",
+        title: t("issueDetail.error.recoveryResolutionFailed"),
         body: err instanceof Error ? err.message : "Unable to resolve recovery action",
         tone: "error",
       });
@@ -2459,7 +2450,7 @@ export function IssueDetail() {
     onSuccess: async (result) => {
       const cancelCount = result.preview?.totals.activeRuns ?? 0;
       pushToast({
-        title: "Work paused",
+        title: t("issueDetail.status.paused"),
         body: cancelCount > 0
           ? `Work paused. ${cancelCount} run${cancelCount === 1 ? "" : "s"} cancelled.`
           : "Work paused. This task is held until resume.",
@@ -2538,7 +2529,7 @@ export function IssueDetail() {
     },
     onError: (err) => {
       pushToast({
-        title: "Task update failed",
+        title: t("issueDetail.error.taskUpdateFailed"),
         body: err instanceof Error ? err.message : "Unable to save sub-task changes",
         tone: "error",
       });
@@ -2555,13 +2546,13 @@ export function IssueDetail() {
       invalidateIssueRunState();
       invalidateIssueCollections();
       pushToast({
-        title: "Monitor check queued",
+        title: t("issueDetail.status.monitorCheckQueued"),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Monitor check failed",
+        title: t("issueDetail.error.monitorCheckFailed"),
         body: err instanceof Error ? err.message : "Unable to trigger the monitor right now",
         tone: "error",
       });
@@ -2657,7 +2648,7 @@ export function IssueDetail() {
           return;
         } catch (err) {
           pushToast({
-            title: "Cancel failed",
+            title: t("issueDetail.error.cancelFailed"),
             body: err instanceof Error ? err.message : "Unable to cancel the queued comment",
             tone: "error",
           });
@@ -2691,7 +2682,7 @@ export function IssueDetail() {
         queryClient.setQueryData(queryKeys.issues.detail(issueId!), context.previousIssue);
       }
       pushToast({
-        title: "Comment failed",
+        title: t("issueDetail.error.commentFailed"),
         body: err instanceof Error ? err.message : "Unable to post comment",
         tone: "error",
       });
@@ -2762,7 +2753,7 @@ export function IssueDetail() {
     },
     onError: (err) => {
       pushToast({
-        title: "Reject failed",
+        title: t("issueDetail.error.rejectFailed"),
         body: err instanceof Error ? err.message : "Unable to reject the suggested tasks",
         tone: "error",
       });
@@ -2781,13 +2772,13 @@ export function IssueDetail() {
       invalidateIssueDetail();
       invalidateIssueCollections();
       pushToast({
-        title: "Answers submitted",
+        title: t("issueDetail.status.answersSubmitted"),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Submit failed",
+        title: t("issueDetail.error.submitFailed"),
         body: err instanceof Error ? err.message : "Unable to submit answers",
         tone: "error",
       });
@@ -2819,7 +2810,7 @@ export function IssueDetail() {
     },
     onError: (err) => {
       pushToast({
-        title: "Apply failed",
+        title: t("issueDetail.error.applyFailed"),
         body: err instanceof Error ? err.message : "Unable to apply the verdicts",
         tone: "error",
       });
@@ -2834,13 +2825,13 @@ export function IssueDetail() {
       invalidateIssueDetail();
       invalidateIssueCollections();
       pushToast({
-        title: "Question cancelled",
+        title: t("issueDetail.status.questionCancelled"),
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Cancel failed",
+        title: t("issueDetail.error.cancelFailed"),
         body: err instanceof Error ? err.message : "Unable to cancel the question",
         tone: "error",
       });
@@ -2920,7 +2911,7 @@ export function IssueDetail() {
           return;
         } catch (err) {
           pushToast({
-            title: "Cancel failed",
+            title: t("issueDetail.error.cancelFailed"),
             body: err instanceof Error ? err.message : "Unable to cancel the queued comment",
             tone: "error",
           });
@@ -2956,7 +2947,7 @@ export function IssueDetail() {
         queryClient.setQueryData(queryKeys.issues.detail(issueId!), context.previousIssue);
       }
       pushToast({
-        title: "Comment failed",
+        title: t("issueDetail.error.commentFailed"),
         body: err instanceof Error ? err.message : "Unable to post comment",
         tone: "error",
       });
@@ -3037,7 +3028,7 @@ export function IssueDetail() {
       invalidateIssueDetail();
       invalidateIssueRunState();
       pushToast({
-        title: "Interrupt requested",
+        title: t("issueDetail.status.interruptRequested"),
         body: "The active run is stopping so queued comments can continue next.",
         tone: "success",
       });
@@ -3053,7 +3044,7 @@ export function IssueDetail() {
         setLocallyQueuedCommentRunIds(context.previousLocalQueuedCommentRunIds);
       }
       pushToast({
-        title: "Interrupt failed",
+        title: t("issueDetail.error.interruptFailed"),
         body: err instanceof Error ? err.message : "Unable to interrupt the active run",
         tone: "error",
       });
@@ -3075,14 +3066,14 @@ export function IssueDetail() {
       invalidateIssueThreadLazily();
       invalidateIssueCollections();
       pushToast({
-        title: "Queued comment canceled",
+        title: t("issueDetail.success.queuedCommentCanceled"),
         body: "The queued message was restored to the composer.",
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Cancel failed",
+        title: t("issueDetail.error.cancelFailed"),
         body: err instanceof Error ? err.message : "Unable to cancel the queued comment",
         tone: "error",
       });
@@ -3099,14 +3090,14 @@ export function IssueDetail() {
       invalidateIssueCollections();
       invalidateIssueDocumentAnnotationState();
       pushToast({
-        title: "Comment deleted",
+        title: t("issueDetail.success.commentDeleted"),
         body: "The thread now shows a deleted-comment marker.",
         tone: "success",
       });
     },
     onError: (err) => {
       pushToast({
-        title: "Delete failed",
+        title: t("issueDetail.error.deleteFailed"),
         body: err instanceof Error ? err.message : "Unable to delete the comment",
         tone: "error",
       });
@@ -3125,7 +3116,7 @@ export function IssueDetail() {
       if (cancelledCommentBody) {
         restoreQueuedCommentDraft(cancelledCommentBody);
         pushToast({
-          title: "Queued comment canceled",
+          title: t("issueDetail.success.queuedCommentCanceled"),
           body: "The queued message was restored to the composer.",
           tone: "success",
         });
@@ -3286,7 +3277,7 @@ export function IssueDetail() {
         restoreIssueToInboxCaches(queryClient, context.previousData, id);
       }
       pushToast({
-        title: "Archive failed",
+        title: t("issueDetail.error.archiveFailed"),
         body: err instanceof Error ? err.message : "Unable to archive this task from the inbox",
         tone: "error",
       });
@@ -3929,7 +3920,7 @@ export function IssueDetail() {
     onSuccess: (created) => {
       invalidateIssueCollections();
       pushToast({
-        title: "Isolated re-issue created",
+        title: t("issueDetail.status.isolatedReissueCreated"),
         body: created.identifier
           ? `${created.identifier} will run on a fresh isolated workspace.`
           : "A fresh isolated re-issue was created.",
@@ -3941,7 +3932,7 @@ export function IssueDetail() {
     },
     onError: (err) => {
       pushToast({
-        title: "Re-issue failed",
+        title: t("issueDetail.error.reissueFailed"),
         body: err instanceof Error ? err.message : "Unable to create an isolated re-issue.",
         tone: "error",
       });
@@ -3980,12 +3971,12 @@ export function IssueDetail() {
       pushToast(
         variables.mode === "quarantine_restore"
           ? {
-              title: "Workspace repaired",
+              title: t("issueDetail.status.workspaceRepaired"),
               body: "Dirty changes were quarantined onto a rescue branch and the recorded branch restored; the task will resume.",
               tone: "success",
             }
           : {
-              title: "Workspace branch reconciled",
+              title: t("issueDetail.status.workspaceReconciled"),
               body: "The recorded branch now matches the live branch; the task will resume.",
               tone: "success",
             },
@@ -3993,7 +3984,7 @@ export function IssueDetail() {
     },
     onError: (err) => {
       pushToast({
-        title: "Reconcile failed",
+        title: t("issueDetail.error.reconcileFailed"),
         body: err instanceof Error ? err.message : "Unable to reconcile the workspace branch.",
         tone: "error",
       });
@@ -4010,7 +4001,7 @@ export function IssueDetail() {
   const handleReconcileForwardRecoveryAction = useCallback(() => {
     if (!reconcileExecutionWorkspaceId) {
       pushToast({
-        title: "Reconcile failed",
+        title: t("issueDetail.error.reconcileFailed"),
         body: "This task has no execution workspace to reconcile.",
         tone: "error",
       });
@@ -4025,7 +4016,7 @@ export function IssueDetail() {
     (reason: string) => {
       if (!reconcileExecutionWorkspaceId) {
         pushToast({
-          title: "Reconcile failed",
+          title: t("issueDetail.error.reconcileFailed"),
           body: "This task has no execution workspace to reconcile.",
           tone: "error",
         });
@@ -4044,7 +4035,7 @@ export function IssueDetail() {
   const handleQuarantineRestoreRecoveryAction = useCallback(() => {
     if (!reconcileExecutionWorkspaceId) {
       pushToast({
-        title: "Repair failed",
+        title: t("issueDetail.error.repairFailed"),
         body: "This task has no execution workspace to repair.",
         tone: "error",
       });
@@ -4437,7 +4428,7 @@ export function IssueDetail() {
                 variant="ghost"
                 size="icon-xs"
                 onClick={copyIssueToClipboard}
-                title="Copy task as markdown"
+                title={t("issueDetail.action.copyTaskAsMarkdown")}
               >
                 {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
               </Button>
@@ -4461,8 +4452,8 @@ export function IssueDetail() {
                   if (!archivePending && issue?.id) archiveFromInbox.mutate(issue.id);
                 }}
                 disabled={archivePending}
-                title="Archive from inbox"
-                aria-label="Archive from inbox"
+                title={t("issueDetail.action.archiveFromInbox")}
+                aria-label={t("issueDetail.action.archiveFromInbox")}
               >
                 <Archive className="h-4 w-4" />
               </Button>
@@ -4472,8 +4463,8 @@ export function IssueDetail() {
                 variant="ghost"
                 size="icon-xs"
                 onClick={() => setFileViewerPromptOpen(true)}
-                title="Open file... (g f)"
-                aria-label="Open file in this issue"
+                title={t("issueDetail.action.openFileShortcut")}
+                aria-label={t("issueDetail.action.openFileInThisIssue")}
               >
                 <FileCode2 className="h-4 w-4" />
               </Button>
@@ -4502,6 +4493,8 @@ export function IssueDetail() {
                 setPanelVisible(true);
               }}
               title="Show properties"
+              onClick={() => setPanelVisible(true)}
+              title={t("issueDetail.action.showProperties")}
             >
               <SlidersHorizontal className="h-4 w-4" />
             </Button>
@@ -4512,8 +4505,8 @@ export function IssueDetail() {
                   variant="ghost"
                   size="icon-xs"
                   className="shrink-0"
-                  aria-label="More task actions"
-                  title="More task actions"
+                  aria-label={t("issueDetail.action.moreTaskActions")}
+                  title={t("issueDetail.action.moreTaskActions")}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
@@ -4647,7 +4640,7 @@ export function IssueDetail() {
             onSave={(description) => updateIssue.mutateAsync({ description })}
             as="p"
             className="text-sm leading-7 text-foreground"
-            placeholder="Add a description..."
+            placeholder={t("issueDetail.placeholder.addDescription")}
             multiline
             foldable
             mentions={mentionOptions}
@@ -5236,7 +5229,7 @@ export function IssueDetail() {
               <Textarea
                 value={treeControlReason}
                 onChange={(event) => setTreeControlReason(event.target.value)}
-                placeholder="Explain why this subtree control is being applied..."
+                placeholder={t("issueDetail.description.explainSubtreeControl")}
                 className="min-h-(--sz-88px)"
               />
             </div>

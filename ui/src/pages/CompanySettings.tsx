@@ -9,6 +9,7 @@ import {
   type IssueThreadInteractionResolverPolicy,
 } from "@paperclipai/shared";
 import { useCompany } from "../context/CompanyContext";
+import { t } from "@/i18n";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { companiesApi } from "../api/companies";
 import { assetsApi } from "../api/assets";
@@ -47,8 +48,8 @@ type GovernanceSelectValue = typeof GOVERNANCE_UNSET | IssueThreadInteractionRes
 
 const GOVERNANCE_POLICY_OPTIONS: { value: GovernanceSelectValue; label: string }[] = [
   { value: GOVERNANCE_UNSET, label: "Company default" },
-  { value: "board_only", label: "Board only" },
-  { value: "board_or_agents", label: "Board or agents" },
+  { value: "board_only", label: t("settings.governance.boardOnly") },
+  { value: "board_or_agents", label: t("settings.governance.boardOrAgents") },
 ];
 
 function toSelectValue(policy: IssueThreadInteractionResolverPolicy | undefined): GovernanceSelectValue {
@@ -295,7 +296,7 @@ export function CompanySettings() {
     <div className="max-w-2xl space-y-6">
       <div className="flex items-center gap-2">
         <Settings className="h-5 w-5 text-muted-foreground" />
-        <h1 className="text-lg font-semibold">Company Settings</h1>
+        <h1 className="text-lg font-semibold">{t("settings.company.name")}</h1>
       </div>
 
       {/* General */}
@@ -304,7 +305,7 @@ export function CompanySettings() {
           General
         </div>
         <div className="space-y-3 rounded-md border border-border px-4 py-4">
-          <Field label="Company name" hint="The display name for your company.">
+          <Field label={t("settings.company.nameLabel")} hint={t("settings.company.namePlaceholder")}>
             <input
               className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
               type="text"
@@ -314,13 +315,13 @@ export function CompanySettings() {
           </Field>
           <Field
             label="Description"
-            hint="Optional description shown in the company profile."
+            hint={t("settings.company.descriptionLabel")}
           >
             <input
               className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
               type="text"
               value={description}
-              placeholder="Optional company description"
+              placeholder={t("settings.company.descriptionLabel")}
               onChange={(e) => setDescription(e.target.value)}
             />
           </Field>
@@ -345,7 +346,7 @@ export function CompanySettings() {
             <div className="flex-1 space-y-3">
               <Field
                 label="Logo"
-                hint="Upload a PNG, JPEG, WEBP, GIF, or SVG logo image."
+                hint={t("settings.company.uploadLogoHint")}
               >
                 <div className="space-y-2">
                   <input
@@ -362,7 +363,7 @@ export function CompanySettings() {
                         onClick={handleClearLogo}
                         disabled={clearLogoMutation.isPending}
                       >
-                        {clearLogoMutation.isPending ? "Removing..." : "Remove logo"}
+                        {clearLogoMutation.isPending ? t("settings.company.removing") : "Remove logo"}
                       </Button>
                     </div>
                   )}
@@ -371,7 +372,7 @@ export function CompanySettings() {
                       {logoUploadError ??
                         (logoUploadMutation.error instanceof Error
                           ? logoUploadMutation.error.message
-                          : "Logo upload failed")}
+                          : t("settings.company.logoUploadFailed"))}
                     </span>
                   )}
                   {clearLogoMutation.isError && (
@@ -380,13 +381,13 @@ export function CompanySettings() {
                     </span>
                   )}
                   {logoUploadMutation.isPending && (
-                    <span className="text-xs text-muted-foreground">Uploading logo...</span>
+                    <span className="text-xs text-muted-foreground">{t("settings.company.uploadingLogo")}</span>
                   )}
                 </div>
               </Field>
               <Field
-                label="Brand color"
-                hint="Sets the hue for the company icon. Leave empty for auto-generated color."
+                label={t("settings.company.brandColor")}
+                hint={t("settings.company.brandColorHelp")}
               >
                 <div className="flex items-center gap-2">
                   {/* token-extraction: allowlisted — <input type="color"> value must be a real hex string, not a var() reference. */}
@@ -421,7 +422,7 @@ export function CompanySettings() {
                 </div>
               </Field>
               <Field
-                label="Attachment size limit"
+                label={t("settings.governance.attachmentSizeLimit")}
                 hint={`Accepted range: 1-${MAX_COMPANY_ATTACHMENT_MAX_MIB} MiB.`}
               >
                 <div className="flex flex-col gap-1.5">
@@ -457,7 +458,7 @@ export function CompanySettings() {
             onClick={handleSaveGeneral}
             disabled={generalMutation.isPending || !companyName.trim() || !attachmentMaxValid}
           >
-            {generalMutation.isPending ? "Saving..." : "Save changes"}
+            {generalMutation.isPending ? t("settings.action.saving") : "Save changes"}
           </Button>
           {generalMutation.isSuccess && (
             <span className="text-xs text-muted-foreground">Saved</span>
@@ -466,7 +467,7 @@ export function CompanySettings() {
             <span className="text-xs text-destructive">
               {generalMutation.error instanceof Error
                   ? generalMutation.error.message
-                  : "Failed to save"}
+                  : t("settings.governance.failedToSave")}
             </span>
           )}
         </div>
@@ -479,8 +480,8 @@ export function CompanySettings() {
         </div>
         <div className="rounded-md border border-border px-4 py-3">
           <ToggleField
-            label="Require board approval for new hires"
-            hint="New agent hires stay pending until approved by board."
+            label={t("settings.governance.requireBoardApproval")}
+            hint={t("settings.governance.newHiresPending")}
             checked={!!selectedCompany.requireBoardApprovalForNewAgents}
             onChange={(v) => settingsMutation.mutate(v)}
             toggleTestId="company-settings-team-approval-toggle"
@@ -496,11 +497,11 @@ export function CompanySettings() {
         <div className="space-y-4 rounded-md border border-border px-4 py-4">
           <p className="text-sm text-muted-foreground">
             Control who may resolve each kind of thread interaction.{" "}
-            <span className="font-medium text-foreground">Default policy</span> is the
+            <span className="font-medium text-foreground">{t("settings.governance.defaultPolicy")}</span> is the
             resolver policy new interactions request;{" "}
             <span className="font-medium text-foreground">Cap</span> is the maximum a
             request may reach — set it to{" "}
-            <span className="font-medium text-foreground">Board only</span> to always
+            <span className="font-medium text-foreground">{t("settings.governance.boardOnly")}</span> to always
             require the board. Tool-approval confirmations always stay board-only
             regardless of these settings.
           </p>
@@ -551,7 +552,7 @@ export function CompanySettings() {
             <span className="text-xs text-destructive">
               {governanceMutation.error instanceof Error
                 ? governanceMutation.error.message
-                : "Failed to save interaction governance"}
+                : t("settings.governance.failedToSaveGovernance")}
             </span>
           )}
         </div>

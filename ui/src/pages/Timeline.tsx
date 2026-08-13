@@ -28,6 +28,7 @@ import {
   type ZoomLevel,
   zoomScaleForLevel,
 } from "@/components/timeline/WorkTimelineChart";
+import { useTranslation } from "@/i18n";
 import { formatDuration, TIMELINE_COLORS } from "@/lib/timeline/layout";
 import { cn } from "@/lib/utils";
 
@@ -243,26 +244,27 @@ function Segmented<T extends string>({
 
 /** Encoding key for the "Signal" timeline: colour = how each run started. */
 function TimelineLegend() {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-3.5 py-2 text-xs text-muted-foreground">
       <span className="flex items-center gap-1.5">
         <span className="h-2.5 w-4 rounded-sm" style={{ backgroundColor: TIMELINE_COLORS.delegated }} />
-        Delegated
+        {t("pages.timeline.delegated")}
       </span>
       <span className="flex items-center gap-1.5">
         <span className="h-2.5 w-4 rounded-sm" style={{ backgroundColor: TIMELINE_COLORS.automation }} />
-        Automation
+        {t("pages.timeline.automation")}
       </span>
       <span className="flex items-center gap-1.5">
         <span
           className="h-2.5 w-4 rounded-sm border border-dashed bg-transparent"
           style={{ borderColor: TIMELINE_COLORS.cancelled }}
         />
-        Cancelled
+        {t("pages.timeline.cancelled")}
       </span>
       <span className="flex items-center gap-1.5">
         <span className="h-3.5 w-0.5" style={{ backgroundColor: TIMELINE_COLORS.now }} />
-        Now
+        {t("pages.timeline.now")}
       </span>
     </div>
   );
@@ -303,6 +305,7 @@ function TimelineSummaryStats({
 }
 
 export function Timeline() {
+  const { t } = useTranslation();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const [zoom, setZoom] = useState<ZoomLevel>("day");
@@ -352,7 +355,7 @@ export function Timeline() {
     return (
       <>
         <RequestCollapsedSidebar />
-        <EmptyState icon={GanttChartSquare} message="Select a company to view its work timeline." />
+        <EmptyState icon={GanttChartSquare} message={t("pages.timeline.selectCompany")} />
       </>
     );
   }
@@ -360,7 +363,7 @@ export function Timeline() {
   const header = (
     <div className="flex items-center gap-2">
       <GanttChartSquare className="h-6 w-6 text-muted-foreground" />
-      <h1 className="text-3xl font-semibold tracking-tight">Work Timeline</h1>
+      <h1 className="text-3xl font-semibold tracking-tight">{t("pages.timeline.workTimeline")}</h1>
     </div>
   );
 
@@ -385,7 +388,7 @@ export function Timeline() {
 
   const rangeControls = (
     <label className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-muted-foreground">
-      Range
+      {t("pages.timeline.range")}
       <Segmented
         value={rangePreset}
         onChange={(preset) => {
@@ -394,9 +397,9 @@ export function Timeline() {
           setDateRange(presetRange(preset));
         }}
         options={[
-          { value: "today", label: "Today" },
-          { value: "7d", label: "7 days" },
-          { value: "30d", label: "30 days" },
+          { value: "today", label: t("pages.timeline.today") },
+          { value: "7d", label: t("pages.timeline.days7") },
+          { value: "30d", label: t("pages.timeline.days30") },
         ]}
       />
       <Input
@@ -409,7 +412,7 @@ export function Timeline() {
         className="h-8 w-(--sz-150px) text-xs"
         aria-label="Timeline start date"
       />
-      <span>to</span>
+      <span>{t("pages.timeline.to")}</span>
       <Input
         type="date"
         value={dateRange.toDate}

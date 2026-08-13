@@ -7,6 +7,7 @@ import {
   type ArtifactGroupBy,
   type ArtifactKindFilter,
 } from "../api/artifacts";
+import { useTranslation } from "@/i18n";
 import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
 import { queryKeys } from "../lib/queryKeys";
@@ -62,6 +63,7 @@ export function artifactGroupByLabel(value: ArtifactGroupBy): string {
 }
 
 export function Artifacts() {
+  const { t } = useTranslation();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -286,7 +288,7 @@ export function Artifacts() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end" className="w-44">
-              <DropdownMenuLabel>Group by</DropdownMenuLabel>
+              <DropdownMenuLabel>{t("pages.artifacts.groupBy")}</DropdownMenuLabel>
               {ARTIFACT_GROUP_OPTIONS.map((option) => (
                 <DropdownMenuItem
                   key={option.value}
@@ -295,7 +297,7 @@ export function Artifacts() {
                   onSelect={() => selectGroupBy(option.value)}
                   className="justify-between"
                 >
-                  {option.label}
+                  {option.label === "None" ? t("pages.artifacts.none") : option.label === "Task" ? t("pages.artifacts.task") : option.label === "Parent task" ? t("pages.artifacts.parentTask") : option.label}
                   {groupBy === option.value ? <Check className="h-3.5 w-3.5" /> : null}
                 </DropdownMenuItem>
               ))}
@@ -317,7 +319,7 @@ export function Artifacts() {
                     : "text-muted-foreground hover:bg-accent/50 hover:text-foreground",
                 )}
               >
-                {filter.label}
+                {filter.label === "All" ? t("pages.artifacts.all") : filter.label === "Images" ? t("pages.artifacts.images") : filter.label === "Videos" ? t("pages.artifacts.videos") : filter.label === "Documents" ? t("pages.artifacts.documents") : filter.label === "Text" ? t("pages.artifacts.text") : filter.label === "Files" ? t("pages.artifacts.files") : filter.label}
               </button>
             ))}
           </div>
@@ -332,7 +334,7 @@ export function Artifacts() {
             className="inline-flex items-center gap-1 rounded-md px-2 py-1 text-xs font-medium text-muted-foreground transition-colors hover:bg-accent/50 hover:text-foreground"
           >
             <ArrowLeft className="h-3.5 w-3.5" aria-hidden="true" />
-            All stacks
+            {t("pages.artifacts.allStacks")}
           </Link>
           {selectedGroup ? (
             <span className="truncate text-muted-foreground">
