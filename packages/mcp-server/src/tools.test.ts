@@ -397,4 +397,114 @@ describe("paperclip MCP tools", () => {
 
     expect(response.content[0]?.text).toContain("must not contain '..'");
   });
+
+  it("requires either runtimeServiceId or serviceName for getServiceOwnership", async () => {
+    vi.stubGlobal("fetch", vi.fn());
+
+    const tool = getTool("paperclipGetServiceOwnership");
+    const response = await tool.execute({ issueId: "PAP-1135" });
+
+    expect(response.content[0]?.text).toContain("runtimeServiceId or serviceName must be provided");
+  });
+
+  it("resolves service ownership by service name with related approvals", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(
+        mockJsonResponse({
+          currentExecutionWorkspace: {
+            id: "44444444-4444-4444-8444-444444444444",
+            runtimeServices: [
+              {
+                id: "55555555-5555-4555-8555-555555555555",
+                serviceName: "web",
+                status: "running",
+                url: "http://127.0.0.1:5173",
+              },
+            ],
+          },
+        }),
+      )
+      .mockResolvedValueOnce(
+        mockJsonResponse({
+          id: "issue-1",
+          companyId: "11111111-1111-1111-1111-111111111111",
+          projectId: "22222222-2222-2222-2222-222222222222",
+          assigneeAgentId: "agent-1",
+        }),
+      )
+      .mockResolvedValueOnce(
+        mockJsonResponse([{ id: "approval-1", status: "pending" }]),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tool = getTool("paperclipGetServiceOwnership");
+    const response = await tool.execute({ issueId: "PAP-1135", serviceName: "web" });
+
+    expect(fetchMock).toHaveBeenCalledTimes(3);
+    const [lookupUrl] = fetchMock.mock.calls[0] as [string];
+    expect(String(lookupUrl)).toBe(
+      "http://localhost:3100/api/issues/PAP-1135/heartbeat-context",
+    );
+    const [issueUrl] = fetchMock.mock.calls[1] as [string];
+    expect(String(issueUrl)).toBe("http://localhost:3100/api/issues/PAP-1135");
+    const [approvalsUrl] = fetchMock.mock.calls[2] as [string];
+    expect(String(approvalsUrl)).toBe("http://localhost:3100/api/issues/PAP-1135/approvals");
+    expect(response.content[0]?.text).toContain("55555555-5555-4555-8555-555555555555");
+    expect(response.content[0]?.text).toContain("approval-1");
+  });
+
+  it("returns a clear error when no runtime service matches", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      mockJsonResponse({
+        currentExecutionWorkspace: {
+          id: "44444444-4444-4444-8444-444444444444",
+          runtimeServices: [],
+        },
+      }),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tool = getTool("paperclipGetServiceOwnership");
+    const response = await tool.execute({
+      issueId: "PAP-1135",
+      runtimeServiceId: "55555555-5555-4555-8555-555555555555",
+    });
+
+    expect(response.content[0]?.text).toContain("No runtime service matched");
+  });
+
+  it("lists recent sessions for a workspace runtime service", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(
+        mockJsonResponse({
+          currentExecutionWorkspace: {
+            id: "44444444-4444-4444-8444-444444444444",
+            runtimeServices: [
+              {
+                id: "55555555-5555-4555-8555-555555555555",
+                serviceName: "web",
+                status: "running",
+              },
+            ],
+          },
+        }),
+      )
+      .mockResolvedValueOnce(mockJsonResponse([{ id: "run-1", agentId: "agent-1" }]));
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tool = getTool("paperclipListRecentSessionsForService");
+    const response = await tool.execute({
+      issueId: "PAP-1135",
+      serviceName: "web",
+      limit: 5,
+      includeTranscripts: true,
+    });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const [runsUrl] = fetchMock.mock.calls[1] as [string];
+    expect(String(runsUrl)).toBe(
+      "http://localhost:3100/api/issues/PAP-1135/runs?limit=5&includeTranscripts=true",
+    );
+    expect(response.content[0]?.text).toContain("run-1");
+  });
 });
