@@ -78,6 +78,24 @@ tool. Configure the server with:
 | `paperclipUnlinkIssueApproval` | Unlink an approval | `issueId`, `approvalId` |
 | `paperclipApprovalDecision` | Approve / reject / request revision / resubmit | `approvalId`, `action`, `…` |
 | `paperclipAddApprovalComment` | Add approval comment | `approvalId`, `body` |
+| `paperclipProposeRefinement` | Propose a refinement to an agent's instruction-set (Continual Harness `/refine`); captures a snapshot of the current state and returns `{ proposalId, snapshotId }` | `agentId`, `companyId?`, `proposedDelta` (JSON-stringified `{entryFile?, files}`), `evidence[]` (≥1 pointer, each with `issueId`/`runId`/`citation`) |
+| `paperclipListRefineProposals` | List proposals for an agent, optional `status` filter | `agentId`, `companyId?`, `status?` |
+| `paperclipGetRefineProposal` | Get a single proposal with its prior snapshot, source snapshot, and rollback snapshot chain | `proposalId`, `companyId?` |
+| `paperclipApproveRefinement` | Approve a pending proposal; writes the delta to the agent's instruction-set, captures a new snapshot, supersedes other pending proposals for the same agent | `proposalId`, `companyId?`, `decisionNote?` |
+| `paperclipRejectRefinement` | Reject a pending proposal with an optional note | `proposalId`, `companyId?`, `decisionNote?` |
+| `paperclipRollbackRefinement` | Roll back an approved proposal to a specific prior `targetSnapshotId`; writes a new snapshot that mirrors the target | `proposalId`, `companyId?`, `targetSnapshotId` (uuid), `decisionNote?` |
+
+### Continual Harness /refine (OOP-3490 P-1)
+
+The 6 refine tools implement the Continual Harness pattern (Prime Agent's
+`/refine`, ported to Paperclip with our approval flow). The three core tools are
+`paperclipProposeRefinement`, `paperclipListRefineProposals`, and
+`paperclipRollbackRefinement`. `paperclipGetRefineProposal`,
+`paperclipApproveRefinement`, and `paperclipRejectRefinement` round out the
+surface. Snapshots are append-only — rollback writes a NEW snapshot that mirrors
+a prior one and never mutates existing snapshot rows. See
+`paperclip-refine.md` for the full flow (evidence rules, status lifecycle, when
+to invoke).
 
 ## Escape hatch
 

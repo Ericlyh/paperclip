@@ -738,5 +738,111 @@ export function createToolDefinitions(client: PaperclipApiClient): ToolDefinitio
         });
       },
     ),
+    makeTool(
+      "paperclipProposeRefinement",
+      "Propose a refinement to an agent's instruction-set (Continual Harness /refine). Returns the new proposal id and the snapshot id capturing the current pre-delta state. `proposedDelta` is a JSON-stringified bundle shape `{ entryFile?: string, files: Record<string,string> }`; `evidence` must contain at least one pointer with issueId, runId, or citation.",
+      z.object({
+        agentId: z.string().uuid(),
+        companyId: companyIdOptional,
+        proposedDelta: z.string().min(1).max(2_000_000),
+        evidence: z
+          .array(
+            z
+              .object({
+                issueId: z.string().optional(),
+                runId: z.string().optional(),
+                citation: z.string().trim().min(1).max(2000).optional(),
+                snippet: z.string().trim().max(8000).optional(),
+              })
+              .refine(
+                (value) =>
+                  Boolean(value.issueId) ||
+                  Boolean(value.runId) ||
+                  Boolean(value.citation),
+                { message: "Each evidence pointer must include issueId, runId, or citation" },
+              ),
+          )
+          .min(1)
+          .max(50),
+      }),
+      async ({ agentId, companyId, proposedDelta, evidence }) =>
+        client.requestJson(
+          "POST",
+          `/companies/${client.resolveCompanyId(companyId)}/agents/${encodeURIComponent(agentId)}/refine`,
+          { body: { proposedDelta, evidence } },
+        ),
+    ),
+    makeTool(
+      "paperclipListRefineProposals",
+      "List refinement proposals for an agent, optionally filtered by status (pending|approved|rejected|superseded|rolled_back).",
+      z.object({
+        agentId: z.string().uuid(),
+        companyId: companyIdOptional,
+        status: z.enum(["pending", "approved", "rejected", "superseded", "rolled_back"]).optional(),
+      }),
+      async ({ agentId, companyId, status }) => {
+        const qs = status ? `?status=${encodeURIComponent(status)}` : "";
+        return client.requestJson(
+          "GET",
+          `/companies/${client.resolveCompanyId(companyId)}/agents/${encodeURIComponent(agentId)}/refine-proposals${qs}`,
+        );
+      },
+    ),
+    makeTool(
+      "paperclipGetRefineProposal",
+      "Fetch a single refinement proposal with its prior snapshot, source snapshot, and rollback snapshot chain.",
+      z.object({ proposalId: z.string().uuid(), companyId: companyIdOptional }),
+      async ({ proposalId, companyId }) =>
+        client.requestJson(
+          "GET",
+          `/companies/${client.resolveCompanyId(companyId)}/refine-proposals/${encodeURIComponent(proposalId)}`,
+        ),
+    ),
+    makeTool(
+      "paperclipApproveRefinement",
+      "Approve a pending refinement proposal. Writes the proposed delta to the agent's instruction-set and captures a new snapshot. Mark other pending proposals for the same agent as superseded.",
+      z.object({
+        proposalId: z.string().uuid(),
+        companyId: companyIdOptional,
+        decisionNote: z.string().trim().max(2000).optional(),
+      }),
+      async ({ proposalId, companyId, decisionNote }) =>
+        client.requestJson(
+          "POST",
+          `/companies/${client.resolveCompanyId(companyId)}/refine-proposals/${encodeURIComponent(proposalId)}/approve`,
+          { body: { decisionNote } },
+        ),
+    ),
+    makeTool(
+      "paperclipRejectRefinement",
+      "Reject a pending refinement proposal with an optional decision note.",
+      z.object({
+        proposalId: z.string().uuid(),
+        companyId: companyIdOptional,
+        decisionNote: z.string().trim().max(2000).optional(),
+      }),
+      async ({ proposalId, companyId, decisionNote }) =>
+        client.requestJson(
+          "POST",
+          `/companies/${client.resolveCompanyId(companyId)}/refine-proposals/${encodeURIComponent(proposalId)}/reject`,
+          { body: { decisionNote } },
+        ),
+    ),
+    makeTool(
+      "paperclipRollbackRefinement",
+      "Roll back an approved refinement to a specific prior snapshot id. Requires explicit target — never implicit.",
+      z.object({
+        proposalId: z.string().uuid(),
+        companyId: companyIdOptional,
+        targetSnapshotId: z.string().uuid(),
+        decisionNote: z.string().trim().max(2000).optional(),
+      }),
+      async ({ proposalId, companyId, targetSnapshotId, decisionNote }) =>
+        client.requestJson(
+          "POST",
+          `/companies/${client.resolveCompanyId(companyId)}/refine-proposals/${encodeURIComponent(proposalId)}/rollback`,
+          { body: { targetSnapshotId, decisionNote } },
+        ),
+    ),
   ];
 }

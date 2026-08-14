@@ -326,6 +326,19 @@ export {
 } from "./trust-policy.js";
 
 export {
+  refineEvidencePointerSchema,
+  refineProposedDeltaSchema,
+  proposeRefinementInputSchema,
+  refineProposalStatusSchema,
+  rollbackRefinementInputSchema,
+  refinementDecisionNoteSchema,
+  type RefineEvidencePointer,
+  type RefineProposedDelta,
+  type ProposeRefinementInput,
+  type RollbackRefinementInput,
+} from "./agent-refine.js";
+
+export {
   createAgentSchema,
   builtInAgentEmptyMutationSchema,
   builtInAgentProvisionSchema,
