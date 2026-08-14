@@ -20,6 +20,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { ActivityRow } from "../components/ActivityRow";
 import { Identity } from "../components/Identity";
 import { timeAgo } from "../lib/timeAgo";
+import { useTranslation } from "../i18n";
 import { cn, formatCents } from "../lib/utils";
 import { Bot, CircleDot, DollarSign, ShieldCheck, LayoutDashboard, PauseCircle } from "lucide-react";
 import { ActiveAgentsPanel } from "../components/ActiveAgentsPanel";
@@ -342,14 +343,15 @@ export function Dashboard() {
       return (
         <EmptyState
           icon={LayoutDashboard}
-          message="Welcome to Paperclip. Set up your first company and agent to get started."
-          action="Get Started"
+          title={t("dashboard.welcomeTitle")}
+          message={t("dashboard.welcomeMessage")}
+          action={t("dashboard.getStarted")}
           onAction={openOnboarding}
         />
       );
     }
     return (
-      <EmptyState icon={LayoutDashboard} message="Create or select a company to view the dashboard." />
+      <EmptyState icon={LayoutDashboard} message={t("dashboard.selectCompany")} />
     );
   }
 
@@ -368,14 +370,14 @@ export function Dashboard() {
           <div className="flex items-center gap-2.5">
             <Bot className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
             <p className="text-sm text-amber-900 dark:text-amber-100">
-              You have no agents.
+              {t("dashboard.noAgentsAlert")}
             </p>
           </div>
           <button
             onClick={() => openOnboarding({ initialStep: 2, companyId: selectedCompanyId! })}
             className="text-sm font-medium text-amber-700 hover:text-amber-900 dark:text-amber-300 dark:hover:text-amber-100 underline underline-offset-2 shrink-0"
           >
-            Create one here
+            {t("dashboard.createAgentHere")}
           </button>
         </div>
       )}
@@ -389,11 +391,11 @@ export function Dashboard() {
               <div className="flex items-start gap-2.5">
                 <PauseCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />
                 <div>
-                  <p className="text-sm font-medium text-red-50">
-                    {data.budgets.activeIncidents} active budget incident{data.budgets.activeIncidents === 1 ? "" : "s"}
+                  <p className="text-sm font-medium text-red-950 dark:text-red-50">
+                    {t("dashboard.activeIncidents", { count: data.budgets.activeIncidents })}
                   </p>
-                  <p className="text-xs text-red-100/70">
-                    {data.budgets.pausedAgents} agents paused · {data.budgets.pausedProjects} projects paused · {data.budgets.pendingApprovals} pending budget approvals
+                  <p className="text-xs text-red-900/70 dark:text-red-100/70">
+                    {t("dashboard.agentsPaused", { count: data.budgets.pausedAgents })} · {t("dashboard.projectsPaused", { count: data.budgets.pausedProjects })} · {t("dashboard.pendingBudgetApprovals", { count: data.budgets.pendingApprovals })}
                   </p>
                 </div>
               </div>
@@ -407,37 +409,37 @@ export function Dashboard() {
             <MetricCard
               icon={Bot}
               value={data.agents.active + data.agents.running + data.agents.paused + data.agents.error}
-              label={t("dashboard.agentsEnabled")}
+              label={t("dashboard.metricAgents")}
               to="/agents"
               description={
                 <span>
-                  {data.agents.running} {t("dashboard.running")}{", "}
-                  {data.agents.paused} {t("dashboard.paused")}{", "}
-                  {data.agents.error} {t("dashboard.errors")}
+                  {t("dashboard.running", { count: data.agents.running })}{", "}
+                  {t("dashboard.paused", { count: data.agents.paused })}{", "}
+                  {t("dashboard.errors", { count: data.agents.error })}
                 </span>
               }
             />
             <MetricCard
               icon={CircleDot}
               value={data.tasks.inProgress}
-              label={t("dashboard.tasksInProgress")}
+              label={t("dashboard.metricTasks")}
               to="/issues"
               description={
                 <span>
-                  {data.tasks.open} {t("dashboard.open")}{", "}
-                  {data.tasks.blocked} {t("dashboard.blocked")}
+                  {t("dashboard.open", { count: data.tasks.open })}{", "}
+                  {t("dashboard.blocked", { count: data.tasks.blocked })}
                 </span>
               }
             />
             <MetricCard
               icon={DollarSign}
               value={formatCents(data.costs.monthSpendCents)}
-              label={t("dashboard.monthSpend")}
+              label={t("dashboard.metricSpend")}
               to="/costs"
               description={
                 <span>
                   {data.costs.monthBudgetCents > 0
-                    ? `${data.costs.monthUtilizationPercent} ${t("dashboard.ofBudget")} (${formatCents(data.costs.monthBudgetCents)})`
+                    ? t("dashboard.budgetPercent", { percent: data.costs.monthUtilizationPercent, budget: formatCents(data.costs.monthBudgetCents) })
                     : t("dashboard.unlimitedBudget")}
                 </span>
               }
@@ -445,12 +447,12 @@ export function Dashboard() {
             <MetricCard
               icon={ShieldCheck}
               value={data.pendingApprovals + data.budgets.pendingApprovals}
-              label={t("dashboard.pendingApprovals")}
+              label={t("dashboard.metricApprovals")}
               to="/approvals"
               description={
                 <span>
                   {data.budgets.pendingApprovals > 0
-                    ? `${data.budgets.pendingApprovals} ${t("dashboard.budgetOverridesAwaitingBoardReview")}`
+                    ? t("dashboard.budgetOverridesAwaiting", { count: data.budgets.pendingApprovals })
                     : t("dashboard.awaitingBoardReview")}
                 </span>
               }
@@ -458,16 +460,16 @@ export function Dashboard() {
           </div>
 
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <ChartCard title={t("dashboard.runActivity")} subtitle={t("dashboard.last14days")}>
+            <ChartCard title={t("dashboard.runActivity")} subtitle={t("dashboard.last14Days")}>
               <RunActivityChart activity={data.runActivity} />
             </ChartCard>
-            <ChartCard title={t("dashboard.issuesByPriority")} subtitle={t("dashboard.last14days")}>
+            <ChartCard title={t("dashboard.tasksByPriority")} subtitle={t("dashboard.last14Days")}>
               <PriorityChart issues={visibleIssues} />
             </ChartCard>
-            <ChartCard title={t("dashboard.issuesByStatus")} subtitle={t("dashboard.last14days")}>
+            <ChartCard title={t("dashboard.tasksByStatus")} subtitle={t("dashboard.last14Days")}>
               <IssueStatusChart issues={visibleIssues} />
             </ChartCard>
-            <ChartCard title={t("dashboard.successRate")} subtitle={t("dashboard.last14days")}>
+            <ChartCard title={t("dashboard.successRate")} subtitle={t("dashboard.last14Days")}>
               <SuccessRateChart activity={data.runActivity} />
             </ChartCard>
           </div>
@@ -484,7 +486,7 @@ export function Dashboard() {
             {recentActivity.length > 0 && (
               <div className="min-w-0">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                  Recent Activity
+                  {t("dashboard.recentActivity")}
                 </h3>
                 <div className="border border-border divide-y divide-border overflow-hidden">
                   {recentActivity.map((event) => (
@@ -506,7 +508,7 @@ export function Dashboard() {
             <div className="min-w-0">
               <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
-                  Recent Tasks
+                  {t("dashboard.recentTasks")}
                 </h3>
                 <DashboardVisibilityFilters
                   filterState={filterState}
@@ -515,9 +517,9 @@ export function Dashboard() {
                 />
               </div>
               {recentIssues.length === 0 ? (
-                <div className="border border-border p-4">
-                  <p className="text-sm text-muted-foreground">No tasks yet.</p>
-                </div>
+                <Card className="block p-4">
+                  <p className="text-sm text-muted-foreground">{t("dashboard.noTasksYet")}</p>
+                </Card>
               ) : (
                 <div className="border border-border divide-y divide-border overflow-hidden">
                   {recentIssues.map((issue) => (

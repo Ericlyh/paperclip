@@ -66,6 +66,15 @@ vi.mock("../context/SidebarContext", () => ({
   useSidebar: () => mockSidebar,
 }));
 
+vi.mock("../context/LanguageContext", () => ({
+  useLanguage: () => ({
+    locale: "en",
+    toggleLocale: vi.fn(),
+    setLocale: vi.fn(),
+    availableLocales: ["en", "zh-TW"],
+  }),
+}));
+
 vi.mock("../api/heartbeats", () => ({
   heartbeatsApi: mockHeartbeatsApi,
 }));
