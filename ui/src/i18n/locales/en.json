@@ -92,6 +92,7 @@
     "none": "None"
   },
   "dashboard": {
+    "title": "Dashboard",
     "welcomeTitle": "Welcome to Paperclip",
     "welcomeMessage": "Set up your first company and agent to get started.",
     "getStarted": "Get Started",
@@ -124,5 +125,13 @@
     "tasksByStatus": "Tasks by Status",
     "successRate": "Success Rate",
     "last14Days": "Last 14 days"
+  },
+  "mobileNav": {
+    "home": "Home",
+    "tasks": "Tasks",
+    "create": "Create",
+    "agents": "Agents",
+    "inbox": "Inbox",
+    "ariaLabel": "Mobile navigation"
   }
 }

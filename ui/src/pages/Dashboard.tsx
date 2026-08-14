@@ -16,6 +16,7 @@ import { MetricCard } from "../components/MetricCard";
 import { EmptyState } from "../components/EmptyState";
 import { StatusIcon } from "../components/StatusIcon";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Card } from "@/components/ui/card";
 
 import { ActivityRow } from "../components/ActivityRow";
 import { Identity } from "../components/Identity";
@@ -35,7 +36,6 @@ import {
   getRecentDashboardIssues,
 } from "../lib/dashboard-feed";
 import { isProductivityReviewIssue } from "../lib/issue-filters";
-import { useTranslation } from "../i18n";
 
 // Auto-generated "Review productivity for OOP-*" issues carry this origin kind.
 // They are internal bookkeeping and should not clutter the dashboard surfaces

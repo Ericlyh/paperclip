@@ -94,6 +94,7 @@
     "archived": "已封存"
   },
   "dashboard": {
+    "title": "儀表板",
     "welcomeTitle": "歡迎使用 Paperclip",
     "welcomeMessage": "建立您的第一家公司與代理以開始使用。",
     "getStarted": "開始使用",
@@ -893,9 +894,10 @@
   },
   "mobileNav": {
     "home": "首頁",
-    "issues": "議題",
+    "tasks": "任務",
     "create": "建立",
     "agents": "代理",
-    "inbox": "收件匣"
+    "inbox": "收件匣",
+    "ariaLabel": "行動導覽"
   }
 }
