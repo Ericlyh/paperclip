@@ -89,7 +89,9 @@
     "add": "Add",
     "view": "View",
     "all": "All",
-    "none": "None"
+    "none": "None",
+    "share": "Share",
+    "openInBrowser": "Open in Browser"
   },
   "dashboard": {
     "welcomeTitle": "Welcome to Paperclip",
@@ -124,5 +126,21 @@
     "tasksByStatus": "Tasks by Status",
     "successRate": "Success Rate",
     "last14Days": "Last 14 days"
+  },
+  "toasts": {
+    "copySuccess": "Copied",
+    "copyFailed": "Copy failed",
+    "linkCopied": "Link copied",
+    "shareUnavailable": "Sharing is unavailable",
+    "shareFailed": "Share failed",
+    "saved": "Saved",
+    "deleted": "Deleted",
+    "created": "Created",
+    "updated": "Updated",
+    "couldNotSave": "Could not save",
+    "couldNotDelete": "Could not delete",
+    "couldNotLoad": "Could not load",
+    "unexpectedError": "An unexpected error occurred",
+    "shareFailedBody": "Try opening the page in your browser."
   }
 }

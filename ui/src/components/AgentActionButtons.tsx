@@ -364,7 +364,7 @@ export function AgentActionButtons({
               </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
-              <AlertDialogCancel>Cancel</AlertDialogCancel>
+              <AlertDialogCancel />
               <AlertDialogAction onClick={() => agentAction.mutate("pause")}>
                 Pause anyway
               </AlertDialogAction>

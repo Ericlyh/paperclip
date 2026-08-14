@@ -116,6 +116,10 @@ export function validateLocaleMessages(candidate: unknown, englishReference: unk
 export function assertValidLocaleMessages(candidate: unknown, englishReference: unknown = en) {
   const errors = validateLocaleMessages(candidate, englishReference);
   if (errors.length > 0) {
-    throw new Error(`Invalid locale messages:\n${errors.join("\n")}`);
+    // Surface as a warning rather than throwing — module-load throws surface as a
+    // blank render in production. Tests and CI still enforce these via
+    // `validateLocaleMessages` directly; production should not crash on missing
+    // keys while translations are still being backfilled into `en.json`.
+    console.warn(`[locale-validation] ${errors.length} issue(s):\n${errors.join("\n")}`);
   }
 }
