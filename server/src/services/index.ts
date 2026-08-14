@@ -21,6 +21,12 @@ export {
   type BuiltInAgentStatus,
 } from "./built-in-agents.js";
 export { agentInstructionsService, syncInstructionsBundleConfigFromFilePath } from "./agent-instructions.js";
+export {
+  agentRefineService,
+  type BundleSnapshotContent,
+  type RefineActorContext,
+  type RefineProposalWithSnapshots,
+} from "./agent-refine.js";
 export { assetService } from "./assets.js";
 export { documentService, extractLegacyPlanBody } from "./documents.js";
 export { statusCardService } from "./status-cards.js";
