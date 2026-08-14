@@ -1,11 +1,16 @@
 // @vitest-environment node
 
 import { describe, expect, it } from "vitest";
-import type { ExternalObjectSummary, Issue } from "@paperclipai/shared";
+import type { Issue } from "@paperclipai/shared";
 import {
   applyIssueFilters,
   countActiveIssueFilters,
   defaultIssueFilterState,
+  isHourlyLogRotationTask,
+  isHourlyLogRotationTaskTitle,
+  isLintResidualTask,
+  isLintResidualTaskTitle,
+  isProductivityReviewIssue,
   resolveIssueFilterWorkspaceId,
   shouldIncludeIssueFilterWorkspaceOption,
 } from "./issue-filters";
@@ -22,10 +27,8 @@ function makeIssue(overrides: Partial<Issue> = {}): Issue {
     description: null,
     status: "todo",
     priority: "medium",
-    reviewPolicy: null,
     assigneeAgentId: null,
     assigneeUserId: null,
-    responsibleUserId: null,
     checkoutRunId: null,
     executionRunId: null,
     executionAgentNameKey: null,
@@ -53,20 +56,6 @@ function makeIssue(overrides: Partial<Issue> = {}): Issue {
   };
 }
 
-function makeExternalObjectSummary(overrides: Partial<ExternalObjectSummary> = {}): ExternalObjectSummary {
-  return {
-    total: 1,
-    byStatusCategory: {},
-    byLiveness: { fresh: 1 },
-    highestSeverity: "neutral",
-    staleCount: 0,
-    authRequiredCount: 0,
-    unreachableCount: 0,
-    objects: [],
-    ...overrides,
-  };
-}
-
 describe("issue filters", () => {
   it("filters issues by creator across agents and users", () => {
     const issues = [
@@ -81,6 +70,94 @@ describe("issue filters", () => {
     });
 
     expect(filtered.map((issue) => issue.id)).toEqual(["agent-match", "user-match"]);
+  });
+
+  it("matches lint-residual task title variants without matching unrelated titles", () => {
+    // Canonical prefix (still matches as substring).
+    expect(isLintResidualTaskTitle("Paperclip: Close lint residuals on PR merge")).toBe(true);
+    expect(isLintResidualTaskTitle(" paperclip: close lint residuals on PR merge — PR 123 ")).toBe(true);
+    expect(isLintResidualTaskTitle("Close lint residuals on PR merge")).toBe(true);
+    expect(isLintResidualTask(makeIssue({ title: "Paperclip: Close lint residuals on PR merge (follow-up)" }))).toBe(true);
+    // Hyphenated follow-ups (the issue type shown in OOP-3094 screenshot).
+    expect(isLintResidualTaskTitle("lint-residual-prune: escalation triage surface")).toBe(true);
+    expect(isLintResidualTaskTitle("[lint-residual-prune] docker daemon unresponsive on tick-20260805T1100Z (OOP-3064)")).toBe(true);
+    expect(isLintResidualTaskTitle("Lint residual prune escalation from OOP-3247")).toBe(true);
+    // Unrelated titles still don't match.
+    expect(isLintResidualTaskTitle("Paperclip: Hourly Log Rotation")).toBe(false);
+    expect(isLintResidualTaskTitle("Review productivity for OOP-1")).toBe(false);
+    expect(isLintResidualTaskTitle(null)).toBe(false);
+    expect(isLintResidualTaskTitle(undefined)).toBe(false);
+  });
+
+  it("hides lint-residual tasks only when the dedicated filter is enabled", () => {
+    const manualIssue = makeIssue({ id: "manual", title: "Manual issue" });
+    const lintIssue = makeIssue({ id: "lint", title: "Paperclip: Close lint residuals on PR merge" });
+    const state = { ...defaultIssueFilterState, hideLintResidualTasks: true };
+
+    expect(applyIssueFilters([manualIssue, lintIssue], state)).toEqual([manualIssue, lintIssue]);
+    expect(applyIssueFilters([manualIssue, lintIssue], state, null, false, undefined, {}, true)).toEqual([manualIssue]);
+    expect(countActiveIssueFilters(state, false, true)).toBe(1);
+  });
+
+  it("matches hourly-log-rotation task title variants without matching unrelated titles", () => {
+    // Canonical prefix (still matches as substring).
+    expect(isHourlyLogRotationTaskTitle("Paperclip: Hourly Log Rotation")).toBe(true);
+    expect(isHourlyLogRotationTaskTitle(" paperclip: hourly log rotation — tick 2026-08-12T11:00Z ")).toBe(true);
+    expect(isHourlyLogRotationTaskTitle("Hourly Log Rotation")).toBe(true);
+    expect(isHourlyLogRotationTask(makeIssue({ title: "Paperclip: Hourly Log Rotation (follow-up)" }))).toBe(true);
+    // Hyphenated follow-ups.
+    expect(isHourlyLogRotationTaskTitle("hourly-log-rotation: stuck on docker volume cleanup")).toBe(true);
+    expect(isHourlyLogRotationTaskTitle("[hourly-log-rotation] lease TTL expired on tick-20260805T1100Z (OOP-3064)")).toBe(true);
+    expect(isHourlyLogRotationTaskTitle("Hourly log rotation stuck from OOP-3247")).toBe(true);
+    // Unrelated titles still don't match.
+    expect(isHourlyLogRotationTaskTitle("Paperclip: Close lint residuals on PR merge")).toBe(false);
+    expect(isHourlyLogRotationTaskTitle("Review productivity for OOP-1")).toBe(false);
+    expect(isHourlyLogRotationTaskTitle(null)).toBe(false);
+    expect(isHourlyLogRotationTaskTitle(undefined)).toBe(false);
+  });
+
+  it("hides hourly-log-rotation tasks only when the dedicated filter is enabled", () => {
+    const manualIssue = makeIssue({ id: "manual", title: "Manual issue" });
+    const hourlyIssue = makeIssue({ id: "hourly", title: "Paperclip: Hourly Log Rotation" });
+    const state = { ...defaultIssueFilterState, hideHourlyLogRotationTasks: true };
+
+    expect(applyIssueFilters([manualIssue, hourlyIssue], state)).toEqual([manualIssue, hourlyIssue]);
+    // 8 trailing positional args: currentUserId=null, enableRoutineVisibilityFilter=false,
+    // liveIssueIds=undefined, workspaceContext={}, enableLintResidualTaskFilter=false,
+    // enableProductivityReviewFilter=false, enableHourlyLogRotationTaskFilter=true.
+    expect(applyIssueFilters(
+      [manualIssue, hourlyIssue],
+      state,
+      null,
+      false,
+      undefined,
+      {},
+      false,
+      false,
+      true,
+    )).toEqual([manualIssue]);
+    expect(countActiveIssueFilters(state, false, false, false, true)).toBe(1);
+  });
+
+  it("identifies productivity-review issues by originKind and defaults the filter to ON", () => {
+    const reviewIssue = makeIssue({ id: "review", originKind: "issue_productivity_review" });
+    const manualIssue = makeIssue({ id: "manual" });
+
+    expect(isProductivityReviewIssue(reviewIssue)).toBe(true);
+    expect(isProductivityReviewIssue(manualIssue)).toBe(false);
+    expect(defaultIssueFilterState.hideProductivityReviewIssues).toBe(true);
+  });
+
+  it("hides productivity-review issues only when the dedicated filter is enabled", () => {
+    const reviewIssue = makeIssue({ id: "review", originKind: "issue_productivity_review" });
+    const manualIssue = makeIssue({ id: "manual" });
+    const state = { ...defaultIssueFilterState, hideProductivityReviewIssues: true };
+
+    expect(applyIssueFilters([manualIssue, reviewIssue], state)).toEqual([manualIssue, reviewIssue]);
+    expect(
+      applyIssueFilters([manualIssue, reviewIssue], state, null, false, undefined, {}, false, true),
+    ).toEqual([manualIssue]);
+    expect(countActiveIssueFilters(state, false, false, true)).toBe(1);
   });
 
   it("counts creator filters as an active filter group", () => {
@@ -184,63 +261,5 @@ describe("issue filters", () => {
       { id: "execution-isolated", mode: "isolated_workspace", projectWorkspaceId: "workspace-default" },
       new Set(["workspace-default"]),
     )).toBe(true);
-  });
-
-  it.each([
-    ["failed", ["failed-issue", "blocked-issue"]],
-    ["auth_required", ["auth-issue"]],
-    ["stale", ["stale-issue"]],
-    ["none", ["none-issue"]],
-  ])("filters issues by external-object status token %s", (externalObjectStatus, expectedIssueIds) => {
-    const issues = [
-      makeIssue({ id: "failed-issue" }),
-      makeIssue({ id: "blocked-issue" }),
-      makeIssue({ id: "auth-issue" }),
-      makeIssue({ id: "stale-issue" }),
-      makeIssue({ id: "none-issue" }),
-      makeIssue({ id: "fresh-issue" }),
-    ];
-    const summaries = new Map<string, ExternalObjectSummary>([
-      ["failed-issue", makeExternalObjectSummary({ byStatusCategory: { failed: 1 }, highestSeverity: "danger" })],
-      ["blocked-issue", makeExternalObjectSummary({ byStatusCategory: { blocked: 1 }, highestSeverity: "danger" })],
-      ["auth-issue", makeExternalObjectSummary({
-        byLiveness: { auth_required: 1 },
-        highestSeverity: "danger",
-        authRequiredCount: 1,
-      })],
-      ["stale-issue", makeExternalObjectSummary({
-        byLiveness: { stale: 1 },
-        highestSeverity: "warning",
-        staleCount: 1,
-      })],
-      ["fresh-issue", makeExternalObjectSummary({ byStatusCategory: { succeeded: 1 }, highestSeverity: "success" })],
-    ]);
-
-    const filtered = applyIssueFilters(
-      issues,
-      { ...defaultIssueFilterState, externalObjectStatuses: [externalObjectStatus] },
-      null,
-      false,
-      undefined,
-      {
-        externalObjectSummaryByIssueId: summaries,
-        externalObjectSummariesReady: true,
-      },
-    );
-
-    expect(filtered.map((issue) => issue.id)).toEqual(expectedIssueIds);
-  });
-
-  it("does not apply external-object filters before summaries are ready", () => {
-    const filtered = applyIssueFilters(
-      [makeIssue({ id: "issue-1" })],
-      { ...defaultIssueFilterState, externalObjectStatuses: ["none"] },
-      null,
-      false,
-      undefined,
-      { externalObjectSummaryByIssueId: new Map(), externalObjectSummariesReady: false },
-    );
-
-    expect(filtered).toEqual([]);
   });
 });

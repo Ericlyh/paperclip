@@ -1,4 +1,19 @@
-import type { ExternalObjectSummary, Issue } from "@paperclipai/shared";
+import type { Issue } from "@paperclipai/shared";
+
+export const LINT_RESIDUAL_TASK_TITLE_PREFIX = "Paperclip: Close lint residuals on PR merge";
+// Match the canonical "lint residual" phrase in either spaced or hyphenated
+// form, so the filter catches follow-up issues like "lint-residual-prune: ..."
+// and "[lint-residual-prune] ..." that the strict prefix would miss.
+const LINT_RESIDUAL_TITLE_NEEDLES = ["lint residual", "lint-residual"];
+
+export const HOURLY_LOG_ROTATION_TASK_TITLE_PREFIX = "Paperclip: Hourly Log Rotation";
+// Match the canonical "hourly log rotation" phrase in either spaced or
+// hyphenated form, mirroring the lint-residual pattern. This catches
+// follow-up issues like "hourly-log-rotation: ..." that the strict prefix
+// would miss.
+const HOURLY_LOG_ROTATION_TITLE_NEEDLES = ["hourly log rotation", "hourly-log-rotation"];
+
+export const PRODUCTIVITY_REVIEW_ORIGIN_KIND = "issue_productivity_review";
 
 export type IssueFilterWorkspaceLookup = {
   mode?: string | null;
@@ -8,8 +23,6 @@ export type IssueFilterWorkspaceLookup = {
 export type IssueFilterWorkspaceContext = {
   executionWorkspaceById?: ReadonlyMap<string, IssueFilterWorkspaceLookup>;
   defaultProjectWorkspaceIdByProjectId?: ReadonlyMap<string, string>;
-  externalObjectSummaryByIssueId?: ReadonlyMap<string, ExternalObjectSummary>;
-  externalObjectSummariesReady?: boolean;
 };
 
 export type IssueFilterState = {
@@ -21,22 +34,10 @@ export type IssueFilterState = {
   projects: string[];
   workspaces: string[];
   liveOnly?: boolean;
-  /**
-   * External object status filter. Values are special tokens that map to
-   * properties of the issue's external-object summary (rather than to a
-   * single category) so the filter UI can describe intent rather than every
-   * possible permutation.
-   *
-   *   - `failed`         — any external object with `statusCategory in (failed, blocked)`
-   *   - `waiting`        — any external object with `statusCategory in (waiting)`
-   *   - `running`        — any external object with `statusCategory in (running)`
-   *   - `auth_required`  — any external object with `liveness == auth_required`
-   *   - `unreachable`    — any external object with `liveness == unreachable`
-   *   - `stale`          — any external object with `liveness == stale`
-   *   - `none`           — issues with zero external objects
-   */
-  externalObjectStatuses: string[];
   hideRoutineExecutions: boolean;
+  hideLintResidualTasks?: boolean;
+  hideHourlyLogRotationTasks?: boolean;
+  hideProductivityReviewIssues?: boolean;
 };
 
 export const defaultIssueFilterState: IssueFilterState = {
@@ -48,33 +49,13 @@ export const defaultIssueFilterState: IssueFilterState = {
   projects: [],
   workspaces: [],
   liveOnly: false,
-  externalObjectStatuses: [],
   hideRoutineExecutions: false,
+  hideLintResidualTasks: false,
+  hideHourlyLogRotationTasks: false,
+  // Default ON to preserve the prior always-hidden behaviour for
+  // auto-generated "Review productivity for OOP-*" issues.
+  hideProductivityReviewIssues: true,
 };
-
-export const externalObjectFilterOrder = [
-  "failed",
-  "waiting",
-  "running",
-  "auth_required",
-  "unreachable",
-  "stale",
-  "none",
-];
-
-const EXTERNAL_OBJECT_FILTER_LABELS: Record<string, string> = {
-  failed: "Any failed",
-  waiting: "Any waiting",
-  running: "Any running",
-  auth_required: "Auth required",
-  unreachable: "Unreachable",
-  stale: "Stale",
-  none: "No external objects",
-};
-
-export function externalObjectFilterLabel(value: string): string {
-  return EXTERNAL_OBJECT_FILTER_LABELS[value] ?? issueFilterLabel(value);
-}
 
 export const issueStatusOrder = ["in_progress", "todo", "backlog", "in_review", "blocked", "done", "cancelled"];
 export const issuePriorityOrder = ["critical", "high", "medium", "low"];
@@ -114,9 +95,38 @@ export function normalizeIssueFilterState(value: unknown): IssueFilterState {
     projects: normalizeIssueFilterValueArray(candidate.projects),
     workspaces: normalizeIssueFilterValueArray(candidate.workspaces),
     liveOnly: candidate.liveOnly === true,
-    externalObjectStatuses: normalizeIssueFilterValueArray(candidate.externalObjectStatuses),
     hideRoutineExecutions: candidate.hideRoutineExecutions === true,
+    hideLintResidualTasks: candidate.hideLintResidualTasks === true,
+    hideHourlyLogRotationTasks: candidate.hideHourlyLogRotationTasks === true,
+    hideProductivityReviewIssues:
+      candidate.hideProductivityReviewIssues === undefined
+        ? defaultIssueFilterState.hideProductivityReviewIssues
+        : candidate.hideProductivityReviewIssues === true,
   };
+}
+
+export function isLintResidualTaskTitle(title: string | null | undefined): boolean {
+  const normalized = title?.trim().toLowerCase() ?? "";
+  if (normalized.length === 0) return false;
+  return LINT_RESIDUAL_TITLE_NEEDLES.some((needle) => normalized.includes(needle));
+}
+
+export function isLintResidualTask(issue: Pick<Issue, "title">): boolean {
+  return isLintResidualTaskTitle(issue.title);
+}
+
+export function isHourlyLogRotationTaskTitle(title: string | null | undefined): boolean {
+  const normalized = title?.trim().toLowerCase() ?? "";
+  if (normalized.length === 0) return false;
+  return HOURLY_LOG_ROTATION_TITLE_NEEDLES.some((needle) => normalized.includes(needle));
+}
+
+export function isHourlyLogRotationTask(issue: Pick<Issue, "title">): boolean {
+  return isHourlyLogRotationTaskTitle(issue.title);
+}
+
+export function isProductivityReviewIssue(issue: Pick<Issue, "originKind">): boolean {
+  return issue.originKind === PRODUCTIVITY_REVIEW_ORIGIN_KIND;
 }
 
 export function toggleIssueFilterValue(values: string[], value: string): string[] {
@@ -161,39 +171,6 @@ export function shouldIncludeIssueFilterWorkspaceOption(
     && defaultProjectWorkspaceIds.has(workspace.projectWorkspaceId));
 }
 
-function summaryRecordCount(record: Record<string, number> | undefined, key: string): number {
-  return record?.[key] ?? 0;
-}
-
-function issueMatchesExternalObjectStatusFilter(
-  summary: ExternalObjectSummary | null | undefined,
-  value: string,
-): boolean {
-  const total = summary?.total ?? 0;
-  switch (value) {
-    case "failed":
-      return summaryRecordCount(summary?.byStatusCategory, "failed") > 0
-        || summaryRecordCount(summary?.byStatusCategory, "blocked") > 0;
-    case "waiting":
-      return summaryRecordCount(summary?.byStatusCategory, "waiting") > 0;
-    case "running":
-      return summaryRecordCount(summary?.byStatusCategory, "running") > 0;
-    case "auth_required":
-      return (summary?.authRequiredCount ?? 0) > 0
-        || summaryRecordCount(summary?.byLiveness, "auth_required") > 0;
-    case "unreachable":
-      return (summary?.unreachableCount ?? 0) > 0
-        || summaryRecordCount(summary?.byLiveness, "unreachable") > 0;
-    case "stale":
-      return (summary?.staleCount ?? 0) > 0
-        || summaryRecordCount(summary?.byLiveness, "stale") > 0;
-    case "none":
-      return total === 0;
-    default:
-      return false;
-  }
-}
-
 export function applyIssueFilters(
   issues: Issue[],
   state: IssueFilterState,
@@ -201,6 +178,9 @@ export function applyIssueFilters(
   enableRoutineVisibilityFilter = false,
   liveIssueIds?: ReadonlySet<string>,
   workspaceContext: IssueFilterWorkspaceContext = {},
+  enableLintResidualTaskFilter = false,
+  enableProductivityReviewFilter = false,
+  enableHourlyLogRotationTaskFilter = false,
 ): Issue[] {
   let result = issues;
   if (state.liveOnly) {
@@ -208,6 +188,15 @@ export function applyIssueFilters(
   }
   if (enableRoutineVisibilityFilter && state.hideRoutineExecutions) {
     result = result.filter((issue) => issue.originKind !== "routine_execution");
+  }
+  if (enableLintResidualTaskFilter && state.hideLintResidualTasks) {
+    result = result.filter((issue) => !isLintResidualTask(issue));
+  }
+  if (enableHourlyLogRotationTaskFilter && state.hideHourlyLogRotationTasks) {
+    result = result.filter((issue) => !isHourlyLogRotationTask(issue));
+  }
+  if (enableProductivityReviewFilter && state.hideProductivityReviewIssues) {
+    result = result.filter((issue) => !isProductivityReviewIssue(issue));
   }
   if (state.statuses.length > 0) result = result.filter((issue) => state.statuses.includes(issue.status));
   if (state.priorities.length > 0) result = result.filter((issue) => state.priorities.includes(issue.priority));
@@ -242,22 +231,15 @@ export function applyIssueFilters(
       return workspaceId != null && state.workspaces.includes(workspaceId);
     });
   }
-  if (state.externalObjectStatuses.length > 0) {
-    const summaries = workspaceContext.externalObjectSummaryByIssueId;
-    if (!summaries || workspaceContext.externalObjectSummariesReady !== true) return [];
-    result = result.filter((issue) => {
-      const summary = summaries.get(issue.id) ?? null;
-      return state.externalObjectStatuses.some((status) =>
-        issueMatchesExternalObjectStatusFilter(summary, status),
-      );
-    });
-  }
   return result;
 }
 
 export function countActiveIssueFilters(
   state: IssueFilterState,
   enableRoutineVisibilityFilter = false,
+  enableLintResidualTaskFilter = false,
+  enableProductivityReviewFilter = false,
+  enableHourlyLogRotationTaskFilter = false,
 ): number {
   let count = 0;
   if (state.statuses.length > 0) count += 1;
@@ -268,7 +250,9 @@ export function countActiveIssueFilters(
   if (state.projects.length > 0) count += 1;
   if (state.workspaces.length > 0) count += 1;
   if (state.liveOnly) count += 1;
-  if (state.externalObjectStatuses.length > 0) count += 1;
   if (enableRoutineVisibilityFilter && state.hideRoutineExecutions) count += 1;
+  if (enableLintResidualTaskFilter && state.hideLintResidualTasks) count += 1;
+  if (enableHourlyLogRotationTaskFilter && state.hideHourlyLogRotationTasks) count += 1;
+  if (enableProductivityReviewFilter && state.hideProductivityReviewIssues) count += 1;
   return count;
 }

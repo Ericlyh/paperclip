@@ -15,34 +15,125 @@ import { queryKeys } from "../lib/queryKeys";
 import { MetricCard } from "../components/MetricCard";
 import { EmptyState } from "../components/EmptyState";
 import { StatusIcon } from "../components/StatusIcon";
-import { usePublishSharedQueryData, useSharedPollingQuery } from "../hooks/useSharedPolling";
+import { Checkbox } from "@/components/ui/checkbox";
 
 import { ActivityRow } from "../components/ActivityRow";
 import { Identity } from "../components/Identity";
 import { timeAgo } from "../lib/timeAgo";
 import { cn, formatCents } from "../lib/utils";
-import { SHOW_TASK_PRIORITY_UI } from "../lib/ui-flags";
 import { Bot, CircleDot, DollarSign, ShieldCheck, LayoutDashboard, PauseCircle } from "lucide-react";
 import { ActiveAgentsPanel } from "../components/ActiveAgentsPanel";
 import { ChartCard, RunActivityChart, PriorityChart, IssueStatusChart, SuccessRateChart } from "../components/ActivityCharts";
 import { PageSkeleton } from "../components/PageSkeleton";
-import { Card } from "@/components/ui/card";
 import type { Agent, Issue } from "@paperclipai/shared";
 import { PluginSlotOutlet } from "@/plugins/slots";
-import { SmokeLabDashboardCard } from "../components/SmokeLabDashboardCard";
+import {
+  DASHBOARD_ACTIVITY_FETCH_LIMIT,
+  DASHBOARD_ISSUE_FETCH_LIMIT,
+  getRecentDashboardActivity,
+  getRecentDashboardIssues,
+} from "../lib/dashboard-feed";
+import { isProductivityReviewIssue } from "../lib/issue-filters";
+import { useTranslation } from "../i18n";
 
-const DASHBOARD_ACTIVITY_LIMIT = 10;
+// Auto-generated "Review productivity for OOP-*" issues carry this origin kind.
+// They are internal bookkeeping and should not clutter the dashboard surfaces
+// by default, but the user can toggle them off via "Hide productivity-review
+// issues". The helper lives in ui/src/lib/issue-filters.ts.
+const DASHBOARD_FILTER_STORAGE_PREFIX = "paperclip:dashboard-filters";
 
-function getRecentIssues(issues: Issue[]): Issue[] {
-  return [...issues]
-    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+type DashboardFilterState = {
+  hideLintResidualTasks: boolean;
+  hideProductivityReviewIssues: boolean;
+  hideHourlyLogRotationTasks: boolean;
+};
+
+const DEFAULT_DASHBOARD_FILTER_STATE: DashboardFilterState = {
+  hideLintResidualTasks: false,
+  hideProductivityReviewIssues: true,
+  hideHourlyLogRotationTasks: false,
+};
+
+function dashboardFilterStorageKey(companyId: string): string {
+  return `${DASHBOARD_FILTER_STORAGE_PREFIX}:${companyId}`;
+}
+
+function readDashboardFilterState(companyId: string | null | undefined): DashboardFilterState {
+  if (!companyId || typeof window === "undefined") return { ...DEFAULT_DASHBOARD_FILTER_STATE };
+  try {
+    const raw = window.localStorage.getItem(dashboardFilterStorageKey(companyId));
+    if (!raw) return { ...DEFAULT_DASHBOARD_FILTER_STATE };
+    const parsed = JSON.parse(raw) as Partial<DashboardFilterState>;
+    return {
+      hideLintResidualTasks: parsed.hideLintResidualTasks === true,
+      hideProductivityReviewIssues:
+        parsed.hideProductivityReviewIssues === undefined
+          ? DEFAULT_DASHBOARD_FILTER_STATE.hideProductivityReviewIssues
+          : parsed.hideProductivityReviewIssues === true,
+      hideHourlyLogRotationTasks: parsed.hideHourlyLogRotationTasks === true,
+    };
+  } catch {
+    return { ...DEFAULT_DASHBOARD_FILTER_STATE };
+  }
+}
+
+function DashboardVisibilityFilters({
+  filterState,
+  onChange,
+  testIdPrefix,
+}: {
+  filterState: DashboardFilterState;
+  onChange: (patch: Partial<DashboardFilterState>) => void;
+  testIdPrefix: string;
+}) {
+  return (
+    <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-muted-foreground">
+      <label
+        className="inline-flex cursor-pointer items-center gap-2 hover:text-foreground"
+        title="Hide auto-generated Review productivity issues"
+      >
+        <Checkbox
+          checked={filterState.hideProductivityReviewIssues}
+          onCheckedChange={(checked) => onChange({ hideProductivityReviewIssues: checked === true })}
+          data-testid={`${testIdPrefix}-productivity-review-filter`}
+        />
+        <span>Hide productivity-review issues</span>
+      </label>
+      <label
+        className="inline-flex cursor-pointer items-center gap-2 hover:text-foreground"
+        title="Hide tasks whose title starts with Paperclip: Close lint residuals on PR merge"
+      >
+        <Checkbox
+          checked={filterState.hideLintResidualTasks}
+          onCheckedChange={(checked) => onChange({ hideLintResidualTasks: checked === true })}
+          data-testid={`${testIdPrefix}-lint-residual-filter`}
+        />
+        <span>Hide lint-residual tasks</span>
+      </label>
+      <label
+        className="inline-flex cursor-pointer items-center gap-2 hover:text-foreground"
+        title="Hide tasks whose title starts with Paperclip: Hourly Log Rotation"
+      >
+        <Checkbox
+          checked={filterState.hideHourlyLogRotationTasks}
+          onCheckedChange={(checked) => onChange({ hideHourlyLogRotationTasks: checked === true })}
+          data-testid={`${testIdPrefix}-hourly-log-rotation-filter`}
+        />
+        <span>Hide hourly-log-rotation tasks</span>
+      </label>
+    </div>
+  );
 }
 
 export function Dashboard() {
   const { selectedCompanyId, companies } = useCompany();
   const { openOnboarding } = useDialogActions();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const [animatedActivityIds, setAnimatedActivityIds] = useState<Set<string>>(new Set());
+  const [filterState, setFilterState] = useState<DashboardFilterState>({
+    ...DEFAULT_DASHBOARD_FILTER_STATE,
+  });
   const seenActivityIdsRef = useRef<Set<string>>(new Set());
   const hydratedActivityRef = useRef(false);
   const activityAnimationTimersRef = useRef<number[]>([]);
@@ -54,46 +145,42 @@ export function Dashboard() {
   });
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Dashboard" }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: t("dashboard.title") }]);
+  }, [setBreadcrumbs, t]);
 
-  const dashboardQueryKey = queryKeys.dashboard(selectedCompanyId!);
-  const sharedDashboard = useSharedPollingQuery({
-    companyId: selectedCompanyId,
-    resourceKey: "dashboard",
-    queryKey: dashboardQueryKey,
-    enabled: !!selectedCompanyId,
-  });
-  const { data, isLoading, error, dataUpdatedAt: dashboardUpdatedAt } = useQuery({
-    queryKey: dashboardQueryKey,
+  useEffect(() => {
+    setFilterState(readDashboardFilterState(selectedCompanyId));
+  }, [selectedCompanyId]);
+
+  const { data, isLoading, error } = useQuery({
+    queryKey: queryKeys.dashboard(selectedCompanyId!),
     queryFn: () => dashboardApi.summary(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
-  usePublishSharedQueryData(sharedDashboard, data, dashboardUpdatedAt);
 
-  const activityQueryKey = [...queryKeys.activity(selectedCompanyId!), { limit: DASHBOARD_ACTIVITY_LIMIT }] as const;
-  const sharedActivity = useSharedPollingQuery({
-    companyId: selectedCompanyId,
-    resourceKey: `activity:limit:${DASHBOARD_ACTIVITY_LIMIT}`,
-    queryKey: activityQueryKey,
+  const { data: activity } = useQuery({
+    queryKey: [...queryKeys.activity(selectedCompanyId!), { limit: DASHBOARD_ACTIVITY_FETCH_LIMIT }],
+    queryFn: () => activityApi.list(selectedCompanyId!, { limit: DASHBOARD_ACTIVITY_FETCH_LIMIT }),
     enabled: !!selectedCompanyId,
   });
-  const { data: activity, dataUpdatedAt: activityUpdatedAt } = useQuery({
-    queryKey: activityQueryKey,
-    queryFn: () => activityApi.list(selectedCompanyId!, { limit: DASHBOARD_ACTIVITY_LIMIT }),
-    enabled: !!selectedCompanyId,
-  });
-  usePublishSharedQueryData(sharedActivity, activity, activityUpdatedAt);
 
   const { data: issues } = useQuery({
-    queryKey: queryKeys.issues.list(selectedCompanyId!),
-    queryFn: () => issuesApi.list(selectedCompanyId!),
+    queryKey: [
+      ...queryKeys.issues.list(selectedCompanyId!),
+      "dashboard",
+      { limit: DASHBOARD_ISSUE_FETCH_LIMIT, sortField: "updated", sortDir: "desc" },
+    ],
+    queryFn: () => issuesApi.list(selectedCompanyId!, {
+      limit: DASHBOARD_ISSUE_FETCH_LIMIT,
+      sortField: "updated",
+      sortDir: "desc",
+    }),
     enabled: !!selectedCompanyId,
   });
 
   const { data: projects } = useQuery({
-    queryKey: queryKeys.projects.list(selectedCompanyId!, { includeArchived: true }),
-    queryFn: () => projectsApi.list(selectedCompanyId!, { includeArchived: true }),
+    queryKey: queryKeys.projects.list(selectedCompanyId!),
+    queryFn: () => projectsApi.list(selectedCompanyId!),
     enabled: !!selectedCompanyId,
   });
 
@@ -108,8 +195,53 @@ export function Dashboard() {
     [companyMembers?.users],
   );
 
-  const recentIssues = issues ? getRecentIssues(issues) : [];
-  const recentActivity = useMemo(() => (activity ?? []).slice(0, 10), [activity]);
+  // Filter dashboard issue surfaces (recent list + charts). Raw `issues` is
+  // still used for activity-feed labels. Productivity-review suppression is
+  // toggled by `filterState.hideProductivityReviewIssues` (default ON to keep
+  // the prior "internal bookkeeping, should not clutter surfaces" behaviour).
+  const visibleIssues = useMemo(
+    () => (issues ?? []).filter((issue) => !filterState.hideProductivityReviewIssues || !isProductivityReviewIssue(issue)),
+    [issues, filterState.hideProductivityReviewIssues],
+  );
+
+  const issueById = useMemo(() => {
+    const map = new Map<string, Issue>();
+    for (const issue of issues ?? []) map.set(issue.id, issue);
+    return map;
+  }, [issues]);
+
+  const recentIssues = useMemo(
+    () =>
+      getRecentDashboardIssues(
+        visibleIssues,
+        filterState.hideLintResidualTasks,
+        filterState.hideProductivityReviewIssues,
+        filterState.hideHourlyLogRotationTasks,
+      ),
+    [
+      visibleIssues,
+      filterState.hideLintResidualTasks,
+      filterState.hideProductivityReviewIssues,
+      filterState.hideHourlyLogRotationTasks,
+    ],
+  );
+  const recentActivity = useMemo(
+    () =>
+      getRecentDashboardActivity(
+        activity ?? [],
+        issueById,
+        filterState.hideLintResidualTasks,
+        filterState.hideProductivityReviewIssues,
+        filterState.hideHourlyLogRotationTasks,
+      ),
+    [
+      activity,
+      issueById,
+      filterState.hideLintResidualTasks,
+      filterState.hideProductivityReviewIssues,
+      filterState.hideHourlyLogRotationTasks,
+    ],
+  );
 
   useEffect(() => {
     for (const timer of activityAnimationTimersRef.current) {
@@ -191,6 +323,20 @@ export function Dashboard() {
     return agents.find((a) => a.id === id)?.name ?? null;
   };
 
+  const updateDashboardFilter = (patch: Partial<DashboardFilterState>) => {
+    setFilterState((prev) => {
+      const next = { ...prev, ...patch };
+      if (selectedCompanyId && typeof window !== "undefined") {
+        try {
+          window.localStorage.setItem(dashboardFilterStorageKey(selectedCompanyId), JSON.stringify(next));
+        } catch {
+          // Ignore localStorage failures; the current view still updates.
+        }
+      }
+      return next;
+    });
+  };
+
   if (!selectedCompanyId) {
     if (companies.length === 0) {
       return (
@@ -239,19 +385,19 @@ export function Dashboard() {
       {data && (
         <>
           {data.budgets.activeIncidents > 0 ? (
-            <div className="flex items-start justify-between gap-3 rounded-xl border border-red-500/20 bg-(image:--gradient-extract-1) px-4 py-3">
+            <div className="flex items-start justify-between gap-3 rounded-xl border border-red-500/20 bg-[linear-gradient(180deg,rgba(255,80,80,0.12),rgba(255,255,255,0.02))] px-4 py-3">
               <div className="flex items-start gap-2.5">
-                <PauseCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-700 dark:text-red-300" />
+                <PauseCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-300" />
                 <div>
-                  <p className="text-sm font-medium text-red-950 dark:text-red-50">
+                  <p className="text-sm font-medium text-red-50">
                     {data.budgets.activeIncidents} active budget incident{data.budgets.activeIncidents === 1 ? "" : "s"}
                   </p>
-                  <p className="text-xs text-red-900/70 dark:text-red-100/70">
+                  <p className="text-xs text-red-100/70">
                     {data.budgets.pausedAgents} agents paused · {data.budgets.pausedProjects} projects paused · {data.budgets.pendingApprovals} pending budget approvals
                   </p>
                 </div>
               </div>
-              <Link to="/costs" className="text-sm underline underline-offset-2 text-red-900 dark:text-red-100">
+              <Link to="/costs" className="text-sm underline underline-offset-2 text-red-100">
                 Open budgets
               </Link>
             </div>
@@ -261,72 +407,67 @@ export function Dashboard() {
             <MetricCard
               icon={Bot}
               value={data.agents.active + data.agents.running + data.agents.paused + data.agents.error}
-              label="Agents Enabled"
+              label={t("dashboard.agentsEnabled")}
               to="/agents"
               description={
                 <span>
-                  {data.agents.running} running{", "}
-                  {data.agents.paused} paused{", "}
-                  {data.agents.error} errors
+                  {data.agents.running} {t("dashboard.running")}{", "}
+                  {data.agents.paused} {t("dashboard.paused")}{", "}
+                  {data.agents.error} {t("dashboard.errors")}
                 </span>
               }
             />
             <MetricCard
               icon={CircleDot}
               value={data.tasks.inProgress}
-              label="Tasks In Progress"
+              label={t("dashboard.tasksInProgress")}
               to="/issues"
               description={
                 <span>
-                  {data.tasks.open} open{", "}
-                  {data.tasks.blocked} blocked
+                  {data.tasks.open} {t("dashboard.open")}{", "}
+                  {data.tasks.blocked} {t("dashboard.blocked")}
                 </span>
               }
             />
             <MetricCard
               icon={DollarSign}
               value={formatCents(data.costs.monthSpendCents)}
-              label="Month Spend"
+              label={t("dashboard.monthSpend")}
               to="/costs"
               description={
                 <span>
                   {data.costs.monthBudgetCents > 0
-                    ? `${data.costs.monthUtilizationPercent}% of ${formatCents(data.costs.monthBudgetCents)} budget`
-                    : "Unlimited budget"}
+                    ? `${data.costs.monthUtilizationPercent} ${t("dashboard.ofBudget")} (${formatCents(data.costs.monthBudgetCents)})`
+                    : t("dashboard.unlimitedBudget")}
                 </span>
               }
             />
             <MetricCard
               icon={ShieldCheck}
               value={data.pendingApprovals + data.budgets.pendingApprovals}
-              label="Pending Approvals"
+              label={t("dashboard.pendingApprovals")}
               to="/approvals"
               description={
                 <span>
                   {data.budgets.pendingApprovals > 0
-                    ? `${data.budgets.pendingApprovals} budget overrides awaiting board review`
-                    : "Awaiting board review"}
+                    ? `${data.budgets.pendingApprovals} ${t("dashboard.budgetOverridesAwaitingBoardReview")}`
+                    : t("dashboard.awaitingBoardReview")}
                 </span>
               }
             />
           </div>
 
-          <SmokeLabDashboardCard companyId={selectedCompanyId!} />
-
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-            <ChartCard title="Run Activity" subtitle="Last 14 days">
+            <ChartCard title={t("dashboard.runActivity")} subtitle={t("dashboard.last14days")}>
               <RunActivityChart activity={data.runActivity} />
             </ChartCard>
-            {/* PAP-411: "Tasks by Priority" chart hidden behind SHOW_TASK_PRIORITY_UI. */}
-            {SHOW_TASK_PRIORITY_UI && (
-              <ChartCard title="Tasks by Priority" subtitle="Last 14 days">
-                <PriorityChart issues={issues ?? []} />
-              </ChartCard>
-            )}
-            <ChartCard title="Tasks by Status" subtitle="Last 14 days">
-              <IssueStatusChart issues={issues ?? []} />
+            <ChartCard title={t("dashboard.issuesByPriority")} subtitle={t("dashboard.last14days")}>
+              <PriorityChart issues={visibleIssues} />
             </ChartCard>
-            <ChartCard title="Success Rate" subtitle="Last 14 days">
+            <ChartCard title={t("dashboard.issuesByStatus")} subtitle={t("dashboard.last14days")}>
+              <IssueStatusChart issues={visibleIssues} />
+            </ChartCard>
+            <ChartCard title={t("dashboard.successRate")} subtitle={t("dashboard.last14days")}>
               <SuccessRateChart activity={data.runActivity} />
             </ChartCard>
           </div>
@@ -335,7 +476,6 @@ export function Dashboard() {
             slotTypes={["dashboardWidget"]}
             context={{ companyId: selectedCompanyId }}
             className="grid gap-4 md:grid-cols-2"
-            // design-allow(card-pattern): class-string prop consumed by the plugin outlet; a component can't be passed here (C5a Run 3)
             itemClassName="rounded-lg border bg-card p-4 shadow-sm"
           />
 
@@ -346,7 +486,7 @@ export function Dashboard() {
                 <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
                   Recent Activity
                 </h3>
-                <Card className="block py-0 divide-y divide-border overflow-hidden">
+                <div className="border border-border divide-y divide-border overflow-hidden">
                   {recentActivity.map((event) => (
                     <ActivityRow
                       key={event.id}
@@ -358,22 +498,29 @@ export function Dashboard() {
                       className={animatedActivityIds.has(event.id) ? "activity-row-enter" : undefined}
                     />
                   ))}
-                </Card>
+                </div>
               </div>
             )}
 
             {/* Recent Tasks */}
             <div className="min-w-0">
-              <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
-                Recent Tasks
-              </h3>
+              <div className="mb-3 flex flex-wrap items-start justify-between gap-3">
+                <h3 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+                  Recent Tasks
+                </h3>
+                <DashboardVisibilityFilters
+                  filterState={filterState}
+                  onChange={updateDashboardFilter}
+                  testIdPrefix="dashboard-recent-tasks"
+                />
+              </div>
               {recentIssues.length === 0 ? (
-                <Card className="block p-4">
+                <div className="border border-border p-4">
                   <p className="text-sm text-muted-foreground">No tasks yet.</p>
-                </Card>
+                </div>
               ) : (
-                <Card className="block py-0 divide-y divide-border overflow-hidden">
-                  {recentIssues.slice(0, 10).map((issue) => (
+                <div className="border border-border divide-y divide-border overflow-hidden">
+                  {recentIssues.map((issue) => (
                     <Link
                       key={issue.id}
                       to={`/issues/${issue.identifier ?? issue.id}`}
@@ -410,7 +557,7 @@ export function Dashboard() {
                       </div>
                     </Link>
                   ))}
-                </Card>
+                </div>
               )}
             </div>
           </div>

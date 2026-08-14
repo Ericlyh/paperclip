@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 
-import { flushSync } from "react-dom";
+import { act } from "react";
 import { createRoot } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import type { Issue, IssueBlockedInboxAttention } from "@paperclipai/shared";
@@ -30,14 +30,6 @@ vi.mock("@/lib/router", () => ({
 }));
 
 (globalThis as unknown as { IS_REACT_ACT_ENVIRONMENT: boolean }).IS_REACT_ACT_ENVIRONMENT = true;
-
-function act(callback: () => void | Promise<void>) {
-  let result: void | Promise<void> | undefined;
-  flushSync(() => {
-    result = callback();
-  });
-  return result;
-}
 
 import { BlockedInboxView } from "./BlockedInboxView";
 import { defaultIssueFilterState } from "../lib/issue-filters";
@@ -129,7 +121,6 @@ const blockedViewProps = {
   issueFilters: defaultIssueFilterState,
   currentUserId: "local-board",
   liveIssueIds: new Set<string>(),
-  subtreeLiveCounts: new Map<string, number>(),
   workspaceFilterContext: {},
   showStatusColumn: true,
   showIdentifierColumn: true,
@@ -263,7 +254,7 @@ describe("BlockedInboxView", () => {
     );
     await waitFor(() => container.querySelector("a") !== null);
 
-    const rowText = container.querySelector("a")?.parentElement?.textContent ?? "";
+    const rowText = container.querySelector("a")?.textContent ?? "";
     expect(rowText.indexOf("Pending board decision")).toBeGreaterThanOrEqual(0);
     expect(rowText.indexOf("Needs decision")).toBeGreaterThan(rowText.indexOf("Pending board decision"));
     expect(rowText.indexOf("Board")).toBeGreaterThan(rowText.indexOf("Needs decision"));
@@ -315,35 +306,6 @@ describe("BlockedInboxView", () => {
     act(() => root.unmount());
   });
 
-  it("uses loaded live descendants when blocked inbox rows do not have a server summary", async () => {
-    mockIssuesApi.list.mockResolvedValue([
-      {
-        ...makeIssue(
-          "blocked-parent",
-          "PAP-77",
-          "Blocked parent with active child",
-          attention({ reason: "blocked_chain_stalled" }),
-        ),
-        status: "blocked",
-        blockerAttention: null,
-        liveDescendantCount: undefined,
-      } as unknown as Issue,
-    ]);
-
-    const { root } = renderWithClient(
-      <BlockedInboxView
-        {...blockedViewProps}
-        subtreeLiveCounts={new Map([["blocked-parent", 1]])}
-      />,
-      container,
-    );
-    await waitFor(() => container.querySelector("a") !== null);
-
-    expect(container.querySelector('[aria-label="Blocked · waiting on 1 active sub-task"]')).not.toBeNull();
-
-    act(() => root.unmount());
-  });
-
   it("renders the visible error banner with retry when the query fails", async () => {
     mockIssuesApi.list.mockRejectedValue(new Error("network down"));
 
@@ -361,6 +323,106 @@ describe("BlockedInboxView", () => {
     expect(banner).not.toBeNull();
     expect(banner?.getAttribute("role")).toBe("alert");
     expect(banner?.textContent).toContain("Couldn't load the Blocked tab");
+
+    act(() => root.unmount());
+  });
+
+  it("filters out productivity-review and lint-residual issues when their hide toggles are on", async () => {
+    const sourceIssueRef = (id: string, identifier: string, title: string) => ({
+      id,
+      identifier,
+      title,
+      status: "in_progress" as const,
+      priority: "medium" as const,
+      assigneeAgentId: null,
+      assigneeUserId: null,
+    });
+    const reviewIssue = makeIssue(
+      "review-1",
+      "PAP-R1",
+      "Review productivity for OOP-1",
+      attention({ sourceIssue: sourceIssueRef("review-1", "PAP-R1", "Review productivity for OOP-1") }),
+    );
+    (reviewIssue as Issue & { originKind?: string }).originKind = "issue_productivity_review";
+    const lintIssue = makeIssue(
+      "lint-1",
+      "PAP-L1",
+      "Paperclip: Close lint residuals on PR merge",
+      attention({ sourceIssue: sourceIssueRef("lint-1", "PAP-L1", "Paperclip: Close lint residuals on PR merge") }),
+    );
+    const hourlyIssue = makeIssue(
+      "hourly-1",
+      "PAP-H1",
+      "Paperclip: Hourly Log Rotation",
+      attention({ sourceIssue: sourceIssueRef("hourly-1", "PAP-H1", "Paperclip: Hourly Log Rotation") }),
+    );
+    const normalIssue = makeIssue(
+      "normal-1",
+      "PAP-N1",
+      "Regular blocked work",
+      attention({ sourceIssue: sourceIssueRef("normal-1", "PAP-N1", "Regular blocked work") }),
+    );
+
+    mockIssuesApi.list.mockResolvedValue([reviewIssue, lintIssue, hourlyIssue, normalIssue]);
+
+    const { root } = renderWithClient(
+      <BlockedInboxView
+        {...blockedViewProps}
+        issueFilters={{
+          ...defaultIssueFilterState,
+          hideProductivityReviewIssues: true,
+          hideLintResidualTasks: true,
+          hideHourlyLogRotationTasks: true,
+        }}
+      />,
+      container,
+    );
+
+    await waitFor(() => container.textContent?.includes("PAP-N1") === true);
+
+    const links = Array.from(container.querySelectorAll("a")).map((a) => a.textContent ?? "");
+    expect(links.some((t) => t.includes("PAP-R1"))).toBe(false);
+    expect(links.some((t) => t.includes("PAP-L1"))).toBe(false);
+    expect(links.some((t) => t.includes("PAP-H1"))).toBe(false);
+    expect(links.some((t) => t.includes("PAP-N1"))).toBe(true);
+
+    act(() => root.unmount());
+  });
+
+  it("keeps hourly-log-rotation issues visible when the hide toggle is off", async () => {
+    const sourceIssueRef = (id: string, identifier: string, title: string) => ({
+      id,
+      identifier,
+      title,
+      status: "in_progress" as const,
+      priority: "medium" as const,
+      assigneeAgentId: null,
+      assigneeUserId: null,
+    });
+    const hourlyIssue = makeIssue(
+      "hourly-2",
+      "PAP-H2",
+      "Paperclip: Hourly Log Rotation",
+      attention({ sourceIssue: sourceIssueRef("hourly-2", "PAP-H2", "Paperclip: Hourly Log Rotation") }),
+    );
+
+    mockIssuesApi.list.mockResolvedValue([hourlyIssue]);
+
+    const { root } = renderWithClient(
+      <BlockedInboxView
+        {...blockedViewProps}
+        issueFilters={{
+          ...defaultIssueFilterState,
+          hideHourlyLogRotationTasks: false,
+        }}
+      />,
+      container,
+    );
+
+    await waitFor(() => container.textContent?.includes("PAP-H2") === true);
+
+    const links = Array.from(container.querySelectorAll("a")).map((a) => a.textContent ?? "");
+    expect(links.some((t) => t.includes("PAP-H2"))).toBe(true);
 
     act(() => root.unmount());
   });
