@@ -179,12 +179,9 @@
     "absolute_path_to_agent_prompts": "/absolute/path/to/agent/prompts",
     "adapter_result_JSON": "adapter result JSON",
     "changed": "(changed)",
-    "left_Set": "(left: Set",
     "rarr": "&rarr;",
-    "right_Set": ", right: Set",
     "stderr_excerpt": "stderr excerpt",
-    "stdout_excerpt": "stdout excerpt",
-    "summary_run_resultJson_as_Record": ").summary ?? (run.resultJson as Record"
+    "stdout_excerpt": "stdout excerpt"
   },
   "app": {
     "noCompanies": {
