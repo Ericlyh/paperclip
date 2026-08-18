@@ -1,6 +1,7 @@
 // @vitest-environment jsdom
 
-import { act, useEffect } from "react";
+import { useEffect } from "react";
+import { act } from "react-dom/test-utils";
 import { createRoot, type Root } from "react-dom/client";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
