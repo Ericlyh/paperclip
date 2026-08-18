@@ -604,7 +604,11 @@ describe("runChildProcess", () => {
       terminalResultSeen: true,
     });
     expect(Number.isInteger(descendantPid) && descendantPid > 0).toBe(true);
-    expect(await waitForPidExit(descendantPid, 2_000)).toBe(true);
+    // Local runs settle in ~150 ms once the SIGTERM lands on the process
+    // group, but on a contended CI runner the descendant can take noticeably
+    // longer to actually exit. Give it 5 s of headroom — the OOP-3550 nightly
+    // run regressed at the 2 s bound.
+    expect(await waitForPidExit(descendantPid, 5_000)).toBe(true);
   });
 
   it.skipIf(process.platform === "win32")("cleans up a still-running child after terminal output", async () => {

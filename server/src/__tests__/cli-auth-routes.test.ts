@@ -90,7 +90,11 @@ async function createApp(actor: any, db: any = {} as any) {
   return app;
 }
 
-describe.sequential("cli auth routes", () => {
+// Suite-level timeout: the first test pays the full Vite/TS module-graph
+// compilation cost (~2.6s in this repo), and the CI runner's default 5s
+// testTimeout occasionally catches it under load (see OOP-3666). The 9
+// sibling tests reuse the warmed transform cache and finish well under 1s.
+describe.sequential("cli auth routes", { timeout: 30_000 }, () => {
   beforeEach(() => {
     vi.resetModules();
     vi.doUnmock("../services/index.js");

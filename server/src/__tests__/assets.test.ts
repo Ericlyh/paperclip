@@ -149,7 +149,11 @@ describe("POST /api/companies/:companyId/assets/images", () => {
     logActivityMock.mockReset();
   });
 
-  it("accepts PNG image uploads and returns an asset path", async () => {
+  // CI runners can be substantially slower than the host when this test does
+  // its first `vi.importActual("../routes/assets.js")` — that pulls in
+  // `multer`, `jsdom`, and `dompurify`, and the resulting import chain has
+  // exceeded vitest's 5 s default testTimeout on the OOP-3550 nightly run.
+  it("accepts PNG image uploads and returns an asset path", { timeout: 30_000 }, async () => {
     const png = createStorageService("image/png");
     const app = await createApp(png);
 
