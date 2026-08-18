@@ -10,6 +10,8 @@ import {
   isHourlyLogRotationTaskTitle,
   isLintResidualTask,
   isLintResidualTaskTitle,
+  isPrefixedTask,
+  isPrefixedTaskTitle,
   isProductivityReviewIssue,
   resolveIssueFilterWorkspaceId,
   shouldIncludeIssueFilterWorkspaceOption,
@@ -137,6 +139,51 @@ describe("issue filters", () => {
       true,
     )).toEqual([manualIssue]);
     expect(countActiveIssueFilters(state, false, false, false, true)).toBe(1);
+  });
+
+  it("matches Paperclip:/Lint: prefixed task titles without matching unrelated titles", () => {
+    // Canonical prefixes (Paperclip + Lint) match case-insensitively with
+    // surrounding whitespace allowed.
+    expect(isPrefixedTaskTitle("Paperclip: Close lint residuals on PR merge")).toBe(true);
+    expect(isPrefixedTaskTitle(" paperclip: hourly log rotation — tick 2026-08-12T11:00Z ")).toBe(true);
+    expect(isPrefixedTaskTitle("Lint: prune residuals")).toBe(true);
+    expect(isPrefixedTaskTitle("LINT: docker daemon unresponsive")).toBe(true);
+    expect(isPrefixedTask(makeIssue({ title: "Paperclip: Some new routine" }))).toBe(true);
+    expect(isPrefixedTask(makeIssue({ title: "Lint: residual review" }))).toBe(true);
+    // Unrelated titles still don't match.
+    expect(isPrefixedTaskTitle("Review productivity for OOP-1")).toBe(false);
+    expect(isPrefixedTaskTitle("Manual task for the team")).toBe(false);
+    expect(isPrefixedTaskTitle("paperclip stand-up meeting")).toBe(false);
+    expect(isPrefixedTaskTitle(null)).toBe(false);
+    expect(isPrefixedTaskTitle(undefined)).toBe(false);
+  });
+
+  it("hides Paperclip:/Lint: prefixed tasks only when the dedicated filter is enabled", () => {
+    const manualIssue = makeIssue({ id: "manual", title: "Manual issue" });
+    const paperclipIssue = makeIssue({ id: "paperclip", title: "Paperclip: Some routine task" });
+    const lintIssue = makeIssue({ id: "lint", title: "Lint: residual review" });
+    const state = { ...defaultIssueFilterState, hidePrefixedTasks: true };
+
+    // Without enabling the filter flag, both prefixed issues survive.
+    expect(applyIssueFilters([manualIssue, paperclipIssue, lintIssue], state)).toEqual([
+      manualIssue,
+      paperclipIssue,
+      lintIssue,
+    ]);
+    // With enablePrefixedTaskFilter=true, the prefixed tasks are hidden.
+    expect(applyIssueFilters(
+      [manualIssue, paperclipIssue, lintIssue],
+      state,
+      null,
+      false,
+      undefined,
+      {},
+      false,
+      false,
+      false,
+      true,
+    )).toEqual([manualIssue]);
+    expect(countActiveIssueFilters(state, false, false, false, false, true)).toBe(1);
   });
 
   it("identifies productivity-review issues by originKind and defaults the filter to ON", () => {

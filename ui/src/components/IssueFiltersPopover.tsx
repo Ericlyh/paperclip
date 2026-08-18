@@ -61,6 +61,7 @@ export function IssueFiltersPopover({
   enableLintResidualTaskFilter = false,
   enableProductivityReviewFilter = false,
   enableHourlyLogRotationTaskFilter = false,
+  enablePrefixedTaskFilter = false,
   buttonVariant = "ghost",
   iconOnly = false,
   workspaces,
@@ -77,6 +78,7 @@ export function IssueFiltersPopover({
   enableLintResidualTaskFilter?: boolean;
   enableProductivityReviewFilter?: boolean;
   enableHourlyLogRotationTaskFilter?: boolean;
+  enablePrefixedTaskFilter?: boolean;
   buttonVariant?: "ghost" | "outline";
   iconOnly?: boolean;
   workspaces?: WorkspaceOption[];
@@ -392,6 +394,18 @@ export function IssueFiltersPopover({
                       onCheckedChange={(checked) => onChange({ hideHourlyLogRotationTasks: checked === true })}
                     />
                     <span className="text-sm">Hide hourly-log-rotation tasks</span>
+                  </label>
+                ) : null}
+                {enablePrefixedTaskFilter ? (
+                  <label
+                    className="flex cursor-pointer items-center gap-2 rounded-sm px-2 py-1 hover:bg-accent/50"
+                    title='Hide issues whose title starts with "Paperclip:" or "Lint:"'
+                  >
+                    <Checkbox
+                      checked={state.hidePrefixedTasks ?? false}
+                      onCheckedChange={(checked) => onChange({ hidePrefixedTasks: checked === true })}
+                    />
+                    <span className="text-sm">Hide Paperclip:/Lint: prefixed tasks</span>
                   </label>
                 ) : null}
                 {enableProductivityReviewFilter ? (

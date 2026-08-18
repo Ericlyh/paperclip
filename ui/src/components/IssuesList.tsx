@@ -411,6 +411,7 @@ interface IssuesListProps {
   enableLintResidualTaskFilter?: boolean;
   enableProductivityReviewFilter?: boolean;
   enableHourlyLogRotationTaskFilter?: boolean;
+  enablePrefixedTaskFilter?: boolean;
   hasMoreIssues?: boolean;
   isLoadingMoreIssues?: boolean;
   mutedIssueIds?: Set<string>;
@@ -621,6 +622,7 @@ export function IssuesList({
   enableLintResidualTaskFilter = false,
   enableProductivityReviewFilter = false,
   enableHourlyLogRotationTaskFilter = false,
+  enablePrefixedTaskFilter = false,
   hasMoreIssues = false,
   isLoadingMoreIssues = false,
   mutedIssueIds,
@@ -984,6 +986,7 @@ export function IssuesList({
       enableLintResidualTaskFilter,
       enableProductivityReviewFilter,
       enableHourlyLogRotationTaskFilter,
+      enablePrefixedTaskFilter,
     );
     return sortIssues(filteredByControls, viewState);
   }, [
@@ -998,6 +1001,7 @@ export function IssuesList({
     enableLintResidualTaskFilter,
     enableProductivityReviewFilter,
     enableHourlyLogRotationTaskFilter,
+    enablePrefixedTaskFilter,
     liveIssueIds,
     issueFilterWorkspaceContext,
   ]);
@@ -1061,6 +1065,7 @@ export function IssuesList({
     enableLintResidualTaskFilter,
     enableProductivityReviewFilter,
     enableHourlyLogRotationTaskFilter,
+    enablePrefixedTaskFilter,
   );
   const boardHighVolume = viewState.viewMode === "board" && filtered.length > KANBAN_BOARD_HIGH_VOLUME_THRESHOLD;
   const boardCompactCards =
@@ -1496,6 +1501,7 @@ export function IssuesList({
             enableLintResidualTaskFilter={enableLintResidualTaskFilter}
             enableProductivityReviewFilter={enableProductivityReviewFilter}
             enableHourlyLogRotationTaskFilter={enableHourlyLogRotationTaskFilter}
+            enablePrefixedTaskFilter={enablePrefixedTaskFilter}
             iconOnly
             workspaces={isolatedWorkspacesEnabled ? workspaceOptions : undefined}
           />

@@ -6,6 +6,13 @@ export const LINT_RESIDUAL_TASK_TITLE_PREFIX = "Paperclip: Close lint residuals 
 // and "[lint-residual-prune] ..." that the strict prefix would miss.
 const LINT_RESIDUAL_TITLE_NEEDLES = ["lint residual", "lint-residual"];
 
+// Title prefixes for routine/automation-authored tasks. The "Hide Paperclip:
+// /Lint: prefixed tasks" filter hides any issue whose title begins with one
+// of these (after trimming whitespace). They sit alongside the per-routine
+// filters (lint-residual, hourly-log-rotation) so users can opt out of every
+// routine/automation row in one click without enumerating each routine.
+const PAPERCLIP_TASK_TITLE_PREFIXES = ["Paperclip:", "Lint:"] as const;
+
 export const HOURLY_LOG_ROTATION_TASK_TITLE_PREFIX = "Paperclip: Hourly Log Rotation";
 // Match the canonical "hourly log rotation" phrase in either spaced or
 // hyphenated form, mirroring the lint-residual pattern. This catches
@@ -37,6 +44,7 @@ export type IssueFilterState = {
   hideRoutineExecutions: boolean;
   hideLintResidualTasks?: boolean;
   hideHourlyLogRotationTasks?: boolean;
+  hidePrefixedTasks?: boolean;
   hideProductivityReviewIssues?: boolean;
 };
 
@@ -52,6 +60,7 @@ export const defaultIssueFilterState: IssueFilterState = {
   hideRoutineExecutions: false,
   hideLintResidualTasks: false,
   hideHourlyLogRotationTasks: false,
+  hidePrefixedTasks: false,
   // Default ON to preserve the prior always-hidden behaviour for
   // auto-generated "Review productivity for OOP-*" issues.
   hideProductivityReviewIssues: true,
@@ -98,6 +107,7 @@ export function normalizeIssueFilterState(value: unknown): IssueFilterState {
     hideRoutineExecutions: candidate.hideRoutineExecutions === true,
     hideLintResidualTasks: candidate.hideLintResidualTasks === true,
     hideHourlyLogRotationTasks: candidate.hideHourlyLogRotationTasks === true,
+    hidePrefixedTasks: candidate.hidePrefixedTasks === true,
     hideProductivityReviewIssues:
       candidate.hideProductivityReviewIssues === undefined
         ? defaultIssueFilterState.hideProductivityReviewIssues
@@ -123,6 +133,21 @@ export function isHourlyLogRotationTaskTitle(title: string | null | undefined): 
 
 export function isHourlyLogRotationTask(issue: Pick<Issue, "title">): boolean {
   return isHourlyLogRotationTaskTitle(issue.title);
+}
+
+// Title-prefix check for routine/automation-authored tasks. The check is
+// case-insensitive on the prefix and trims leading whitespace, so titles
+// like "  Paperclip: Hourly Log Rotation" and "lint: prune residuals"
+// both match their respective prefix.
+export function isPrefixedTaskTitle(title: string | null | undefined): boolean {
+  const normalized = title?.trim() ?? "";
+  if (normalized.length === 0) return false;
+  const lower = normalized.toLowerCase();
+  return PAPERCLIP_TASK_TITLE_PREFIXES.some((prefix) => lower.startsWith(prefix.toLowerCase()));
+}
+
+export function isPrefixedTask(issue: Pick<Issue, "title">): boolean {
+  return isPrefixedTaskTitle(issue.title);
 }
 
 export function isProductivityReviewIssue(issue: Pick<Issue, "originKind">): boolean {
@@ -181,6 +206,7 @@ export function applyIssueFilters(
   enableLintResidualTaskFilter = false,
   enableProductivityReviewFilter = false,
   enableHourlyLogRotationTaskFilter = false,
+  enablePrefixedTaskFilter = false,
 ): Issue[] {
   let result = issues;
   if (state.liveOnly) {
@@ -194,6 +220,9 @@ export function applyIssueFilters(
   }
   if (enableHourlyLogRotationTaskFilter && state.hideHourlyLogRotationTasks) {
     result = result.filter((issue) => !isHourlyLogRotationTask(issue));
+  }
+  if (enablePrefixedTaskFilter && state.hidePrefixedTasks) {
+    result = result.filter((issue) => !isPrefixedTask(issue));
   }
   if (enableProductivityReviewFilter && state.hideProductivityReviewIssues) {
     result = result.filter((issue) => !isProductivityReviewIssue(issue));
@@ -240,6 +269,7 @@ export function countActiveIssueFilters(
   enableLintResidualTaskFilter = false,
   enableProductivityReviewFilter = false,
   enableHourlyLogRotationTaskFilter = false,
+  enablePrefixedTaskFilter = false,
 ): number {
   let count = 0;
   if (state.statuses.length > 0) count += 1;
@@ -253,6 +283,7 @@ export function countActiveIssueFilters(
   if (enableRoutineVisibilityFilter && state.hideRoutineExecutions) count += 1;
   if (enableLintResidualTaskFilter && state.hideLintResidualTasks) count += 1;
   if (enableHourlyLogRotationTaskFilter && state.hideHourlyLogRotationTasks) count += 1;
+  if (enablePrefixedTaskFilter && state.hidePrefixedTasks) count += 1;
   if (enableProductivityReviewFilter && state.hideProductivityReviewIssues) count += 1;
   return count;
 }

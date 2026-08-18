@@ -4,6 +4,8 @@ import {
   isHourlyLogRotationTaskTitle,
   isLintResidualTask,
   isLintResidualTaskTitle,
+  isPrefixedTask,
+  isPrefixedTaskTitle,
   isProductivityReviewIssue,
   PRODUCTIVITY_REVIEW_ORIGIN_KIND,
 } from "./issue-filters";
@@ -60,6 +62,19 @@ export function isHourlyLogRotationTaskActivity(
     .some((title) => isHourlyLogRotationTaskTitle(title));
 }
 
+export function isPrefixedTaskActivity(
+  event: Pick<ActivityEvent, "entityType" | "entityId" | "details">,
+  issuesById: ReadonlyMap<string, Issue>,
+): boolean {
+  const issueId = activityIssueId(event);
+  const issue = issueId ? issuesById.get(issueId) : undefined;
+  if (issue) return isPrefixedTask(issue);
+
+  return ["issueTitle", "title"]
+    .map((key) => detailString(event.details, key))
+    .some((title) => isPrefixedTaskTitle(title));
+}
+
 export function isProductivityReviewActivity(
   event: Pick<ActivityEvent, "entityType" | "entityId" | "details">,
   issuesById: ReadonlyMap<string, Issue>,
@@ -76,11 +91,15 @@ export function getRecentDashboardActivity(
   hideLintResidualTasks: boolean,
   hideProductivityReviewIssues: boolean,
   hideHourlyLogRotationTasks = false,
+  hidePrefixedTasks = false,
 ): ActivityEvent[] {
   return events
     .filter((event) => !hideLintResidualTasks || !isLintResidualTaskActivity(event, issuesById))
     .filter(
       (event) => !hideHourlyLogRotationTasks || !isHourlyLogRotationTaskActivity(event, issuesById),
+    )
+    .filter(
+      (event) => !hidePrefixedTasks || !isPrefixedTaskActivity(event, issuesById),
     )
     .filter(
       (event) => !hideProductivityReviewIssues || !isProductivityReviewActivity(event, issuesById),
@@ -93,10 +112,12 @@ export function getRecentDashboardIssues(
   hideLintResidualTasks: boolean,
   hideProductivityReviewIssues: boolean,
   hideHourlyLogRotationTasks = false,
+  hidePrefixedTasks = false,
 ): Issue[] {
   return issues
     .filter((issue) => !hideLintResidualTasks || !isLintResidualTask(issue))
     .filter((issue) => !hideHourlyLogRotationTasks || !isHourlyLogRotationTask(issue))
+    .filter((issue) => !hidePrefixedTasks || !isPrefixedTask(issue))
     .filter(
       (issue) => !hideProductivityReviewIssues || !isProductivityReviewIssue(issue),
     )

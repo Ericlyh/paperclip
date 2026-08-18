@@ -8,6 +8,7 @@ import {
   getRecentDashboardIssues,
   isHourlyLogRotationTaskActivity,
   isLintResidualTaskActivity,
+  isPrefixedTaskActivity,
   isProductivityReviewActivity,
 } from "./dashboard-feed";
 
@@ -171,6 +172,67 @@ describe("dashboard feed helpers", () => {
 
     expect(getRecentDashboardActivity(events, issuesById, false, true)).toEqual([visibleEvent]);
     expect(getRecentDashboardActivity(events, issuesById, false, false)).toEqual([reviewEvent, visibleEvent]);
+  });
+
+  it("identifies Paperclip:/Lint: prefixed activity through an issue reference or event title", () => {
+    const paperclipIssue = makeIssue("paperclip", "Paperclip: Some routine task");
+    const lintIssue = makeIssue("lint", "Lint: residual review");
+    const issuesById = new Map([
+      [paperclipIssue.id, paperclipIssue],
+      [lintIssue.id, lintIssue],
+    ]);
+
+    expect(isPrefixedTaskActivity(makeEvent({ entityId: paperclipIssue.id }), issuesById)).toBe(true);
+    expect(isPrefixedTaskActivity(makeEvent({ entityId: lintIssue.id }), issuesById)).toBe(true);
+    expect(isPrefixedTaskActivity(
+      makeEvent({ details: { issueTitle: "Paperclip: Hourly Log Rotation" } }),
+      new Map(),
+    )).toBe(true);
+    expect(isPrefixedTaskActivity(
+      makeEvent({ details: { issueTitle: "Lint: prune residuals" } }),
+      new Map(),
+    )).toBe(true);
+    // Unrelated titles still don't match.
+    expect(isPrefixedTaskActivity(
+      makeEvent({ details: { issueTitle: "Manual task for the team" } }),
+      new Map(),
+    )).toBe(false);
+  });
+
+  it("excludes Paperclip:/Lint: prefixed events from recent activity when the toggle is on", () => {
+    const paperclipIssue = makeIssue("paperclip", "Paperclip: Some routine task");
+    const lintIssue = makeIssue("lint", "Lint: residual review");
+    const visibleEvent = makeEvent({ id: "visible", entityId: "visible-issue" });
+    const paperclipEvent = makeEvent({ id: "paperclip", entityId: paperclipIssue.id });
+    const lintEvent = makeEvent({ id: "lint", entityId: lintIssue.id });
+    const events = [paperclipEvent, lintEvent, visibleEvent];
+    const issuesById = new Map([
+      [paperclipIssue.id, paperclipIssue],
+      [lintIssue.id, lintIssue],
+    ]);
+
+    // hidePrefixedTasks=false (last positional arg) keeps the events.
+    expect(getRecentDashboardActivity(events, issuesById, false, false, false, false)).toEqual([
+      paperclipEvent,
+      lintEvent,
+      visibleEvent,
+    ]);
+    // hidePrefixedTasks=true hides both prefixed events.
+    expect(getRecentDashboardActivity(events, issuesById, false, false, false, true)).toEqual([visibleEvent]);
+  });
+
+  it("excludes Paperclip:/Lint: prefixed issues from the recent-tasks list when the toggle is on", () => {
+    const paperclipIssue = makeIssue("paperclip", "Paperclip: Some routine task", "2026-08-07T01:00:00.000Z");
+    const lintIssue = makeIssue("lint", "Lint: residual review", "2026-08-07T02:00:00.000Z");
+    const manualIssue = makeIssue("manual", "Manual task", "2026-08-07T03:00:00.000Z");
+
+    // hidePrefixedTasks=false (last positional arg) keeps both prefixed issues.
+    expect(getRecentDashboardIssues([paperclipIssue, lintIssue, manualIssue], false, false, false, false))
+      .toEqual([manualIssue, lintIssue, paperclipIssue]);
+    // hidePrefixedTasks=true hides both prefixed issues, sorted descending by
+    // updatedAt so manualIssue comes first.
+    expect(getRecentDashboardIssues([paperclipIssue, lintIssue, manualIssue], false, false, false, true))
+      .toEqual([manualIssue]);
   });
 
   it("sorts and caps recent tasks at the expanded dashboard limit", () => {

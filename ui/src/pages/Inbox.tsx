@@ -2011,6 +2011,7 @@ export function Inbox() {
                 enableLintResidualTaskFilter
                 enableProductivityReviewFilter
                 enableHourlyLogRotationTaskFilter
+                enablePrefixedTaskFilter
                 buttonVariant="outline"
                 iconOnly
                 workspaces={isolatedWorkspacesEnabled ? executionWorkspaces.filter((w) => w.mode === "isolated_workspace").map((w) => ({ id: w.id, name: w.name })) : undefined}
@@ -2111,6 +2112,7 @@ export function Inbox() {
                 enableLintResidualTaskFilter
                 enableProductivityReviewFilter
                 enableHourlyLogRotationTaskFilter
+                enablePrefixedTaskFilter
                 buttonVariant="outline"
                 iconOnly
                 workspaces={isolatedWorkspacesEnabled ? executionWorkspaces.filter((w) => w.mode === "isolated_workspace").map((w) => ({ id: w.id, name: w.name })) : undefined}
