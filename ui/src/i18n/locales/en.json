@@ -2281,5 +2281,30 @@
     "shareUnavailable": "Sharing is unavailable",
     "unexpectedError": "An unexpected error occurred",
     "updated": "Updated"
+  },
+  "approvals": {
+    "title": "Approvals",
+    "tabPending": "Pending",
+    "tabAll": "All",
+    "selectCompanyFirst": "Select a company first.",
+    "emptyPending": "No pending approvals.",
+    "emptyAll": "No approvals yet.",
+    "failedToApprove": "Failed to approve",
+    "failedToReject": "Failed to reject"
+  },
+  "dashboardLive": {
+    "breadcrumb": "Live runs",
+    "title": "Live agent runs",
+    "subtitle": "Active runs first, followed by the most recent completed runs.",
+    "panelTitle": "Active / recent",
+    "emptyMessage": "No active or recent agent runs.",
+    "createCompanyToView": "Create a company to view live runs.",
+    "selectCompanyToView": "Select a company to view live runs.",
+    "showingUpTo": "Showing up to {{count}}"
+  },
+  "companies": {
+    "title": "Companies",
+    "loading": "Loading companies...",
+    "unlimitedBudget": "Unlimited budget"
   }
 }

@@ -2281,5 +2281,30 @@
     "shareUnavailable": "無法使用分享功能",
     "unexpectedError": "發生未預期的錯誤",
     "updated": "已更新"
+  },
+  "approvals": {
+    "title": "核准",
+    "tabPending": "待處理",
+    "tabAll": "全部",
+    "selectCompanyFirst": "請先選擇公司。",
+    "emptyPending": "目前沒有待處理的核准。",
+    "emptyAll": "目前沒有核准項目。",
+    "failedToApprove": "核准失敗",
+    "failedToReject": "拒絕失敗"
+  },
+  "dashboardLive": {
+    "breadcrumb": "即時執行",
+    "title": "代理即時執行",
+    "subtitle": "先顯示進行中的執行項目，接著顯示最近完成的執行項目。",
+    "panelTitle": "進行中／最近",
+    "emptyMessage": "目前沒有進行中或最近的代理執行。",
+    "createCompanyToView": "請先建立公司以檢視即時執行項目。",
+    "selectCompanyToView": "請選擇公司以檢視即時執行項目。",
+    "showingUpTo": "最多顯示 {{count}} 個"
+  },
+  "companies": {
+    "title": "公司",
+    "loading": "正在載入公司...",
+    "unlimitedBudget": "無預算上限"
   }
 }
