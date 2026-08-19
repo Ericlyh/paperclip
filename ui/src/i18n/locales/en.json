@@ -707,7 +707,17 @@
     "breadcrumb": "Goals",
     "newGoal": "New Goal",
     "noGoalsYet": "No goals yet.",
-    "selectCompany": "Select a company to view goals."
+    "selectCompany": "Select a company to view goals.",
+    "goalDetail": {
+      "showProperties": "Show properties",
+      "breadcrumbFallback": "Goal",
+      "addDescriptionPlaceholder": "Add a description...",
+      "tabSubGoals": "Sub-Goals ({{count}})",
+      "tabProjects": "Projects ({{count}})",
+      "newSubGoal": "Sub Goal",
+      "emptySubGoals": "No sub-goals.",
+      "emptyLinkedProjects": "No linked projects."
+    }
   },
   "inbox": {
     "action": {
@@ -1817,6 +1827,33 @@
       "newHiresPending": "New agent hires stay pending until approved by board.",
       "requireBoardApproval": "Require board approval for new hires",
       "suggestedTasks": "Suggested tasks"
+    },
+    "profileSettings": {
+      "title": "Profile",
+      "subtitle": "Control how your account appears in the sidebar and other board surfaces.",
+      "breadcrumbProfile": "Profile",
+      "breadcrumbSettings": "Settings",
+      "breadcrumbInstanceSettings": "Instance settings",
+      "loadingProfile": "Loading profile...",
+      "failedToLoadProfile": "Failed to load profile.",
+      "failedToUpdateProfile": "Failed to update profile.",
+      "failedToUploadAvatar": "Failed to upload avatar.",
+      "failedToRemoveAvatar": "Failed to remove avatar.",
+      "selectCompanyFirst": "Select a company before uploading a profile avatar.",
+      "uploadPhoto": "Upload photo",
+      "changePhoto": "Change photo",
+      "remove": "Remove",
+      "clickAvatarHint": "Click the avatar to upload a new image.",
+      "uploadHintCompany": "Stored in Paperclip file storage for {{company}}.",
+      "uploadHintNoCompany": "Select a company to upload an avatar into Paperclip storage.",
+      "noEmail": "No email",
+      "displayName": "Display name",
+      "displayNameHelp": "Shown in the sidebar account footer and comment author surfaces.",
+      "email": "Email",
+      "emailHelp": "Email is managed by your auth session and is read-only here.",
+      "saving": "Saving...",
+      "saveProfile": "Save profile",
+      "board": "Board"
     }
   },
   "sidebar": {
@@ -2290,7 +2327,40 @@
     "emptyPending": "No pending approvals.",
     "emptyAll": "No approvals yet.",
     "failedToApprove": "Failed to approve",
-    "failedToReject": "Failed to reject"
+    "failedToReject": "Failed to reject",
+    "approvalDetail": {
+      "breadcrumbFallback": "Approval",
+      "approveFailed": "Approve failed",
+      "rejectFailed": "Reject failed",
+      "revisionFailed": "Revision request failed",
+      "resubmitFailed": "Resubmit failed",
+      "commentFailed": "Comment failed",
+      "deleteFailed": "Delete failed",
+      "notFound": "Approval not found.",
+      "reviewLinkedTasks": "Review linked tasks",
+      "reviewLinkedTask": "Review linked task",
+      "openHiredAgent": "Open hired agent",
+      "backToApprovals": "Back to approvals",
+      "approvalConfirmed": "Approval confirmed",
+      "approvalConfirmedBody": "Requesting agent was notified to review this approval and linked tasks.",
+      "requestedBy": "Requested by",
+      "seeFullRequest": "See full request",
+      "decisionNote": "Decision note:",
+      "linkedTasks": "Linked Tasks",
+      "linkedTasksRemainOpen": "Linked tasks remain open until the requesting agent follows up and closes them.",
+      "resolveBudgetStop": "Resolve this budget stop from the budget controls on",
+      "approve": "Approve",
+      "reject": "Reject",
+      "requestRevision": "Request revision",
+      "markResubmitted": "Mark resubmitted",
+      "deleteDisapprovedAgentConfirm": "Delete this disapproved agent? This cannot be undone.",
+      "deleteDisapprovedAgent": "Delete disapproved agent",
+      "comments": "Comments ({{count}})",
+      "board": "Board",
+      "addCommentPlaceholder": "Add a comment...",
+      "posting": "Posting…",
+      "postComment": "Post comment"
+    }
   },
   "dashboardLive": {
     "breadcrumb": "Live runs",

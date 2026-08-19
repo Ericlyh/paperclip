@@ -707,7 +707,17 @@
     "breadcrumb": "目標",
     "newGoal": "新增目標",
     "noGoalsYet": "尚無目標。",
-    "selectCompany": "請選擇一家公司以檢視目標。"
+    "selectCompany": "請選擇一家公司以檢視目標。",
+    "goalDetail": {
+      "showProperties": "顯示屬性",
+      "breadcrumbFallback": "目標",
+      "addDescriptionPlaceholder": "新增說明...",
+      "tabSubGoals": "子目標 ({{count}})",
+      "tabProjects": "專案 ({{count}})",
+      "newSubGoal": "新增子目標",
+      "emptySubGoals": "目前沒有子目標。",
+      "emptyLinkedProjects": "目前沒有連結的專案。"
+    }
   },
   "inbox": {
     "action": {
@@ -1817,6 +1827,33 @@
       "newHiresPending": "新代理加入需待看板審核後才能啟用。",
       "requireBoardApproval": "新進代理需由看板審核",
       "suggestedTasks": "建議的任務"
+    },
+    "profileSettings": {
+      "title": "個人檔案",
+      "subtitle": "控制您的帳號在側邊欄及其他看板介面上的顯示方式。",
+      "breadcrumbProfile": "個人檔案",
+      "breadcrumbSettings": "設定",
+      "breadcrumbInstanceSettings": "執行個體設定",
+      "loadingProfile": "正在載入個人檔案...",
+      "failedToLoadProfile": "載入個人檔案失敗。",
+      "failedToUpdateProfile": "更新個人檔案失敗。",
+      "failedToUploadAvatar": "上傳大頭貼失敗。",
+      "failedToRemoveAvatar": "移除大頭貼失敗。",
+      "selectCompanyFirst": "上傳大頭貼之前請先選擇公司。",
+      "uploadPhoto": "上傳照片",
+      "changePhoto": "更換照片",
+      "remove": "移除",
+      "clickAvatarHint": "點擊大頭貼即可上傳新圖片。",
+      "uploadHintCompany": "儲存於 {{company}} 的 Paperclip 檔案儲存空間。",
+      "uploadHintNoCompany": "請選擇公司以上傳大頭貼到 Paperclip 儲存空間。",
+      "noEmail": "無電子郵件",
+      "displayName": "顯示名稱",
+      "displayNameHelp": "顯示於側邊欄帳號區塊及留言作者資訊中。",
+      "email": "電子郵件",
+      "emailHelp": "電子郵件由您的登入工作階段管理，於此處為唯讀。",
+      "saving": "儲存中...",
+      "saveProfile": "儲存個人檔案",
+      "board": "看板"
     }
   },
   "sidebar": {
@@ -2290,7 +2327,40 @@
     "emptyPending": "目前沒有待處理的核准。",
     "emptyAll": "目前沒有核准項目。",
     "failedToApprove": "核准失敗",
-    "failedToReject": "拒絕失敗"
+    "failedToReject": "拒絕失敗",
+    "approvalDetail": {
+      "breadcrumbFallback": "核准",
+      "approveFailed": "核准失敗",
+      "rejectFailed": "拒絕失敗",
+      "revisionFailed": "請求修訂失敗",
+      "resubmitFailed": "重新提交失敗",
+      "commentFailed": "留言失敗",
+      "deleteFailed": "刪除失敗",
+      "notFound": "找不到核准項目。",
+      "reviewLinkedTasks": "檢視連結的任務",
+      "reviewLinkedTask": "檢視連結的任務",
+      "openHiredAgent": "開啟已僱用的代理",
+      "backToApprovals": "返回核准列表",
+      "approvalConfirmed": "已確認核准",
+      "approvalConfirmedBody": "已通知提出請求的代理檢視此核准及連結的任務。",
+      "requestedBy": "提出者",
+      "seeFullRequest": "檢視完整請求",
+      "decisionNote": "決策備註：",
+      "linkedTasks": "連結的任務",
+      "linkedTasksRemainOpen": "連結的任務會持續保持開啟，直到提出請求的代理跟進並關閉它們。",
+      "resolveBudgetStop": "請從預算頁面的預算控制項處理此預算阻擋，網址：",
+      "approve": "核准",
+      "reject": "拒絕",
+      "requestRevision": "請求修訂",
+      "markResubmitted": "標示為重新提交",
+      "deleteDisapprovedAgentConfirm": "刪除這個未通過審核的代理嗎？此操作無法復原。",
+      "deleteDisapprovedAgent": "刪除未通過審核的代理",
+      "comments": "留言 ({{count}})",
+      "board": "看板",
+      "addCommentPlaceholder": "新增留言...",
+      "posting": "送出中…",
+      "postComment": "送出留言"
+    }
   },
   "dashboardLive": {
     "breadcrumb": "即時執行",
