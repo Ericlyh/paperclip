@@ -181,7 +181,8 @@
     "changed": "(changed)",
     "rarr": "&rarr;",
     "stderr_excerpt": "stderr excerpt",
-    "stdout_excerpt": "stdout excerpt"
+    "stdout_excerpt": "stdout excerpt",
+    "New_Agent": "新增 Agent"
   },
   "app": {
     "noCompanies": {
@@ -2868,5 +2869,14 @@
     "back": "Back",
     "skillsStore": "Skills Store",
     "skillsStoreSubtitle": "Discover, install, fork, share"
+  },
+  "adapterManager": {
+    "title": "配接器"
+  },
+  "userProfile": {
+    "title": "使用者"
+  },
+  "pluginManager": {
+    "title": "外掛管理"
   }
 }
