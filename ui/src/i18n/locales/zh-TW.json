@@ -1445,6 +1445,16 @@
     "inbox": "收件匣",
     "tasks": "任務"
   },
+  "orgChart": {
+    "selectCompany": "請選擇公司以檢視組織圖。",
+    "noHierarchy": "尚未定義組織階層。",
+    "importCompany": "匯入公司",
+    "exportCompany": "匯出公司",
+    "zoomIn": "放大",
+    "zoomOut": "縮小",
+    "fitToScreen": "縮放至符合畫面",
+    "fitToScreenAria": "將組織圖縮放至符合畫面"
+  },
   "pipelineSettings": {
     "A_new_workspace_will_be_created": "將建立新的工作區",
     "A_pipeline_in_this_workspace": "此工作區中的管線",
@@ -2248,6 +2258,24 @@
     "export": "匯出",
     "import": "匯入"
   },
+  "settingsSidebar": {
+    "title": "公司設定",
+    "companySectionHeading": "公司設定",
+    "instanceSectionHeading": "執行個體設定",
+    "general": "一般",
+    "export": "匯出",
+    "import": "匯入",
+    "members": "成員",
+    "invites": "邀請",
+    "secrets": "密鑰",
+    "profile": "個人檔案",
+    "environments": "環境",
+    "access": "存取權限",
+    "heartbeats": "心跳",
+    "experimental": "實驗性",
+    "plugins": "外掛",
+    "adapters": "轉接器"
+  },
   "sidebar": {
     "activity": "活動",
     "apps": "應用程式",
@@ -2677,7 +2705,7 @@
     "No_required_skills": "No required skills.",
     "No_team_catalog_configured": "No team catalog configured.",
     "No_teams_match_this_filter": "No teams match this filter.",
-    "Org_Chart": "Org Chart",
+    "Org_Chart": "組織圖",
     "Permit_optional_sources_that_are_not_pin": "Permit optional sources that are not pinned to a ref or checksum.",
     "Prerequisite_skills": "Prerequisite skills",
     "Projects_imported": "Projects imported",

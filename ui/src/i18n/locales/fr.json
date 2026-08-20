@@ -1437,6 +1437,16 @@
     "switchToEnglish": "Switch to English",
     "toggleDescription": "Toggle the interface language."
   },
+  "orgChart": {
+    "selectCompany": "Select a company to view the org chart.",
+    "noHierarchy": "No organizational hierarchy defined.",
+    "importCompany": "Import company",
+    "exportCompany": "Export company",
+    "zoomIn": "Zoom in",
+    "zoomOut": "Zoom out",
+    "fitToScreen": "Fit to screen",
+    "fitToScreenAria": "Fit chart to screen"
+  },
   "pipelineSettings": {
     "A_new_workspace_will_be_created": "A new workspace will be created",
     "A_pipeline_in_this_workspace": "A pipeline in this workspace",
@@ -2239,6 +2249,24 @@
     },
     "export": "Export",
     "import": "Import"
+  },
+  "settingsSidebar": {
+    "title": "Company Settings",
+    "companySectionHeading": "Company settings",
+    "instanceSectionHeading": "Instance settings",
+    "general": "General",
+    "export": "Export",
+    "import": "Import",
+    "members": "Members",
+    "invites": "Invites",
+    "secrets": "Secrets",
+    "profile": "Profile",
+    "environments": "Environments",
+    "access": "Access",
+    "heartbeats": "Heartbeats",
+    "experimental": "Experimental",
+    "plugins": "Plugins",
+    "adapters": "Adapters"
   },
   "sidebar": {
     "activity": "Activity",
