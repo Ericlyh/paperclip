@@ -24,6 +24,7 @@ import { useSidebar } from "../context/SidebarContext";
 import { useCompany } from "../context/CompanyContext";
 import { useToastActions } from "../context/ToastContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
+import { useTranslation } from "../i18n";
 import { queryKeys } from "../lib/queryKeys";
 import { copyTextToClipboard } from "../lib/clipboard";
 import { AgentSkillsTab } from "./agent-skills/AgentSkillsTab";
@@ -699,6 +700,7 @@ export function AgentDetail() {
   const { companies, selectedCompanyId, setSelectedCompanyId } = useCompany();
   const { closePanel } = usePanel();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [actionError, setActionError] = useState<string | null>(null);
@@ -994,7 +996,7 @@ export function AgentDetail() {
 
   useEffect(() => {
     const crumbs: { label: string; href?: string }[] = [
-      { label: "Agents", href: "/agents" },
+      { label: t("mobileNav.agents"), href: "/agents" },
     ];
     const agentName = agent?.name ?? routeAgentRef ?? "Agent";
     if (activeView === "dashboard" && !urlRunId) {
@@ -1021,7 +1023,7 @@ export function AgentDetail() {
       }
     }
     setBreadcrumbs(crumbs);
-  }, [setBreadcrumbs, agent, routeAgentRef, canonicalAgentRef, activeView, urlRunId]);
+  }, [setBreadcrumbs, agent, routeAgentRef, canonicalAgentRef, activeView, urlRunId, t]);
 
   useEffect(() => {
     closePanel();
