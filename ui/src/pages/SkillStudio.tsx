@@ -541,12 +541,12 @@ function StudioNewSkillPanel({
 
       <section className="space-y-3">
         <div>
-          <h2 className="text-sm font-medium text-foreground">Basics</h2>
+          <h2 className="text-sm font-medium text-foreground">{t("skillStudio.Basics_section_heading")}</h2>
           <p className="text-xs text-muted-foreground">{t("skillStudio.Name_the_skill_and_set_the_route_safe_sl")}</p>
         </div>
         <div className="grid gap-3 md:grid-cols-2">
           <div className="space-y-1.5">
-            <Label htmlFor="skill-name">Name</Label>
+            <Label htmlFor="skill-name">{t("skillStudio.Field_label_Name")}</Label>
             <Input
               id="skill-name"
               value={draft.name}
@@ -564,7 +564,7 @@ function StudioNewSkillPanel({
             />
           </div>
           <div className="space-y-1.5">
-            <Label htmlFor="skill-slug">Slug</Label>
+            <Label htmlFor="skill-slug">{t("skillStudio.Field_label_Slug")}</Label>
             <Input
               id="skill-slug"
               value={draft.slug}
@@ -579,7 +579,7 @@ function StudioNewSkillPanel({
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="skill-tagline">Tagline</Label>
+          <Label htmlFor="skill-tagline">{t("skillStudio.Field_label_Tagline")}</Label>
           <Textarea
             id="skill-tagline"
             value={draft.tagline}
@@ -601,7 +601,7 @@ function StudioNewSkillPanel({
 
       <section className="space-y-3">
         <div>
-          <h2 className="text-sm font-medium text-foreground">Appearance</h2>
+          <h2 className="text-sm font-medium text-foreground">{t("skillStudio.Appearance_section_heading")}</h2>
           <p className="text-xs text-muted-foreground">{t("skillStudio.Tune_how_the_skill_appears_in_the_store_")}</p>
         </div>
         <div className="flex items-center gap-3">
@@ -612,7 +612,7 @@ function StudioNewSkillPanel({
           </div>
         </div>
         <div className="space-y-2">
-          <Label>Color</Label>
+          <Label>{t("skillStudio.Field_label_Color")}</Label>
           <div className="flex flex-wrap items-center gap-2">
             {SKILL_CREATE_ACCENTS.map((color) => (
               <button
@@ -636,7 +636,7 @@ function StudioNewSkillPanel({
           </div>
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="skill-categories">Categories</Label>
+          <Label htmlFor="skill-categories">{t("skillStudio.Field_label_Categories")}</Label>
           <Input
             id="skill-categories"
             value={categoryDraft}
@@ -648,7 +648,7 @@ function StudioNewSkillPanel({
 
       <section className="space-y-3">
         <div>
-          <h2 className="text-sm font-medium text-foreground">Sharing</h2>
+          <h2 className="text-sm font-medium text-foreground">{t("skillStudio.Sharing_section_heading")}</h2>
           <p className="text-xs text-muted-foreground">{t("skillStudio.Choose_who_can_discover_this_skill_insid")}</p>
         </div>
         <div className="grid gap-2 sm:grid-cols-3">
@@ -673,7 +673,7 @@ function StudioNewSkillPanel({
             disabled
             className="rounded-md border border-dashed border-border px-3 py-2 text-left text-sm text-muted-foreground"
           >
-            <span className="block font-medium">Public</span>
+            <span className="block font-medium">{t("skillStudio.Visibility_option_Public")}</span>
             <span className="mt-1 block text-xs">{t("skillStudio.Coming_later")}</span>
           </button>
         </div>
@@ -1166,7 +1166,7 @@ function StudioHeader({
         <Badge variant="secondary">{t("skillStudio.Unsaved_edits")}</Badge>
       ) : null}
       {!skill.editable ? (
-        <Badge variant="secondary">Read-only</Badge>
+        <Badge variant="secondary">{t("skillStudio.Badge_Read_only")}</Badge>
       ) : null}
       {skill.forkedFromSkillId ? (
         <SkillLineageChip
@@ -1512,10 +1512,10 @@ function SkillPane({
           </span>
           <div className="flex items-center gap-2">
             {readOnly ? (
-              <Badge variant="secondary">Read-only</Badge>
+              <Badge variant="secondary">{t("skillStudio.Badge_Read_only")}</Badge>
             ) : (
               <>
-                {dirty && <Badge variant="secondary">Unsaved</Badge>}
+                {dirty && <Badge variant="secondary">{t("skillStudio.Badge_Unsaved")}</Badge>}
                 <Button
                   size="sm"
                   disabled={!dirty || saveMutation.isPending}
@@ -2040,7 +2040,7 @@ function InputPane({
             </TooltipTrigger>
             <TooltipContent>{collapsed ? t("skillStudio.Expand_input") : t("skillStudio.Collapse_input")}</TooltipContent>
           </Tooltip>
-          <span>Input</span>
+          <span>{t("skillStudio.Input_section_label")}</span>
         </span>
       }
       action={
@@ -2149,7 +2149,7 @@ function InputPane({
               <span className="truncate">
                 {selectedInput ? selectedInput.name : adHocMode ? t("skillStudio.New_input") : t("skillStudio.No_input_selected")}
               </span>
-              {dirty ? <Badge variant="secondary">Unsaved</Badge> : null}
+              {dirty ? <Badge variant="secondary">{t("skillStudio.Badge_Unsaved")}</Badge> : null}
             </div>
             {selectedInput && dirty ? (
               <>
@@ -2257,7 +2257,7 @@ function SaveInputDialog({
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1">
-            <Label htmlFor="input-name">Name</Label>
+            <Label htmlFor="input-name">{t("skillStudio.Field_label_Name")}</Label>
             <Input
               id="input-name"
               value={name}
@@ -2267,7 +2267,7 @@ function SaveInputDialog({
             <p className="text-xs text-muted-foreground">{t("skillStudio.Use_for_folders_e_g_onboarding_happy_pat")}</p>
           </div>
           <div className="space-y-1">
-            <Label htmlFor="input-content">Content</Label>
+            <Label htmlFor="input-content">{t("skillStudio.Field_label_Content")}</Label>
             <Textarea
               id="input-content"
               value={content}
@@ -2712,7 +2712,7 @@ function RunTemplateAdvancedPanel({
         ) : (
           <ChevronRight className="h-3.5 w-3.5" />
         )}
-        <span className="font-semibold uppercase tracking-wide">Advanced</span>
+        <span className="font-semibold uppercase tracking-wide">{t("skillStudio.Advanced_section_heading")}</span>
         <span className="ml-auto truncate">{selectedTemplateName}</span>
       </button>
       {open ? (
@@ -2879,7 +2879,7 @@ function RunTemplateDialog({
         </DialogHeader>
         <div className="space-y-3">
           <div className="space-y-1">
-            <Label htmlFor="run-template-name">Name</Label>
+            <Label htmlFor="run-template-name">{t("skillStudio.Field_label_Name")}</Label>
             <Input
               id="run-template-name"
               value={name}
@@ -2888,7 +2888,7 @@ function RunTemplateDialog({
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="run-template-description">Description</Label>
+            <Label htmlFor="run-template-description">{t("skillStudio.Run_template_Description_label")}</Label>
             <Input
               id="run-template-description"
               value={description}
@@ -2897,7 +2897,7 @@ function RunTemplateDialog({
             />
           </div>
           <div className="space-y-1">
-            <Label htmlFor="run-template-body">Body</Label>
+            <Label htmlFor="run-template-body">{t("skillStudio.Run_template_Body_label")}</Label>
             <Textarea
               id="run-template-body"
               value={body}
@@ -3140,7 +3140,7 @@ function RunDetailView({
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={runBadgeStatus(detail.status)} />
           <Identity name={agentName} size="xs" />
-          {removed && <Badge variant="secondary">removed</Badge>}
+          {removed && <Badge variant="secondary">{t("skillStudio.Badge_removed")}</Badge>}
           <span className="font-mono text-xs text-muted-foreground">
             v{detail.skillVersion.revisionNumber}
           </span>
@@ -3312,7 +3312,7 @@ function RunDocumentsSection({ documents }: { documents: IssueDocument[] }) {
     <section className="space-y-2">
       <div className="flex items-center gap-2">
         <FileText className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
-        <h3 className="text-sm font-medium text-muted-foreground">Documents</h3>
+        <h3 className="text-sm font-medium text-muted-foreground">{t("skillStudio.Documents_section_heading")}</h3>
         <span className="text-xs text-muted-foreground">{documents.length}</span>
       </div>
       <div className="space-y-2">
@@ -3612,12 +3612,13 @@ function MobileTabs({
   input: React.ReactNode;
   runs: React.ReactNode;
 }) {
+  const { t } = useTranslation();
   return (
     <Tabs defaultValue="skill" className="flex flex-1 flex-col">
       <TabsList variant="line" className="px-3">
-        <TabsTrigger value="skill">Skill</TabsTrigger>
-        <TabsTrigger value="input">Input</TabsTrigger>
-        <TabsTrigger value="runs">Runs</TabsTrigger>
+        <TabsTrigger value="skill">{t("skillStudio.Mobile_tab_Skill")}</TabsTrigger>
+        <TabsTrigger value="input">{t("skillStudio.Mobile_tab_Input")}</TabsTrigger>
+        <TabsTrigger value="runs">{t("skillStudio.Mobile_tab_Runs")}</TabsTrigger>
       </TabsList>
       <TabsContent value="skill" className="min-h-0 flex-1">
         {skill}
