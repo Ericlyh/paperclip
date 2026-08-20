@@ -19,6 +19,7 @@ import { ConfigureBuiltInAgentModal } from "@/components/ConfigureBuiltInAgentMo
 import { InlineBanner } from "@/components/InlineBanner";
 import { useSummaryDraftStream } from "@/components/useSummaryDraftStream";
 import { useCompanyLiveEvent } from "@/context/LiveUpdatesProvider";
+import { useTranslation } from "@/i18n";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectSeparator, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -141,6 +142,7 @@ export function SummarySlotCard({
   description,
   className,
 }: SummarySlotCardProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [selectedRevisionId, setSelectedRevisionId] = useState<string | null>(null);
   const [configureOpen, setConfigureOpen] = useState(false);
@@ -459,7 +461,9 @@ export function SummarySlotCard({
 
           <div className="flex flex-col gap-3 text-xs text-muted-foreground sm:flex-row sm:items-center sm:justify-between">
             <span title={formatDateTime(historicalRevision?.createdAt ?? latestRevision?.createdAt ?? latestDocument.updatedAt)}>
-              Updated {relativeTime(historicalRevision?.createdAt ?? latestRevision?.createdAt ?? latestDocument.updatedAt)}
+              {t("summarySlot.updatedAgo", {
+                value: relativeTime(historicalRevision?.createdAt ?? latestRevision?.createdAt ?? latestDocument.updatedAt),
+              })}
             </span>
 
             {revisions.length > 1 ? (

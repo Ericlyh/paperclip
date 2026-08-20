@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "../../i18n";
 import {
   ArrowRight,
   Braces,
@@ -110,6 +111,7 @@ export function OverviewSection({
 }: {
   defaultDescriptionAnnotationsOpen?: boolean;
 } = {}) {
+  const { t } = useTranslation();
   const ctx = useRoutineDetail();
   const {
     routine,
@@ -159,10 +161,10 @@ export function OverviewSection({
             value={editDraft.assigneeAgentId}
             options={assigneeOptions}
             recentOptionIds={recentAssigneeIds}
-            placeholder="Responsible"
-            noneLabel="No responsible"
-            searchPlaceholder="Search responsible..."
-            emptyMessage="No responsible found."
+            placeholder={t("routines.responsible", { defaultValue: "Responsible" })}
+            noneLabel={t("routines.noResponsible")}
+            searchPlaceholder={t("routines.searchResponsible")}
+            emptyMessage={t("routines.noResponsibleFound")}
             onChange={(assigneeAgentId) =>
               setEditDraft((current) => ({ ...current, assigneeAgentId }))
             }
@@ -184,7 +186,7 @@ export function OverviewSection({
                   <span className="truncate">{option.label}</span>
                 )
               ) : (
-                <span className="text-muted-foreground">Responsible</span>
+                <span className="text-muted-foreground">{t("routines.responsible", { defaultValue: "Responsible" })}</span>
               )
             }
             renderOption={(option) => {
@@ -206,10 +208,10 @@ export function OverviewSection({
             value={editDraft.projectId}
             options={projectOptions}
             recentOptionIds={recentProjectIds}
-            placeholder="Project"
-            noneLabel="No project"
-            searchPlaceholder="Search projects..."
-            emptyMessage="No projects found."
+            placeholder={t("routines.project", { defaultValue: "Project" })}
+            noneLabel={t("routines.noProject")}
+            searchPlaceholder={t("routines.searchProjects")}
+            emptyMessage={t("routines.noProjectsFound")}
             onChange={(projectId) => setEditDraft((current) => ({ ...current, projectId }))}
             onConfirm={() => descriptionEditorRef.current?.focus()}
             renderTriggerValue={(option) =>
@@ -222,7 +224,7 @@ export function OverviewSection({
                   <span className="truncate">{option.label}</span>
                 </>
               ) : (
-                <span className="text-muted-foreground">Project</span>
+                <span className="text-muted-foreground">{t("routines.project", { defaultValue: "Project" })}</span>
               )
             }
             renderOption={(option) => {
@@ -341,7 +343,7 @@ export function OverviewSection({
           icon={Play}
           label="Last run"
           value={lastRun ? lastRun.status.replaceAll("_", " ") : "No runs"}
-          hint={lastRun ? timeAgo(lastRun.triggeredAt) : "Trigger a run"}
+          hint={lastRun ? timeAgo(lastRun.triggeredAt) : t("routines.triggerARun", { defaultValue: "Trigger a run" })}
           to={() => navigateToSection("runs")}
           ariaLabel={lastRun ? `Last run ${lastRun.status}. Open runs.` : "No runs. Open runs."}
         />

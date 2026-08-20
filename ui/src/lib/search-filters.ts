@@ -2,6 +2,7 @@ import {
   COMPANY_SEARCH_SORTS,
   type CompanySearchSort,
 } from "@paperclipai/shared";
+import { t } from "../i18n";
 import type { ParsedSearchQuery } from "./search-query-parser";
 
 /**
@@ -19,6 +20,10 @@ export const SORT_LABELS: Record<CompanySearchSort, string> = {
   created: "Newest created",
   priority: "Priority",
 };
+
+export function sortLabel(value: CompanySearchSort): string {
+  return t(`search.sort.${value}`);
+}
 
 export const UPDATED_WITHIN_LABELS: Record<string, string> = {
   "24h": "Last 24 hours",

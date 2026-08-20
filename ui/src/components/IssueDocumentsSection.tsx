@@ -20,6 +20,7 @@ import { deriveDocumentRevisionState } from "../lib/document-revisions";
 import type { CompanyUserProfile } from "../lib/company-members";
 import { queryKeys } from "../lib/queryKeys";
 import { cn, relativeTime } from "../lib/utils";
+import { useTranslation } from "../i18n";
 import { FoldCurtain } from "./FoldCurtain";
 import { DocumentAnnotationsCountChip, IssueDocumentAnnotations } from "./IssueDocumentAnnotations";
 import type { DocumentAnnotationTarget } from "@/api/document-annotations";
@@ -320,6 +321,7 @@ export function IssueDocumentsSection({
   const autosaveDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const copiedDocumentTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const hasScrolledToHashRef = useRef(false);
+  const { t } = useTranslation();
   const {
     state: autosaveState,
     markDirty,
@@ -1248,7 +1250,7 @@ export function IssueDocumentsSection({
                           <div className="mb-2 flex items-center gap-2 text-(length:--text-micro) text-muted-foreground">
                             <span>Remote revision {activeConflict.serverDocument.latestRevisionNumber}</span>
                             <span>•</span>
-                            <span>updated {relativeTime(activeConflict.serverDocument.updatedAt)}</span>
+                            <span>{t("time.updatedAgo", { value: relativeTime(activeConflict.serverDocument.updatedAt) })}</span>
                           </div>
                           {!isPlanKey(doc.key) && activeConflict.serverDocument.title ? (
                             <p className="mb-2 text-sm font-medium">{activeConflict.serverDocument.title}</p>

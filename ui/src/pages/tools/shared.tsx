@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusBadge } from "@/components/StatusBadge";
 import { ApiError } from "@/api/client";
+import { useTranslation } from "../../i18n";
 
 /** Risk classification badge for a catalog tool. */
 export function RiskBadge({ risk }: { risk: ToolRiskLevel | null | undefined }) {
@@ -116,6 +117,7 @@ export function DecisionBadge({ decision }: { decision: ToolPolicyDecision | str
 
 /** Compact relative time, falling back to absolute. */
 export function RelativeTime({ value }: { value: Date | string | null | undefined }) {
+  const { t } = useTranslation();
   if (!value) return <span className="text-muted-foreground">never</span>;
   const date = typeof value === "string" ? new Date(value) : value;
   if (Number.isNaN(date.getTime())) return <span className="text-muted-foreground">—</span>;
@@ -124,11 +126,19 @@ export function RelativeTime({ value }: { value: Date | string | null | undefine
   const mins = Math.round(abs / 60000);
   const isFuture = diffMs < 0;
   let text: string;
-  if (mins < 1) text = "just now";
-  else {
-    const value =
-      mins < 60 ? `${mins}m` : mins < 1440 ? `${Math.round(mins / 60)}h` : `${Math.round(mins / 1440)}d`;
-    text = isFuture ? `in ${value}` : `${value} ago`;
+  if (mins < 1) text = t("time.justNow", { defaultValue: "just now" });
+  else if (mins < 60) {
+    const value = mins;
+    const fallback = `${value}m ago`;
+    text = isFuture ? `in ${fallback}` : t("time.minutesAgo", { value, defaultValue: fallback });
+  } else if (mins < 1440) {
+    const value = Math.round(mins / 60);
+    const fallback = `${value}h ago`;
+    text = isFuture ? `in ${fallback}` : t("time.hoursAgo", { value, defaultValue: fallback });
+  } else {
+    const value = Math.round(mins / 1440);
+    const fallback = `${value}d ago`;
+    text = isFuture ? `in ${fallback}` : t("time.daysAgo", { value, defaultValue: fallback });
   }
   return (
     <span title={date.toLocaleString()} className="text-muted-foreground">

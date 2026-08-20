@@ -19,6 +19,7 @@ import type {
   WorkTimelineResult,
   WorkTimelineSpan,
 } from "@paperclipai/shared";
+import { t } from "../../i18n";
 
 export interface LayoutOptions {
   /** px per minute along the x axis (set by the zoom level). */
@@ -264,9 +265,9 @@ export function computeLayout(result: WorkTimelineResult, opts: LayoutOptions): 
   // Rows: any actor with in-window runs gets a row. Event-only comments/creates
   // do not create marker-only rows because they make the chart noisy.
   const firstActivity = new Map<string, number>();
-  const noteActivity = (actorId: string, t: number) => {
+  const noteActivity = (actorId: string, tMs: number) => {
     const cur = firstActivity.get(actorId);
-    if (cur === undefined || t < cur) firstActivity.set(actorId, t);
+    if (cur === undefined || tMs < cur) firstActivity.set(actorId, tMs);
   };
   for (const s of result.spans) noteActivity(s.actorId, spanStartMs(s));
 
@@ -409,7 +410,19 @@ export function chooseTickStepMs(pxPerMinute: number): number {
 
 export function formatDuration(startMs: number, endMs: number): string {
   const mins = Math.max(0, Math.round((endMs - startMs) / 60000));
-  if (mins >= 1440) return `${Math.floor(mins / 1440)}d ${Math.floor((mins % 1440) / 60)}h`;
-  if (mins >= 60) return `${Math.floor(mins / 60)}h ${mins % 60}m`;
-  return `${mins}m`;
+  if (mins < 1) {
+    const seconds = Math.max(1, Math.round((endMs - startMs) / 1000));
+    return t("time.secondsCompact", { value: seconds, defaultValue: `${seconds}s` });
+  }
+  if (mins >= 1440) {
+    const days = Math.floor(mins / 1440);
+    const hours = Math.floor((mins % 1440) / 60);
+    return t("time.daysHoursCompact", { days, hours, defaultValue: `${days}d ${hours}h` });
+  }
+  if (mins >= 60) {
+    const hours = Math.floor(mins / 60);
+    const minutes = mins % 60;
+    return t("time.hoursMinutesCompact", { hours, minutes, defaultValue: `${hours}h ${minutes}m` });
+  }
+  return t("time.minutesCompact", { value: mins, defaultValue: `${mins}m` });
 }

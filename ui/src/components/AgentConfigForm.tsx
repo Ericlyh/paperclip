@@ -63,6 +63,7 @@ import { useDisabledAdaptersSync } from "../adapters/use-disabled-adapters";
 import { buildAgentUpdatePatch, omitUndefinedEntries, type AgentConfigOverlay } from "../lib/agent-config-patch";
 import { useAdapterCapabilities } from "../adapters/use-adapter-capabilities";
 import { resolveForcedKubernetesEnvironment } from "../lib/forced-kubernetes-environment";
+import { useTranslation } from "../i18n";
 
 /* ---- Create mode values ---- */
 
@@ -155,36 +156,39 @@ function formatArgList(value: unknown): string {
   return typeof value === "string" ? value : "";
 }
 
-const codexThinkingEffortOptions = [
-  { id: "", label: "Auto" },
-  { id: "minimal", label: "Minimal" },
-  { id: "low", label: "Low" },
-  { id: "medium", label: "Medium" },
-  { id: "high", label: "High" },
-  { id: "xhigh", label: "X-High" },
+// Module-level id catalogs. The `id` is a stable config string that gets written
+// into adapterConfig.effort / variant / mode / modelReasoningEffort; the label is
+// resolved at render time via t() so the dropdown reads in the active locale.
+const codexThinkingEffortIds = [
+  { id: "", labelKey: "common.auto" },
+  { id: "minimal", labelKey: "severity.minimal" },
+  { id: "low", labelKey: "severity.low" },
+  { id: "medium", labelKey: "severity.medium" },
+  { id: "high", labelKey: "severity.high" },
+  { id: "xhigh", labelKey: "severity.xhigh" },
 ] as const;
 
-const openCodeThinkingEffortOptions = [
-  { id: "", label: "Auto" },
-  { id: "minimal", label: "Minimal" },
-  { id: "low", label: "Low" },
-  { id: "medium", label: "Medium" },
-  { id: "high", label: "High" },
-  { id: "xhigh", label: "X-High" },
-  { id: "max", label: "Max" },
+const openCodeThinkingEffortIds = [
+  { id: "", labelKey: "common.auto" },
+  { id: "minimal", labelKey: "severity.minimal" },
+  { id: "low", labelKey: "severity.low" },
+  { id: "medium", labelKey: "severity.medium" },
+  { id: "high", labelKey: "severity.high" },
+  { id: "xhigh", labelKey: "severity.xhigh" },
+  { id: "max", labelKey: "severity.max" },
 ] as const;
 
-const cursorModeOptions = [
-  { id: "", label: "Auto" },
-  { id: "plan", label: "Plan" },
-  { id: "ask", label: "Ask" },
+const cursorModeIds = [
+  { id: "", labelKey: "common.auto" },
+  { id: "plan", labelKey: "cursorMode.plan" },
+  { id: "ask", labelKey: "cursorMode.ask" },
 ] as const;
 
-const claudeThinkingEffortOptions = [
-  { id: "", label: "Auto" },
-  { id: "low", label: "Low" },
-  { id: "medium", label: "Medium" },
-  { id: "high", label: "High" },
+const claudeThinkingEffortIds = [
+  { id: "", labelKey: "common.auto" },
+  { id: "low", labelKey: "severity.low" },
+  { id: "medium", labelKey: "severity.medium" },
+  { id: "high", labelKey: "severity.high" },
 ] as const;
 
 const MAX_TURN_CONTINUATION_DEFAULT_MAX_ATTEMPTS = 2;
@@ -204,6 +208,7 @@ function clampDelayMsFromSeconds(value: number) {
 
 export function AgentConfigForm(props: AgentConfigFormProps) {
   const { mode, adapterModels: externalModels } = props;
+  const { t } = useTranslation();
   const isCreate = mode === "create";
   const cards = props.sectionLayout === "cards";
   const showAdapterTypeField = props.showAdapterTypeField ?? true;
@@ -853,14 +858,20 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
         : adapterType === "opencode_local"
           ? "variant"
           : "effort";
-  const thinkingEffortOptions =
-    adapterType === "codex_local"
-      ? codexThinkingEffortOptions
-      : adapterType === "cursor"
-        ? cursorModeOptions
-        : adapterType === "opencode_local"
-          ? openCodeThinkingEffortOptions
-          : claudeThinkingEffortOptions;
+  const thinkingEffortOptions = useMemo(
+    () => {
+      const source =
+        adapterType === "codex_local"
+          ? codexThinkingEffortIds
+          : adapterType === "cursor"
+            ? cursorModeIds
+            : adapterType === "opencode_local"
+              ? openCodeThinkingEffortIds
+              : claudeThinkingEffortIds;
+      return source.map((option) => ({ id: option.id, label: t(option.labelKey) }));
+    },
+    [adapterType, t],
+  );
   const currentThinkingEffort = isCreate
     ? val!.thinkingEffort
     : adapterType === "codex_local"
@@ -1637,8 +1648,13 @@ export function AgentConfigForm(props: AgentConfigFormProps) {
 }
 
 export function AdapterEnvironmentResult({ result }: { result: AdapterEnvironmentTestResult }) {
+  const { t } = useTranslation();
   const statusLabel =
-    result.status === "pass" ? "Passed" : result.status === "warn" ? "Warnings" : "Failed";
+    result.status === "pass"
+      ? t("status.passed")
+      : result.status === "warn"
+        ? t("status.warnings")
+        : t("status.failed");
   const statusClass =
     result.status === "pass"
       ? "text-green-700 dark:text-green-300 border-green-300 dark:border-green-500/40 bg-green-50 dark:bg-green-500/10"

@@ -4,6 +4,9 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import type { CompanySearchIssueSummary, StatusCardUpdate, SummarySlotIssueRef } from "@paperclipai/shared";
 import { AlertTriangle, ChevronDown, ExternalLink, History, Loader2, RefreshCw, Wand2 } from "lucide-react";
 
+import { useTranslation } from "../../i18n";
+import type { TFunction } from "i18next";
+
 import { statusCardsApi, type StatusCardDryRun } from "@/api/statusCards";
 import { MarkdownBody } from "@/components/MarkdownBody";
 import { useSummaryDraftStream } from "@/components/useSummaryDraftStream";
@@ -52,6 +55,7 @@ export function StatusCardDetailDrawer({
   onOpenChange: (open: boolean) => void;
   initialTab?: string;
 }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [tab, setTab] = useState("summary");
   const [settings, setSettings] = useState<StatusCardSettingsValue>(defaultSettingsValue());
@@ -241,7 +245,9 @@ export function StatusCardDetailDrawer({
             )}
           </div>
           <p className="text-xs text-muted-foreground">
-            {card.lastGeneratedAt ? `Updated ${relativeTime(card.lastGeneratedAt)}` : "No summary yet"} ·{" "}
+            {card.lastGeneratedAt
+              ? t("statusCard.updatedRelative", { value: relativeTime(card.lastGeneratedAt), defaultValue: `Updated ${relativeTime(card.lastGeneratedAt)}` })
+              : "No summary yet"} ·{" "}
             {describeRefreshPolicy(card.refreshPolicy)}
           </p>
         </SheetHeader>
@@ -292,7 +298,7 @@ export function StatusCardDetailDrawer({
                             className="text-xs"
                             title={formatDateTime(update.startedAt)}
                           >
-                            Rev {revisionNumberOf(update)} · {updateKindLabel(update.kind)} · {relativeTime(update.startedAt)}
+                            Rev {revisionNumberOf(update)} · {updateKindLabel(update.kind)} · {t("statusCard.relativeTime", { value: relativeTime(update.startedAt), defaultValue: relativeTime(update.startedAt) })}
                           </SelectItem>
                         ))}
                       </SelectContent>
@@ -309,7 +315,7 @@ export function StatusCardDetailDrawer({
                 <div className="space-y-2 rounded-md border border-border bg-muted/30 p-3">
                   <p className="text-xs text-muted-foreground" title={formatDateTime(selectedRevision.startedAt)}>
                     Revision {revisionNumberOf(selectedRevision)} · {updateKindLabel(selectedRevision.kind)} ·{" "}
-                    {relativeTime(selectedRevision.startedAt)}
+                    {t("statusCard.relativeTime", { value: relativeTime(selectedRevision.startedAt), defaultValue: relativeTime(selectedRevision.startedAt) })}
                   </p>
                   {selectedRevisionBody ? (
                     <MarkdownBody className="text-sm leading-7">{selectedRevisionBody}</MarkdownBody>
@@ -400,7 +406,7 @@ export function StatusCardDetailDrawer({
                             </Badge>
                           </span>
                           <span className="text-xs text-muted-foreground" title={formatDateTime(update.startedAt)}>
-                            {relativeTime(update.startedAt)}
+                            {t("statusCard.relativeTime", { value: relativeTime(update.startedAt), defaultValue: relativeTime(update.startedAt) })}
                           </span>
                         </div>
                         <p className="mt-1 text-xs text-muted-foreground">
@@ -499,6 +505,7 @@ export function StatusCardDetailDrawer({
  * inspectable without leaving Settings.
  */
 function QueryDebugSection({ card }: { card: StatusCardView }) {
+  const { t } = useTranslation();
   const queryJson = JSON.stringify({ queries: card.queries, limit: 50 }, null, 2);
   return (
     <Collapsible className="rounded-md border border-border">
@@ -515,7 +522,11 @@ function QueryDebugSection({ card }: { card: StatusCardView }) {
         </pre>
         <p className="text-xs text-muted-foreground">
           {card.queryCompiledAt
-            ? `Compiled by Summarizer ${relativeTime(card.queryCompiledAt)} · version ${card.queryVersion}. Edit “What this card watches” above to rebuild it.`
+            ? t("statusCard.compiledBySummarizer", {
+                value: relativeTime(card.queryCompiledAt),
+                version: card.queryVersion,
+                defaultValue: `Compiled by Summarizer ${relativeTime(card.queryCompiledAt)} · version ${card.queryVersion}. Edit “What this card watches” above to rebuild it.`,
+              })
             : "Not compiled yet. The query builds automatically once the card finishes setting up."}
         </p>
       </CollapsibleContent>
@@ -569,6 +580,7 @@ function MatchedIssueList({ queries, mentioned }: { queries: StatusCardDryRun["q
 }
 
 function WatchedIssueRow({ issue }: { issue: CompanySearchIssueSummary }) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-xs">
       <Link
@@ -579,7 +591,7 @@ function WatchedIssueRow({ issue }: { issue: CompanySearchIssueSummary }) {
       </Link>
       <IssueStatusBadge status={issue.status} />
       <span className="min-w-0 flex-1 truncate">{issue.title}</span>
-      <span className="shrink-0 text-muted-foreground">{relativeTime(issue.updatedAt)}</span>
+      <span className="shrink-0 text-muted-foreground">{t("statusCard.relativeTime", { value: relativeTime(issue.updatedAt), defaultValue: relativeTime(issue.updatedAt) })}</span>
     </div>
   );
 }
@@ -590,6 +602,7 @@ function WatchedIssueRow({ issue }: { issue: CompanySearchIssueSummary }) {
  * design-system consistency) and every row deep-links to the issue.
  */
 function ChangeRow({ change }: { change: StatusCardUpdate["changes"][number] }) {
+  const { t } = useTranslation();
   const isTransition = Boolean(change.from && change.to);
   return (
     <div className="flex items-center gap-2 rounded-md border border-border px-3 py-2 text-xs">
@@ -606,14 +619,19 @@ function ChangeRow({ change }: { change: StatusCardUpdate["changes"][number] }) 
           <IssueStatusBadge status={change.to!} />
         </span>
       ) : (
-        <span className="truncate text-muted-foreground">{describeChangeKind(change.changeKind)}</span>
+        <span className="truncate text-muted-foreground">{describeChangeKind(change.changeKind, t)}</span>
       )}
     </div>
   );
 }
 
-function describeChangeKind(changeKind: string): string {
-  if (changeKind === "entered_query" || changeKind === "new") return "new issue matched the query";
-  if (changeKind === "left_query") return "left the query";
-  return changeKind.replace(/_/g, " ");
+function describeChangeKind(changeKind: string, t: TFunction): string {
+  if (changeKind === "entered_query" || changeKind === "new") {
+    return t("statusCard.changes.enteredQuery", { defaultValue: "new issue matched the query" });
+  }
+  if (changeKind === "left_query") {
+    return t("statusCard.changes.leftQuery", { defaultValue: "left the query" });
+  }
+  const humanized = changeKind.replace(/_/g, " ");
+  return t("statusCard.changes.kindFallback", { value: humanized, defaultValue: humanized });
 }

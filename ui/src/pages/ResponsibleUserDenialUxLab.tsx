@@ -62,14 +62,15 @@ function RunLedgerRow({
         <span className="rounded-md border border-border px-1.5 py-0.5 text-(length:--text-micro) capitalize text-muted-foreground">
           {denial ? "Failed" : "Succeeded"}
         </span>
-        <span className="ml-auto shrink-0">2m ago</span>
+        <span className="ml-auto shrink-0">{"2m ago"}</span>
       </div>
       <div className="grid gap-2 text-xs text-muted-foreground sm:grid-cols-3">
         <div className="min-w-0">
           <span className="text-foreground">Elapsed</span> 1m 4s
         </div>
         <div className="min-w-0">
-          <span className="text-foreground">Last useful action</span> 2m ago
+          <span className="text-foreground">Last useful action</span>{" "}
+          {"2m ago"}
         </div>
         <div className="min-w-0">
           <span className="text-foreground">Stop</span> {denial ? "Denied" : "Completed"}

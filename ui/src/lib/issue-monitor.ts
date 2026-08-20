@@ -1,5 +1,7 @@
 import { useEffect, useState } from "react";
 
+import { t as i18nT } from "../i18n";
+
 const SECOND_MS = 1_000;
 const MINUTE_MS = 60 * SECOND_MS;
 const HOUR_MS = 60 * MINUTE_MS;
@@ -81,9 +83,13 @@ function formatDuration(durationMs: number): string {
 
 export function formatMonitorEta(nextCheckAt: MonitorDate, now: MonitorDate = new Date()): string {
   const deltaMs = toTimestamp(nextCheckAt) - toTimestamp(now);
-  if (deltaMs > 0) return `in ${formatDuration(deltaMs)}`;
-  if (deltaMs > -DUE_NOW_GRACE_MS) return "due now";
-  return `overdue by ${formatDuration(Math.abs(deltaMs))}`;
+  if (deltaMs > 0) {
+    const value = formatDuration(deltaMs);
+    return i18nT("time.etaIn", { value, defaultValue: `in ${value}` });
+  }
+  if (deltaMs > -DUE_NOW_GRACE_MS) return i18nT("time.etaDueNow", { defaultValue: "due now" });
+  const value = formatDuration(Math.abs(deltaMs));
+  return i18nT("time.etaOverdueBy", { value, defaultValue: `overdue by ${value}` });
 }
 
 export function formatMonitorEtaLabel(nextCheckAt: MonitorDate, now: MonitorDate = new Date()): string {
@@ -134,7 +140,7 @@ export function formatMonitorAbsolute(
     targetYmd.year === referenceYmd.year &&
     targetYmd.month === referenceYmd.month &&
     targetYmd.day === referenceYmd.day;
-  if (isToday) return `Today, ${time}`;
+  if (isToday) return i18nT("time.todayAt", { value: time, defaultValue: `Today, ${time}` });
 
   const weekday = new Intl.DateTimeFormat(options.locale, {
     weekday: "short",
@@ -258,9 +264,12 @@ export function useMonitorCountdown(nextCheckAt: MonitorDate | null | undefined)
 export function formatMonitorOffset(nextCheckAt: MonitorDate): string {
   const now = new Date(Date.now());
   const deltaMs = toTimestamp(nextCheckAt) - now.getTime();
-  if (Math.round(Math.abs(deltaMs) / MINUTE_MS) === 0) return "now";
-  const eta = formatMonitorEta(nextCheckAt, now);
-  if (eta === "due now") return "now";
-  if (eta.startsWith("overdue by ")) return `${eta.slice("overdue by ".length)} ago`;
-  return eta;
+  if (Math.round(Math.abs(deltaMs) / MINUTE_MS) === 0) return i18nT("time.now", { defaultValue: "now" });
+  if (deltaMs > 0) {
+    const value = formatDuration(deltaMs);
+    return i18nT("time.etaIn", { value, defaultValue: `in ${value}` });
+  }
+  if (deltaMs > -DUE_NOW_GRACE_MS) return i18nT("time.now", { defaultValue: "now" });
+  const value = formatDuration(Math.abs(deltaMs));
+  return i18nT("time.durationAgo", { value, defaultValue: `${value} ago` });
 }

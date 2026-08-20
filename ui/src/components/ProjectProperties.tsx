@@ -24,14 +24,7 @@ import { DraftInput } from "./agent-config-primitives";
 import { InlineEditor } from "./InlineEditor";
 import { EnvironmentVariablesEditor } from "./environment-variables-editor";
 import { Badge } from "@/components/ui/badge";
-
-const PROJECT_STATUSES = [
-  { value: "backlog", label: "Backlog" },
-  { value: "planned", label: "Planned" },
-  { value: "in_progress", label: "In Progress" },
-  { value: "completed", label: "Completed" },
-  { value: "cancelled", label: "Cancelled" },
-];
+import { useTranslation } from "../i18n";
 
 interface ProjectPropertiesProps {
   project: Project;
@@ -147,8 +140,18 @@ function PropertyRow({
 }
 
 function ProjectStatusPicker({ status, onChange }: { status: string; onChange: (status: string) => void }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const colorClass = statusBadge[status] ?? statusBadgeDefault;
+
+  const projectStatuses = [
+    { value: "backlog", label: t("projects.status.backlog") },
+    { value: "planned", label: t("projects.status.planned") },
+    { value: "in_progress", label: t("projects.status.inProgress") },
+    { value: "completed", label: t("projects.status.completed") },
+    { value: "cancelled", label: t("projects.status.cancelled") },
+  ];
+  const currentLabel = projectStatuses.find((s) => s.value === status)?.label ?? status.replace("_", " ");
 
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -159,11 +162,11 @@ function ProjectStatusPicker({ status, onChange }: { status: string; onChange: (
             colorClass,
           )}
         >
-          {status.replace("_", " ")}
+          {currentLabel}
         </button>
       </PopoverTrigger>
       <PopoverContent className="w-40 p-1" align="start">
-        {PROJECT_STATUSES.map((s) => (
+        {projectStatuses.map((s) => (
           <Button
             key={s.value}
             variant="ghost"

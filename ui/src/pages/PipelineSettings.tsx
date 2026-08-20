@@ -251,6 +251,22 @@ function stageInstructionsKey(stageId: string) {
   return `stage-instructions:${stageId}`;
 }
 
+function translateRelativeTime(
+  raw: string,
+  t: (key: string, options?: Record<string, unknown>) => string,
+): string {
+  if (raw === "just now") return t("time.justNow");
+  const matched = raw.match(/^(\d+)([mhd]) ago$/);
+  if (matched) {
+    const value = matched[1]!;
+    const unit = matched[2]!;
+    if (unit === "m") return t("time.minutesAgo", { value });
+    if (unit === "h") return t("time.hoursAgo", { value });
+    if (unit === "d") return t("time.daysAgo", { value });
+  }
+  return raw;
+}
+
 const ROUTINE_VARIABLE_TYPES: ReadonlySet<RoutineVariable["type"]> = new Set([
   "text",
   "textarea",
@@ -1242,6 +1258,7 @@ function StageEventsList({
   stages: PipelineStage[];
   emptyMessage: string;
 }) {
+  const { t } = useTranslation();
   if (events.length === 0) {
     return <EmptyState icon={ActivityIcon} message={emptyMessage} />;
   }
@@ -1253,7 +1270,7 @@ function StageEventsList({
           className="grid min-h-11 grid-cols-(--gtc-15) items-center gap-3 border-b border-border/70 px-3 py-2 text-sm last:border-b-0"
         >
           <span className="text-xs text-muted-foreground" title={new Date(event.createdAt).toLocaleString()}>
-            {relativeTime(event.createdAt)}
+            {translateRelativeTime(relativeTime(event.createdAt), t)}
           </span>
           <div className="min-w-0">
             <Link
@@ -2948,8 +2965,8 @@ export function PipelineSettings() {
                                   value={stageProjectId}
                                   options={projectOptions}
                                   recentOptionIds={recentProjectIds}
-                                  placeholder="Project"
-                                  noneLabel="No project"
+                                  placeholder={t("pipelineSettings.Project_placeholder")}
+                                  noneLabel={t("pipelineSettings.No_project")}
                                   searchPlaceholder="Search projects..."
                                   emptyMessage="No projects found."
                                   onChange={handleAutomationProjectChange}

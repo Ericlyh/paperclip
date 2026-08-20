@@ -188,6 +188,7 @@ import {
 import { SourceTrustBadge } from "./SourceTrustBadge";
 import { CommentAttributionChip } from "./CommentAttributionChip";
 import { resolveCommentAttribution } from "../lib/comment-attribution";
+import { useTranslation } from "../i18n";
 
 interface IssueChatMessageContext {
   feedbackDataSharingPreference: FeedbackDataSharingPreference;
@@ -346,6 +347,7 @@ function IssueChatLiveRunStatusLine({
   active: boolean;
   className?: string;
 }) {
+  const { t } = useTranslation();
   const currentStatusMessage = readCustomString(custom, "currentStatusMessage");
   const currentToolName = readCustomString(custom, "currentToolName");
   const lastAssistantSnippet = readCustomString(custom, "lastAssistantSnippet");
@@ -364,7 +366,7 @@ function IssueChatLiveRunStatusLine({
         : currentStatusMessage;
   const activityText = lastActivityElapsed
     ? lastActivityAgeMs !== null && lastActivityAgeMs >= 15_000
-      ? `no output for ${lastActivityElapsed} - still running`
+      ? t("chatThread.liveRun.noOutput", { elapsed: lastActivityElapsed })
       : `${lastActivityElapsed} ago`
     : "";
   const text = [primary, activityText].filter(Boolean).join(" · ");
@@ -950,7 +952,7 @@ export function resolveIssueChatHumanAuthor(args: {
   };
 }
 
-function toolCountSummary(toolParts: ToolCallMessagePart[]): string | null {
+function toolCountSummary(toolParts: ToolCallMessagePart[], t: (key: string, options?: Record<string, unknown>) => string): string | null {
   if (toolParts.length === 0) return null;
   let commands = 0;
   let other = 0;
@@ -959,8 +961,8 @@ function toolCountSummary(toolParts: ToolCallMessagePart[]): string | null {
     else other++;
   }
   const parts: string[] = [];
-  if (commands > 0) parts.push(`ran ${commands} command${commands === 1 ? "" : "s"}`);
-  if (other > 0) parts.push(`called ${other} tool${other === 1 ? "" : "s"}`);
+  if (commands > 0) parts.push(t("chatThread.toolSummary.ranCommands", { count: commands }));
+  if (other > 0) parts.push(t("chatThread.toolSummary.calledTools", { count: other }));
   return parts.join(", ");
 }
 
@@ -982,6 +984,7 @@ function IssueChatChainOfThought({
   message: ThreadMessage;
   cotParts: readonly IssueChatCoTPart[];
 }) {
+  const { t } = useTranslation();
   const { agentMap } = useContext(IssueChatCtx);
   const custom = message.metadata.custom as Record<string, unknown>;
   const runAgentId = typeof custom.runAgentId === "string" ? custom.runAgentId : null;
@@ -1033,7 +1036,7 @@ function IssueChatChainOfThought({
     headerVerb = "Worked";
   }
 
-  const toolSummary = toolCountSummary(toolParts);
+  const toolSummary = toolCountSummary(toolParts, t);
   const hasContent = allReasoningText.trim().length > 0 || toolParts.length > 0;
 
   return (

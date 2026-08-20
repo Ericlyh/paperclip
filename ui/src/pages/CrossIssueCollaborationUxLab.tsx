@@ -7,6 +7,7 @@ import { IssueFieldChangeReceipt } from "@/components/IssueFieldChangeReceipt";
 import { IssueWriteDenialNotice } from "@/components/IssueWriteDenialNotice";
 import { Identity } from "@/components/Identity";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "../i18n";
 
 /**
  * UX lab for the three surfaces that make open
@@ -97,12 +98,13 @@ function ActivityRow({
   verb: string;
   children?: ReactNode;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="space-y-1.5 rounded-lg border border-border/60 px-3 py-2 text-xs text-muted-foreground">
       <div className="flex items-center gap-1.5">
         <Identity name={actorName} size="sm" />
         <span>{verb}</span>
-        <span className="ml-auto shrink-0">2m ago</span>
+        <span className="ml-auto shrink-0">{t("time.agoValue", { value: "2m", defaultValue: "2m ago" })}</span>
       </div>
       {children}
     </div>

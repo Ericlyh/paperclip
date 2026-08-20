@@ -567,21 +567,24 @@ function formatOpenItems(count: number) {
   return `${formatNumber(count)} open`;
 }
 
-function formatPipelineActivity(value: string | Date | null) {
-  if (!value) return "No activity";
+function formatPipelineActivity(
+  value: string | Date | null,
+  t: (key: string, options?: Record<string, unknown>) => string,
+) {
+  if (!value) return t("pipelines.No_activity");
   const then = new Date(value).getTime();
-  if (!Number.isFinite(then)) return "No activity";
+  if (!Number.isFinite(then)) return t("pipelines.No_activity");
   const diffSeconds = Math.max(0, Math.round((Date.now() - then) / 1000));
-  if (diffSeconds < 60) return "just now";
+  if (diffSeconds < 60) return t("time.justNow");
   const diffMinutes = Math.round(diffSeconds / 60);
-  if (diffMinutes < 60) return `${diffMinutes} min ago`;
+  if (diffMinutes < 60) return t("time.minutesAgo", { value: diffMinutes });
   const diffHours = Math.round(diffMinutes / 60);
-  if (diffHours < 24) return diffHours === 1 ? "1 hr ago" : `${diffHours} hr ago`;
+  if (diffHours < 24) return t("time.hoursAgo", { value: diffHours });
   const diffDays = Math.round(diffHours / 24);
-  if (diffDays === 1) return "yesterday";
-  if (diffDays < 7) return `${diffDays} days ago`;
-  if (diffDays < 14) return "last week";
-  if (diffDays < 30) return `${Math.round(diffDays / 7)} weeks ago`;
+  if (diffDays === 1) return t("time.yesterday");
+  if (diffDays < 7) return t("time.daysAgo", { value: diffDays });
+  if (diffDays < 14) return t("time.lastWeek");
+  if (diffDays < 30) return t("time.weeksAgo", { value: Math.round(diffDays / 7) });
   return new Date(value).toLocaleDateString("en-US", { month: "short", day: "numeric" });
 }
 
@@ -618,6 +621,7 @@ export function PipelinesIndexTable({
   search,
   onSearchChange,
 }: PipelinesIndexTableProps) {
+  const { t } = useTranslation();
   const [collapsedPipelineIds, setCollapsedPipelineIds] = useState<Set<string>>(() => new Set());
   const [sortField, setSortField] = useState<PipelineSortField>("name");
   const [sortDir, setSortDir] = useState<PipelineSortDir>("asc");
@@ -662,12 +666,12 @@ export function PipelinesIndexTable({
     <div className="space-y-4">
       <div className="flex flex-col gap-3 border-y border-border py-4 lg:flex-row lg:items-center lg:justify-between">
         <label className="relative block w-full max-w-md">
-          <span className="sr-only">Search pipelines</span>
+          <span className="sr-only">{t("pipelines.Search_pipelines")}</span>
           <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
             value={search}
             onChange={(event) => onSearchChange(event.target.value)}
-            placeholder="Search pipelines"
+            placeholder={t("pipelines.Search_pipelines")}
             className="h-10 pl-9"
           />
         </label>
@@ -683,7 +687,7 @@ export function PipelinesIndexTable({
               )}
               disabled={!connectionsAvailable}
               onClick={() => onViewModeChange("nested")}
-              title="Nested view"
+              title={t("pipelines.Nested_view")}
             >
               <ListTree className="h-3.5 w-3.5" />
             </button>
@@ -696,7 +700,7 @@ export function PipelinesIndexTable({
                   : "text-muted-foreground hover:text-foreground",
               )}
               onClick={() => onViewModeChange("flat")}
-              title="Flat list"
+              title={t("pipelines.Flat_list")}
             >
               <List className="h-3.5 w-3.5" />
             </button>
@@ -704,7 +708,7 @@ export function PipelinesIndexTable({
 
           <Popover>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" title="Sort">
+              <Button variant="outline" size="icon" className="h-8 w-8 shrink-0" title={t("inbox.toolbar.sort")}>
                 <ArrowUpDown className="h-3.5 w-3.5" />
               </Button>
             </PopoverTrigger>
@@ -805,7 +809,7 @@ export function PipelinesIndexTable({
                     </td>
                     <td className="px-4 text-muted-foreground">{formatOpenItems(pipelineOpenItemCount(row.pipeline))}</td>
                     <td className="px-4"><PipelineStatusChip archivedAt={row.pipeline.archivedAt} /></td>
-                    <td className="px-4 text-muted-foreground">{formatPipelineActivity(pipelineActivityTime(row.pipeline))}</td>
+                    <td className="px-4 text-muted-foreground">{formatPipelineActivity(pipelineActivityTime(row.pipeline), t)}</td>
                   </tr>
                 );
               })}
@@ -1754,7 +1758,7 @@ function PipelineBoard({ pipelineId }: { pipelineId: string }) {
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-2 sm:justify-end">
           <Select value={groupBy} onValueChange={handleGroupByChange}>
-            <SelectTrigger className="h-9 w-(--sz-148px)" aria-label="Group by" title="Group by">
+            <SelectTrigger className="h-9 w-(--sz-148px)" aria-label={t("pipelines.Group_by")} title={t("pipelines.Group_by")}>
               <Layers className="h-4 w-4 text-muted-foreground" />
               <SelectValue />
             </SelectTrigger>
@@ -3442,11 +3446,14 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
 }
 
 function ActivePipelineWorkBanner({ activeWork }: { activeWork: PipelineCaseActiveWork }) {
+  const { t } = useTranslation();
   const isAutomation = activeWork.issueRole === "automation";
-  const title = isAutomation ? "Automation is running" : "Linked work is running";
+  const title = isAutomation ? t("pipelines.Automation_is_running") : t("pipelines.Linked_work_is_running");
   const issueLabel = activeWork.issueIdentifier ?? activeWork.issueTitle;
   const issuePath = createIssueDetailPath(activeWork.issueIdentifier ?? activeWork.issueId);
-  const startedLabel = activeWork.startedAt ? `Started ${relativeTime(activeWork.startedAt)}` : null;
+  const startedLabel = activeWork.startedAt
+    ? t("time.startedAgo", { value: relativeTime(activeWork.startedAt) })
+    : null;
 
   return (
     <section
@@ -3884,6 +3891,7 @@ function OutputPreview({ text, dimmed }: { text: string; dimmed: boolean }) {
 }
 
 function ItemOutputMeta({ item, children }: { item: PipelineCaseOutputItem; children?: ReactNode }) {
+  const { t } = useTranslation();
   const statusClass = issueStatusText[item.sourceIssueStatus] ?? issueStatusTextDefault;
   const roleLabel = OUTPUT_SOURCE_ROLE_LABELS[item.sourceRole] ?? humanizeOutputStatus(item.sourceRole);
   return (
@@ -3903,7 +3911,7 @@ function ItemOutputMeta({ item, children }: { item: PipelineCaseOutputItem; chil
         {humanizeOutputStatus(item.sourceIssueStatus)}
       </span>
       <OutputMetaDot />
-      <span>{relativeTime(item.updatedAt)}</span>
+      <span>{t("time.agoValue", { value: relativeTime(item.updatedAt) })}</span>
       {children}
     </div>
   );
@@ -4719,6 +4727,7 @@ function ReviewQueueSection({
   onRequestChanges: (row: ReviewQueueRow) => void;
   onOpenItem: (row: ReviewQueueRow) => void;
 }) {
+  const { t } = useTranslation();
   if (rows.length === 0) return null;
 
   return (
@@ -4783,7 +4792,9 @@ function ReviewQueueSection({
 
               <div className="flex items-center gap-2">
                 <span className="hidden whitespace-nowrap text-xs text-muted-foreground sm:inline">
-                  {row.createdAt ? relativeTime(row.createdAt) : "recently"}
+                  {row.createdAt
+                    ? t("time.agoValue", { value: relativeTime(row.createdAt) })
+                    : t("time.recently")}
                 </span>
                 {row.kind === "suggestion" ? (
                   <>
@@ -5154,6 +5165,7 @@ const LEARNING_EVENT_TYPES = "review_decided,transition_forced";
 export function Learnings() {
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const [offset, setOffset] = useState(0);
 
   useEffect(() => {
@@ -5232,7 +5244,7 @@ export function Learnings() {
                       )}
                     >
                       <span className="text-xs text-muted-foreground" title={new Date(event.createdAt).toLocaleString()}>
-                        {relativeTime(event.createdAt)}
+                        {t("time.agoValue", { value: relativeTime(event.createdAt) })}
                       </span>
                       <div className="min-w-0">
                         <Link

@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/select";
 import { timeAgo } from "../../lib/timeAgo";
 import { runRowSubtitle, dedupedTriggerLabel } from "../../lib/routine-run-display";
+import { useTranslation } from "../../i18n";
 import { EmptyState } from "../EmptyState";
 import { EntityRow } from "../EntityRow";
 import { FilterBar, type FilterValue } from "../FilterBar";
@@ -27,6 +28,7 @@ const DATE_WINDOW_OPTIONS: { value: string; label: string; ms: number | null }[]
 
 export function RunsSection() {
   const ctx = useRoutineDetail();
+  const { t } = useTranslation();
   const { routine, routineRuns, hasLiveRun, activeIssueId, onOpenRunDialog } = ctx;
   const runs = useMemo(() => routineRuns ?? [], [routineRuns]);
 
@@ -98,7 +100,7 @@ export function RunsSection() {
           <div className="space-y-2">
             <div className="flex flex-wrap items-center gap-2">
               <Select value={sourceFilter} onValueChange={setSourceFilter}>
-                <SelectTrigger size="sm" className="h-8 w-auto gap-1.5 text-xs" aria-label="Filter by source">
+                <SelectTrigger size="sm" className="h-8 w-auto gap-1.5 text-xs" aria-label={t("routines.runs.filterBySourceAria", { defaultValue: "Filter by source" })}>
                   <span className="text-muted-foreground">Source:</span>
                   <SelectValue />
                 </SelectTrigger>
@@ -112,7 +114,7 @@ export function RunsSection() {
                 </SelectContent>
               </Select>
               <Select value={statusFilter} onValueChange={setStatusFilter}>
-                <SelectTrigger size="sm" className="h-8 w-auto gap-1.5 text-xs" aria-label="Filter by status">
+                <SelectTrigger size="sm" className="h-8 w-auto gap-1.5 text-xs" aria-label={t("routines.runs.filterByStatusAria", { defaultValue: "Filter by status" })}>
                   <span className="text-muted-foreground">Status:</span>
                   <SelectValue />
                 </SelectTrigger>
@@ -126,7 +128,7 @@ export function RunsSection() {
                 </SelectContent>
               </Select>
               <Select value={dateFilter} onValueChange={setDateFilter}>
-                <SelectTrigger size="sm" className="h-8 w-auto gap-1.5 text-xs" aria-label="Filter by date">
+                <SelectTrigger size="sm" className="h-8 w-auto gap-1.5 text-xs" aria-label={t("routines.runs.filterByDateAria", { defaultValue: "Filter by date" })}>
                   <span className="text-muted-foreground">Date:</span>
                   <SelectValue />
                 </SelectTrigger>

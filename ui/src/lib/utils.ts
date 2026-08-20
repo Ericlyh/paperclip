@@ -2,6 +2,7 @@ import { type ClassValue, clsx } from "clsx";
 import { twMerge } from "tailwind-merge";
 import { deriveAgentUrlKey, deriveProjectUrlKey, normalizeProjectUrlKey, hasNonAsciiContent } from "@paperclipai/shared";
 import type { BillingType, FinanceDirection, FinanceEventKind } from "@paperclipai/shared";
+import { t } from "../i18n";
 
 export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
@@ -79,13 +80,13 @@ export function relativeTime(date: Date | string): string {
   const now = Date.now();
   const then = new Date(date).getTime();
   const diffSec = Math.round((now - then) / 1000);
-  if (diffSec < 60) return "just now";
+  if (diffSec < 60) return t("time.justNow", { defaultValue: "just now" });
   const diffMin = Math.round(diffSec / 60);
-  if (diffMin < 60) return `${diffMin}m ago`;
+  if (diffMin < 60) return t("time.minutesAgo", { value: diffMin, defaultValue: `${diffMin}m ago` });
   const diffHr = Math.round(diffMin / 60);
-  if (diffHr < 24) return `${diffHr}h ago`;
+  if (diffHr < 24) return t("time.hoursAgo", { value: diffHr, defaultValue: `${diffHr}h ago` });
   const diffDay = Math.round(diffHr / 24);
-  if (diffDay < 30) return `${diffDay}d ago`;
+  if (diffDay < 30) return t("time.daysAgo", { value: diffDay, defaultValue: `${diffDay}d ago` });
   return formatDate(date);
 }
 
@@ -98,20 +99,28 @@ export function formatTokens(n: number): string {
 
 /** Humanize a millisecond duration into a compact `1h 2m`, `45m 12s`, `12s` string. */
 export function formatDurationMs(ms: number): string {
-  if (!Number.isFinite(ms) || ms <= 0) return "0s";
+  if (!Number.isFinite(ms) || ms <= 0) return t("time.secondsCompact", { value: 0, defaultValue: "0s" });
   const totalSeconds = Math.round(ms / 1000);
-  if (totalSeconds < 60) return `${totalSeconds}s`;
+  if (totalSeconds < 60) return t("time.secondsCompact", { value: totalSeconds, defaultValue: `${totalSeconds}s` });
   const minutes = Math.floor(totalSeconds / 60);
   const seconds = totalSeconds % 60;
-  if (minutes < 60) return seconds > 0 ? `${minutes}m ${seconds}s` : `${minutes}m`;
+  if (minutes < 60) {
+    return seconds > 0
+      ? t("time.minutesSecondsCompact", { minutes, seconds, defaultValue: `${minutes}m ${seconds}s` })
+      : t("time.minutesCompact", { value: minutes, defaultValue: `${minutes}m` });
+  }
   const hours = Math.floor(minutes / 60);
   const remainingMinutes = minutes % 60;
   if (hours < 24) {
-    return remainingMinutes > 0 ? `${hours}h ${remainingMinutes}m` : `${hours}h`;
+    return remainingMinutes > 0
+      ? t("time.hoursMinutesCompact", { hours, minutes: remainingMinutes, defaultValue: `${hours}h ${remainingMinutes}m` })
+      : t("time.hoursCompact", { value: hours, defaultValue: `${hours}h` });
   }
   const days = Math.floor(hours / 24);
   const remainingHours = hours % 24;
-  return remainingHours > 0 ? `${days}d ${remainingHours}h` : `${days}d`;
+  return remainingHours > 0
+    ? t("time.daysHoursCompact", { days, hours: remainingHours, defaultValue: `${days}d ${remainingHours}h` })
+    : t("time.daysCompact", { value: days, defaultValue: `${days}d` });
 }
 
 /** Map a raw provider slug to a display-friendly name. */

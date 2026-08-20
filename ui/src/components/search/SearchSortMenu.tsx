@@ -9,7 +9,8 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { SORT_LABELS } from "@/lib/search-filters";
+import { useTranslation } from "../../i18n";
+import { sortLabel } from "@/lib/search-filters";
 import { cn } from "@/lib/utils";
 
 export function SearchSortMenu({
@@ -19,22 +20,23 @@ export function SearchSortMenu({
   value: CompanySearchSort;
   onChange: (next: CompanySearchSort) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs font-normal" aria-label="Sort results">
+        <Button variant="ghost" size="sm" className="h-8 gap-1 text-xs font-normal" aria-label={t("search.sortResults")}>
           <ArrowUpDown className="h-3.5 w-3.5 text-muted-foreground" aria-hidden />
-          <span className="hidden sm:inline text-muted-foreground">Sort:</span>
-          <span>{SORT_LABELS[value]}</span>
+          <span className="hidden sm:inline text-muted-foreground">{t("search.toolbar.sort")}:</span>
+          <span>{sortLabel(value)}</span>
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end" className="w-48">
-        <DropdownMenuLabel className="text-xs text-muted-foreground">Sort by</DropdownMenuLabel>
+        <DropdownMenuLabel className="text-xs text-muted-foreground">{t("search.toolbar.sortBy")}</DropdownMenuLabel>
         <DropdownMenuSeparator />
         {COMPANY_SEARCH_SORTS.map((sort) => (
           <DropdownMenuItem key={sort} onSelect={() => onChange(sort)} className="gap-2 text-sm">
             <Check className={cn("h-3.5 w-3.5", sort === value ? "opacity-100 text-primary" : "opacity-0")} />
-            {SORT_LABELS[sort]}
+            {sortLabel(sort)}
           </DropdownMenuItem>
         ))}
       </DropdownMenuContent>

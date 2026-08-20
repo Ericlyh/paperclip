@@ -28,6 +28,7 @@ import {
 import { ListFilter, Layers, ChevronDown, ChevronRight, User, Settings } from "lucide-react";
 import { AgentIcon } from "./AgentIconPicker";
 import { timeAgo } from "../lib/timeAgo";
+import { useTranslation } from "../i18n";
 
 /* ------------------------------------------------------------------ */
 /*  Event Tier Classification                                          */
@@ -112,11 +113,11 @@ function getEventTier(event: ActivityEvent): EventTier {
 type FilterValue = "all" | "in-progress" | "for-review" | "completed";
 type GroupMode = "flat" | "by-task";
 
-const FILTER_OPTIONS: Array<{ value: FilterValue; label: string }> = [
-  { value: "all", label: "All" },
-  { value: "in-progress", label: "In Progress" },
-  { value: "for-review", label: "In Review" },
-  { value: "completed", label: "Done" },
+const FILTER_OPTIONS: Array<{ value: FilterValue; labelKey: string }> = [
+  { value: "all", labelKey: "common.all" },
+  { value: "in-progress", labelKey: "status.inProgress" },
+  { value: "for-review", labelKey: "status.inReview" },
+  { value: "completed", labelKey: "common.done" },
 ];
 
 const FILTER_ACTIONS: Record<FilterValue, Set<string> | null> = {
@@ -254,6 +255,7 @@ function CollapsedFeedGroup({
   entityTitleMap: Map<string, string>;
 }) {
   const [expanded, setExpanded] = useState(false);
+  const { t } = useTranslation();
   const actor = group.latestEvent.actorType === "agent"
     ? agentMap.get(group.latestEvent.actorId)
     : null;
@@ -287,11 +289,11 @@ function CollapsedFeedGroup({
         }
         <span className="flex-1 min-w-0 truncate">
           <span data-fc="actor" className="font-medium text-(--hex-959596) group-hover:text-white">{actorName}</span>
-          <span data-fc="verb" className="ml-1 text-(--hex-959596)">made {group.events.length} updates to</span>
+          <span data-fc="verb" className="ml-1 text-(--hex-959596)">{t("activity.madeUpdatesTo", { count: group.events.length })}</span>
           <span data-fc="title" className="ml-1 text-(--hex-959596) group-hover:text-white">{entityName ?? group.entityId}</span>
         </span>
         <span data-fc="time" className="text-muted-foreground shrink-0">
-          {timeAgo(group.latestEvent.createdAt)}
+          {t("time.agoValue", { value: timeAgo(group.latestEvent.createdAt) })}
         </span>
       </button>
       {expanded && (
@@ -321,6 +323,7 @@ interface ActivityFeedProps {
 }
 
 export function ActivityFeed({ className }: ActivityFeedProps) {
+  const { t } = useTranslation();
   const { selectedCompanyId } = useCompany();
   const [filter, setFilter] = useState<FilterValue>("all");
   const [groupMode, setGroupMode] = useState<GroupMode>("flat");
@@ -486,7 +489,7 @@ export function ActivityFeed({ className }: ActivityFeedProps) {
           <div className="flex items-center gap-2 px-4 py-1.5" key={`sep-${index}`}>
             <div className="h-px flex-1 bg-border" />
             <span className="text-(length:--text-nano) font-medium text-muted-foreground uppercase tracking-wider">
-              Earlier
+              {t("time.earlier")}
             </span>
             <div className="h-px flex-1 bg-border" />
           </div>
@@ -568,7 +571,7 @@ export function ActivityFeed({ className }: ActivityFeedProps) {
       const issueName = entityNameMap.get(`issue:${groupKey}`);
       const issueTitle = entityTitleMap.get(`issue:${groupKey}`);
       const label = isOther
-        ? "Other activity"
+        ? t("activity.otherActivity")
         : `${issueName ?? groupKey}${issueTitle ? ` — ${issueTitle}` : ""}`;
 
       return (
@@ -590,22 +593,22 @@ export function ActivityFeed({ className }: ActivityFeedProps) {
     if (!agents) return null;
     if (agents.length === 0) {
       return {
-        text: "No agents set up yet. Add an agent to get started.",
+        text: t("activity.emptyNoAgents"),
         showPulse: false,
       };
     }
     const allPaused = agents.every((a) => a.status === "paused");
     if (allPaused) {
       return {
-        text: "All agents are paused. Resume agents from the sidebar to see activity.",
+        text: t("activity.emptyAllPaused"),
         showPulse: false,
       };
     }
     return {
-      text: "Your agents are running — activity will appear here shortly.",
+      text: t("activity.emptyRunning"),
       showPulse: true,
     };
-  }, [agents]);
+  }, [agents, t]);
 
   const isEmpty = visibleItems.length === 0;
 
@@ -621,9 +624,9 @@ export function ActivityFeed({ className }: ActivityFeedProps) {
           aria-hidden
         />
         <div className="min-w-0 flex-1">
-          <h3 className="text-sm font-semibold">Agent Feed</h3>
+          <h3 className="text-sm font-semibold">{t("activity.title")}</h3>
           <p className="text-xs text-muted-foreground">
-            Live activity from your agents
+            {t("activity.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-1">
@@ -635,14 +638,14 @@ export function ActivityFeed({ className }: ActivityFeedProps) {
                 variant={groupMode === "by-task" ? "secondary" : "ghost"}
                 size="icon-sm"
                 className="shrink-0 text-muted-foreground"
-                aria-label="group by task"
+                aria-label={t("activity.ariaGroupByTask")}
                 onClick={() => setGroupMode((m) => (m === "flat" ? "by-task" : "flat"))}
               >
                 <Layers className="h-3.5 w-3.5" />
               </Button>
             </TooltipTrigger>
             <TooltipContent side="bottom">
-              {groupMode === "flat" ? "Group by task" : "Show flat"}
+              {groupMode === "flat" ? t("activity.tooltipGroupByTask") : t("activity.tooltipShowFlat")}
             </TooltipContent>
           </Tooltip>
 
@@ -656,22 +659,22 @@ export function ActivityFeed({ className }: ActivityFeedProps) {
                     variant={filter !== "all" || showAllActivity ? "secondary" : "ghost"}
                     size="icon-sm"
                     className="shrink-0 text-muted-foreground"
-                    aria-label="filter by"
+                    aria-label={t("activity.ariaFilterBy")}
                   >
                     <ListFilter className="h-3.5 w-3.5" />
                   </Button>
                 </DropdownMenuTrigger>
               </TooltipTrigger>
-              <TooltipContent side="bottom">Filter by</TooltipContent>
+              <TooltipContent side="bottom">{t("activity.tooltipFilterBy")}</TooltipContent>
             </Tooltip>
             <DropdownMenuContent align="end" className="w-48">
               <DropdownMenuRadioGroup
                 value={filter}
                 onValueChange={(v) => setFilter(v as FilterValue)}
               >
-                {FILTER_OPTIONS.map(({ value, label }) => (
+                {FILTER_OPTIONS.map(({ value, labelKey }) => (
                   <DropdownMenuRadioItem key={value} value={value}>
-                    {label}
+                    {t(labelKey)}
                   </DropdownMenuRadioItem>
                 ))}
               </DropdownMenuRadioGroup>
@@ -680,7 +683,7 @@ export function ActivityFeed({ className }: ActivityFeedProps) {
                 checked={showAllActivity}
                 onCheckedChange={(v) => setShowAllActivity(!!v)}
               >
-                Show all activity
+                {t("activity.showAllActivity")}
               </DropdownMenuCheckboxItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -703,7 +706,7 @@ export function ActivityFeed({ className }: ActivityFeedProps) {
                 </span>
               )}
               <p className="text-center text-sm text-muted-foreground">
-                {emptyMessage?.text ?? "Activity from your agents will appear here."}
+                {emptyMessage?.text ?? t("activity.emptyFallback")}
               </p>
             </div>
           </div>

@@ -21,6 +21,7 @@ import { isLiveIssueRun } from "./liveIssueIds";
 import {
   summarizeNotice,
 } from "./transcriptPresentation";
+import { t } from "../i18n";
 
 type JsonValue = null | string | number | boolean | JsonValue[] | { [key: string]: JsonValue };
 type JsonObject = { [key: string]: JsonValue };
@@ -707,18 +708,18 @@ export function formatDurationWords(ms: number | null) {
   if (ms === null || !Number.isFinite(ms) || ms <= 0) return null;
   const totalSeconds = Math.max(1, Math.round(ms / 1000));
   if (totalSeconds < 60) {
-    return `${totalSeconds} second${totalSeconds === 1 ? "" : "s"}`;
+    return t("runs.duration.seconds", { count: totalSeconds });
   }
   const totalMinutes = Math.round(totalSeconds / 60);
   if (totalMinutes < 60) {
-    return `${totalMinutes} minute${totalMinutes === 1 ? "" : "s"}`;
+    return t("runs.duration.minutes", { count: totalMinutes });
   }
   const hours = Math.floor(totalMinutes / 60);
   const minutes = totalMinutes % 60;
   if (minutes === 0) {
-    return `${hours} hour${hours === 1 ? "" : "s"}`;
+    return t("runs.duration.hours", { count: hours });
   }
-  return `${hours} hour${hours === 1 ? "" : "s"} ${minutes} minute${minutes === 1 ? "" : "s"}`;
+  return t("runs.duration.hoursMinutes", { hours, minutes });
 }
 
 function runDurationLabel(run: {
@@ -734,26 +735,34 @@ function runDurationLabel(run: {
   const durationMs = end ? Math.max(0, toTimestamp(end) - toTimestamp(start)) : null;
   const durationText = formatDurationWords(durationMs);
   const stopReason = typeof run.resultJson?.stopReason === "string" ? run.resultJson.stopReason : null;
+  // TODO(round-15 follow-up): The workedFor / failedAfter / timedOutAfter /
+  // interruptedAfter / pausedAfter / cancelledAfter keys all compose a numeric
+  // duration phrase by interpolating a pre-localized `duration` string into an
+  // English-shaped outer template. zh-TW (and other SOV languages) cannot
+  // cleanly decompose "worked for 5 minutes" by wrapping a localized phrase;
+  // the placeholder order is in the translator's hands once each status gets
+  // its own template (e.g. runs.duration.workedForMinutes with `{ count }`).
+  // Not a build defect; defer to the next locale pass.
   switch (run.status) {
     case "succeeded":
-      return durationText ? `Worked for ${durationText}` : "Finished work";
+      return durationText ? t("runs.duration.workedFor", { duration: durationText }) : t("runs.duration.finishedWork");
     case "failed":
     case "error":
-      return durationText ? `Failed after ${durationText}` : "Run failed";
+      return durationText ? t("runs.duration.failedAfter", { duration: durationText }) : t("runs.duration.runFailed");
     case "timed_out":
-      return durationText ? `Timed out after ${durationText}` : "Run timed out";
+      return durationText ? t("runs.duration.timedOutAfter", { duration: durationText }) : t("runs.duration.runTimedOut");
     case "cancelled":
       if (isOperatorInterruptedRun(run.resultJson, run.errorCode)) {
-        return durationText ? `Interrupted by board after ${durationText}` : "Interrupted by board";
+        return durationText ? t("runs.duration.interruptedAfter", { duration: durationText }) : t("runs.duration.interruptedByBoard");
       }
       if (stopReason === "paused") {
-        return durationText ? `Paused by board after ${durationText}` : "Paused by board";
+        return durationText ? t("runs.duration.pausedAfter", { duration: durationText }) : t("runs.duration.pausedByBoard");
       }
-      return durationText ? `Cancelled after ${durationText}` : "Run cancelled";
+      return durationText ? t("runs.duration.cancelledAfter", { duration: durationText }) : t("runs.duration.runCancelled");
     case "queued":
-      return "Queued";
+      return t("runs.duration.queued");
     case "running":
-      return "Working...";
+      return t("runs.duration.working");
     default:
       return formatStatusLabel(run.status);
   }
@@ -761,11 +770,12 @@ function runDurationLabel(run: {
 
 function createHistoricalRunMessage(run: IssueChatLinkedRun, agentMap?: Map<string, Agent>) {
   const agentName = run.agentName ?? agentMap?.get(run.agentId)?.name ?? run.agentId.slice(0, 8);
+  const runIdShort = run.runId.slice(0, 8);
   const message: ThreadSystemMessage = {
     id: `run:${run.runId}`,
     role: "system",
     createdAt: toDate(runTimestamp(run)),
-    content: [{ type: "text", text: `${agentName} run ${run.runId.slice(0, 8)} ${formatStatusLabel(run.status)}` }],
+    content: [{ type: "text", text: t("runs.summary.runHeader", { agentName, runIdShort, status: formatStatusLabel(run.status) }) }],
     metadata: {
       custom: {
         kind: "run",
@@ -791,7 +801,7 @@ function createHistoricalTranscriptMessage(args: {
   const agentName = run.agentName ?? agentMap?.get(run.agentId)?.name ?? run.agentId.slice(0, 8);
   const compactedTranscript = compactIssueChatTranscript(transcript);
   const { parts, notices, segments } = buildAssistantPartsFromTranscript(compactedTranscript);
-  const waitingText = hasOutput ? "" : "Run finished";
+  const waitingText = hasOutput ? "" : t("runs.duration.runFinished");
   const content = parts.length > 0
     ? parts
     : waitingText
@@ -1010,10 +1020,10 @@ function createLiveRunMessage(args: {
   const { parts, notices, segments } = buildAssistantPartsFromTranscript(compactedTranscript);
   const waitingText =
     run.status === "queued"
-      ? "Queued..."
+      ? t("runs.duration.queuedWaiting")
       : parts.length > 0
         ? ""
-        : "Working...";
+        : t("runs.duration.workingWaiting");
 
   const content = parts;
 

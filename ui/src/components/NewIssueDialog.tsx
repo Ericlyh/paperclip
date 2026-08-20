@@ -79,6 +79,7 @@ import { AgentIcon } from "./AgentIconPicker";
 import { InlineEntitySelector, type InlineEntityOption } from "./InlineEntitySelector";
 import { getTrustPreset } from "../lib/trust-policy-ui";
 import { ReusableExecutionWorkspaceSelect } from "./ReusableExecutionWorkspaceSelect";
+import { useTranslation } from "../i18n";
 
 const DRAFT_KEY = "paperclip:issue-draft";
 const DEBOUNCE_MS = 800;
@@ -222,24 +223,24 @@ function formatFileSize(file: File) {
   return `${(file.size / (1024 * 1024)).toFixed(1)} MB`;
 }
 
-function buildStatusOptions(): ReadonlyArray<{ value: string; label: string; color: string; description?: string }> {
+function buildStatusOptions(t: (key: string) => string): ReadonlyArray<{ value: string; label: string; color: string; description?: string }> {
   const palette = issueStatusText;
   return [
     {
       value: "backlog",
-      label: "Backlog",
+      label: t("status.backlog"),
       color: palette.backlog ?? issueStatusTextDefault,
       description: "Parked - assignee will not be woken",
     },
     {
       value: "todo",
-      label: "Todo",
+      label: t("status.todo"),
       color: palette.todo ?? issueStatusTextDefault,
       description: "Executable - assignee will be woken",
     },
-    { value: "in_progress", label: "In Progress", color: palette.in_progress ?? issueStatusTextDefault },
-    { value: "in_review", label: "In Review", color: palette.in_review ?? issueStatusTextDefault },
-    { value: "done", label: "Done", color: palette.done ?? issueStatusTextDefault },
+    { value: "in_progress", label: t("status.inProgress"), color: palette.in_progress ?? issueStatusTextDefault },
+    { value: "in_review", label: t("status.inReview"), color: palette.in_review ?? issueStatusTextDefault },
+    { value: "done", label: t("status.done"), color: palette.done ?? issueStatusTextDefault },
   ];
 }
 
@@ -272,10 +273,10 @@ function shouldWarnAboutRunUserSecrets(status: string, assigneeAgentId: string |
 }
 
 const priorities = [
-  { value: "critical", label: "Critical", icon: AlertTriangle, color: priorityColor.critical ?? priorityColorDefault },
-  { value: "high", label: "High", icon: ArrowUp, color: priorityColor.high ?? priorityColorDefault },
-  { value: "medium", label: "Medium", icon: Minus, color: priorityColor.medium ?? priorityColorDefault },
-  { value: "low", label: "Low", icon: ArrowDown, color: priorityColor.low ?? priorityColorDefault },
+  { value: "critical", labelKey: "priority.critical", icon: AlertTriangle, color: priorityColor.critical ?? priorityColorDefault },
+  { value: "high", labelKey: "priority.high", icon: ArrowUp, color: priorityColor.high ?? priorityColorDefault },
+  { value: "medium", labelKey: "priority.medium", icon: Minus, color: priorityColor.medium ?? priorityColorDefault },
+  { value: "low", labelKey: "priority.low", icon: ArrowDown, color: priorityColor.low ?? priorityColorDefault },
 ];
 
 const EXECUTION_WORKSPACE_MODES = [
@@ -414,10 +415,11 @@ const IssueDescriptionEditor = memo(function IssueDescriptionEditor({
 });
 
 export function NewIssueDialog() {
+  const { t } = useTranslation();
   const { newIssueOpen, newIssueDefaults, closeNewIssue } = useDialog();
   const { companies, selectedCompanyId, selectedCompany } = useCompany();
   const workModeOptions = useMemo(() => workModeMetaList(), []);
-  const statuses = useMemo(() => buildStatusOptions(), []);
+  const statuses = useMemo(() => buildStatusOptions(t), [t]);
   const queryClient = useQueryClient();
   const { pushToast } = useToastActions();
   const [title, setTitle] = useState("");
@@ -1492,9 +1494,9 @@ export function NewIssueDialog() {
                 value={projectId}
                 options={projectOptions}
                 recentOptionIds={recentProjectIds}
-                placeholder="Project"
+                placeholder={t("project.placeholder")}
                 disablePortal
-                noneLabel="No project"
+                noneLabel={t("project.noneLabel")}
                 searchPlaceholder="Search projects..."
                 emptyMessage="No projects found."
                 onChange={handleProjectChange}
@@ -2085,12 +2087,12 @@ export function NewIssueDialog() {
                 {currentPriority ? (
                   <>
                     <currentPriority.icon className={cn("h-3 w-3", currentPriority.color)} />
-                    {currentPriority.label}
+                    {t(currentPriority.labelKey)}
                   </>
                 ) : (
                   <>
                     <Minus className="h-3 w-3 text-muted-foreground" />
-                    Priority
+                    {t("priority.label")}
                   </>
                 )}
               </button>
@@ -2106,7 +2108,7 @@ export function NewIssueDialog() {
                   onClick={() => { setPriority(p.value); setPriorityOpen(false); }}
                 >
                   <p.icon className={cn("h-3 w-3", p.color)} />
-                  {p.label}
+                  {t(p.labelKey)}
                 </button>
               ))}
             </PopoverContent>
@@ -2194,7 +2196,7 @@ export function NewIssueDialog() {
               {SHOW_TASK_PRIORITY_UI && (
               <div className="sm:hidden">
                 <div className="px-2 py-1 text-(length:--text-nano) font-medium uppercase text-muted-foreground">
-                  Priority
+                  {t("priority.label")}
                 </div>
                 {priorities.map((p) => (
                   <button
@@ -2211,7 +2213,7 @@ export function NewIssueDialog() {
                     }}
                   >
                     <p.icon className={cn("h-3 w-3", p.color)} />
-                    {p.label}
+                    {t(p.labelKey)}
                   </button>
                 ))}
                 <div className="my-1 border-t border-border" />

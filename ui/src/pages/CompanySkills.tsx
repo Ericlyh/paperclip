@@ -374,6 +374,7 @@ function SourceFilterMenu({
   value: SourceFilter;
   onChange: (next: SourceFilter) => void;
 }) {
+  const { t } = useTranslation();
   const filters: SourceFilter[] = ["all", "company", "bundled", "optional", "external"];
   const activeFilterCount = value === "all" ? 0 : 1;
   return (
@@ -383,7 +384,7 @@ function SourceFilterMenu({
           variant="ghost"
           size="icon-sm"
           className={cn("relative shrink-0", activeFilterCount > 0 && "text-blue-600 dark:text-blue-400")}
-          title={activeFilterCount > 0 ? `Filters: ${activeFilterCount}` : "Filter"}
+          title={activeFilterCount > 0 ? t("companySkills.toolbar.filtersCount", { count: activeFilterCount }) : t("companySkills.toolbar.filter")}
         >
           <Filter className="h-3.5 w-3.5" />
           {activeFilterCount > 0 ? (
@@ -421,6 +422,7 @@ function CatalogFilterMenu({
   onKindChange: (next: "all" | "bundled" | "optional") => void;
   onCategoryChange: (next: string) => void;
 }) {
+  const { t } = useTranslation();
   const activeFilterCount = (kindFilter === "all" ? 0 : 1) + (categoryFilter ? 1 : 0);
   return (
     <DropdownMenu>
@@ -429,7 +431,7 @@ function CatalogFilterMenu({
           variant="ghost"
           size="icon-sm"
           className={cn("relative shrink-0", activeFilterCount > 0 && "text-blue-600 dark:text-blue-400")}
-          title={activeFilterCount > 0 ? `Filters: ${activeFilterCount}` : "Filter"}
+          title={activeFilterCount > 0 ? t("companySkills.toolbar.filtersCount", { count: activeFilterCount }) : t("companySkills.toolbar.filter")}
         >
           <Filter className="h-3.5 w-3.5" />
           {activeFilterCount > 0 ? (
@@ -824,6 +826,7 @@ function SkillCard({
   onCreateFolderAndMove?: (card: DiscoveryCard) => void;
   onOpenMove?: (card: DiscoveryCard) => void;
 }) {
+  const { t } = useTranslation();
   const badgeFolder = showFolderBadge && card.installed
     ? (card.folderId ? folders?.find((folder) => folder.id === card.folderId) ?? null : null)
     : undefined;
@@ -870,7 +873,7 @@ function SkillCard({
           {badgeFolder !== undefined ? (
             <div className="mt-1 flex min-w-0 items-center gap-1.5 text-xs text-muted-foreground">
               <FolderSwatch color={badgeFolder?.color} className="h-2 w-2" />
-              <span className="truncate">{badgeFolder ? badgeFolder.name : "Unfiled"}</span>
+              <span className="truncate">{badgeFolder ? badgeFolder.name : t("companySkills.toolbar.unfiled")}</span>
             </div>
           ) : null}
         </div>
@@ -1116,6 +1119,7 @@ export function DiscoveryGrid({
   /** When set and no folders exist yet, show the dismissible all-unfiled nudge (ux-spec §6.3). */
   folderNudgeStorageKey?: string;
 }) {
+  const { t } = useTranslation();
   // Source filter (github / skills.sh / local / …) lives in the grid so it
   // narrows whatever the parent already filtered by tab/category/search (PAP-10907 E).
   const [sourceBadgeFilter, setSourceBadgeFilter] = useState<string>("all");
@@ -1201,14 +1205,14 @@ export function DiscoveryGrid({
             <input
               value={search}
               onChange={(event) => onSearchChange(event.target.value)}
-              placeholder="Search skills, authors, categories…"
+              placeholder={t("skills.store.searchPlaceholder")}
               className="h-full w-full bg-transparent text-base outline-none placeholder:text-muted-foreground sm:text-sm"
             />
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="outline" size="sm">
-                <span className="text-muted-foreground">Sort</span>
+                <span className="text-muted-foreground">{t("companySkills.toolbar.sort")}</span>
                 <span className="ml-1.5">{DISCOVERY_SORT_LABELS[sort]}</span>
                 <ChevronDown className="ml-1 h-3.5 w-3.5" />
               </Button>
@@ -1302,7 +1306,7 @@ export function DiscoveryGrid({
           {onCreateFolder && !showFolderRail ? (
             <Button variant="outline" size="sm" onClick={onCreateFolder}>
               <Plus className="mr-1 h-3.5 w-3.5" />
-              New folder
+              {t("companySkills.toolbar.newFolder")}
             </Button>
           ) : null}
           {onToggleSelectMode ? (
@@ -2672,8 +2676,9 @@ function SkillLocationCard({
   folderPath: string | null | undefined;
   onMove?: () => void;
 }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
-  const canonical = folderPath && folderPath.length > 0 ? folderPath : "Unfiled";
+  const canonical = folderPath && folderPath.length > 0 ? folderPath : t("companySkills.toolbar.unfiled");
   return (
     <section>
       <div className="mb-2 text-xs font-medium uppercase tracking-wide text-muted-foreground">Location</div>
@@ -2888,6 +2893,7 @@ export function SkillDetailPage({
   const sortedVersions = [...versions].sort((a, b) => b.revisionNumber - a.revisionNumber);
   const [leftVersionId, setLeftVersionId] = useState<string | null>(null);
   const [rightVersionId, setRightVersionId] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   function openVersionDiff(targetVersionId?: string | null) {
     const selection = getSkillVersionDiffSelection(sortedVersions, targetVersionId);
@@ -3122,7 +3128,7 @@ export function SkillDetailPage({
                 <div className="min-w-0">
                   <div className="font-medium">{versionLabel(version)}</div>
                   <div className="mt-1 text-xs text-muted-foreground">
-                    {relativeTime(version.createdAt)} · {version.fileInventory.length} files
+                    {relativeTime(version.createdAt)} · {t("companySkills.versions.fileCount", { count: version.fileInventory.length })}
                   </div>
                 </div>
                 <Button

@@ -13,6 +13,7 @@ import { useLocation } from "@/lib/router";
 import type { WorkTimelineActor, WorkTimelineResult } from "@paperclipai/shared";
 import { applyCompanyPrefix, extractCompanyPrefixFromPath } from "@/lib/company-routes";
 import { getAgentIcon } from "@/lib/agent-icons";
+import { useTranslation } from "../../i18n";
 import {
   AXIS_H,
   actorType,
@@ -787,10 +788,11 @@ function TimeAxisOverlay({
 }
 
 function Tooltip({ tooltip, now }: { tooltip: TooltipState; now: number }) {
+  const { t } = useTranslation();
   const { bar } = tooltip;
   const startMs = new Date(bar.span.start).getTime();
   const endMs = bar.span.end ? new Date(bar.span.end).getTime() : now;
-  const title = bar.span.issueTitle ?? bar.span.issueIdentifier ?? "run";
+  const title = bar.span.issueTitle ?? bar.span.issueIdentifier ?? t("timeline.tooltip.unnamedRun");
   const left = Math.min(tooltip.x + 14, (typeof window !== "undefined" ? window.innerWidth : 1200) - 300);
   return (
     <div
@@ -800,7 +802,7 @@ function Tooltip({ tooltip, now }: { tooltip: TooltipState; now: number }) {
     >
       <div className="text-(length:--text-compact) font-medium text-foreground">{truncate(title)}</div>
       <div className="mt-0.5 text-muted-foreground">
-        {fmtClock(startMs)}–{bar.span.end ? fmtClock(endMs) : "now"} · {formatDuration(startMs, endMs)} ·{" "}
+        {fmtClock(startMs)}–{bar.span.end ? fmtClock(endMs) : t("timeline.legend.now")} · {formatDuration(startMs, endMs)} ·{" "}
         <span className="font-medium text-foreground">{bar.span.status}</span>
       </div>
       {bar.kickoff && (

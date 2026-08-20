@@ -53,7 +53,7 @@ import type {
 } from "@paperclipai/shared";
 import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
-import { useTranslation } from "../i18n";
+import { t as tModule, useTranslation } from "../i18n";
 import { useToastActions } from "../context/ToastContext";
 import {
   secretsApi,
@@ -296,11 +296,11 @@ function formatRelative(value: Date | string | null | undefined): string {
   const seconds = Math.floor(diff / 1000);
   if (seconds < 60) return `${seconds}s ago`;
   const minutes = Math.floor(seconds / 60);
-  if (minutes < 60) return `${minutes}m ago`;
+  if (minutes < 60) return tModule("time.minutesAgo", { value: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 48) return `${hours}h ago`;
+  if (hours < 48) return tModule("time.hoursAgo", { value: hours });
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days}d ago`;
+  if (days < 30) return tModule("time.daysAgo", { value: days });
   return date.toLocaleDateString();
 }
 
@@ -1841,9 +1841,9 @@ export function Secrets() {
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search by name, key, ref"
+                placeholder={t("secrets.Search_by_name_key_ref")}
                 className="pl-7 text-xs sm:text-sm"
-                aria-label="Search secrets"
+                aria-label={t("secrets.Search_secrets")}
                 data-page-search-target="true"
               />
             </div>
@@ -1859,7 +1859,7 @@ export function Secrets() {
             />
             <div
               role="group"
-              aria-label="View mode"
+              aria-label={t("secrets.View_mode")}
               className={cn(
                 "inline-flex items-center rounded-md border border-border p-0.5",
                 searching && "opacity-50",
@@ -1899,7 +1899,7 @@ export function Secrets() {
                   setNewFolderError(null);
                 }}
               >
-                <Folder className="mr-1 h-3.5 w-3.5" /> New folder
+                <Folder className="mr-1 h-3.5 w-3.5" /> {t("secrets.New_folder")}
               </Button>
             ) : null}
             <Button onClick={openCreateSecret} size="sm">
@@ -1907,7 +1907,7 @@ export function Secrets() {
             </Button>
           </div>
           {newFolderOpen && showFolderView ? (
-            <div className="flex flex-wrap items-start gap-2" role="group" aria-label="Create folder">
+            <div className="flex flex-wrap items-start gap-2" role="group" aria-label={t("secrets.Create_folder")}>
               <div className="min-w-48 flex-1 sm:max-w-80">
                 <Input
                   value={newFolderName}
@@ -3283,6 +3283,7 @@ function SecretsFiltersPopover({
   onProviderChange: (value: SecretProvider | "all") => void;
   onProvidedByChange: (value: ProvidedByFilter) => void;
 }) {
+  const { t } = useTranslation();
   const resetFilters = () => {
     onStatusChange("active");
     onProviderChange("all");
@@ -3303,7 +3304,7 @@ function SecretsFiltersPopover({
           variant="outline"
           size="icon"
           className={cn("relative h-8 w-8 shrink-0", activeFilterCount > 0 && "text-blue-600 dark:text-blue-400")}
-          title={activeFilterCount > 0 ? `Filters: ${activeFilterCount}` : "Filter"}
+          title={activeFilterCount > 0 ? t("secrets.filtersTitle", { count: activeFilterCount }) : t("secrets.filterTitle")}
         >
           <Filter className="h-3.5 w-3.5" />
           {activeFilterCount > 0 ? (
@@ -3319,7 +3320,7 @@ function SecretsFiltersPopover({
       >
         <div className="space-y-3 p-3">
           <div className="flex items-center justify-between">
-            <span className="text-sm font-medium">Filters</span>
+            <span className="text-sm font-medium">{t("secrets.filtersHeader")}</span>
             {activeFilterCount > 0 ? (
               <button
                 type="button"

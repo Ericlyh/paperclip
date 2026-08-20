@@ -37,6 +37,7 @@ import { SHOW_TASK_PRIORITY_UI } from "../lib/ui-flags";
 import { Textarea } from "./ui/textarea";
 import { Tooltip, TooltipContent, TooltipTrigger } from "./ui/tooltip";
 import { Badge } from "@/components/ui/badge";
+import { t as i18nT } from "../i18n";
 
 const OTHER_ANSWER_ID = "__paperclip_other__";
 
@@ -131,11 +132,11 @@ function statusLabel(status: IssueThreadInteraction["status"]) {
     case "answered":
       return "Answered";
     case "cancelled":
-      return "Cancelled";
+      return i18nT("status.cancelled");
     case "expired":
       return "Expired";
     case "failed":
-      return "Failed";
+      return i18nT("status.failed");
     default:
       return status;
   }
@@ -344,7 +345,7 @@ function toolActionStatusClasses(state: ToolActionCardState): {
       return {
         shell: "border-2 border-amber-500/70 bg-transparent",
         badge: "border-amber-500/60 bg-amber-500/10 text-amber-900 dark:bg-amber-500/15 dark:text-amber-100",
-        label: "Failed",
+        label: i18nT("status.failed"),
         Icon: XCircle,
       };
     case "declined":

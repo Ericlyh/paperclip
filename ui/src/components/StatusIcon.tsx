@@ -4,11 +4,12 @@ import { cn } from "../lib/utils";
 import { StatusGlyph, type StatusGlyphSize } from "./StatusGlyph";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "../i18n";
 
 const allStatuses = ["backlog", "todo", "in_progress", "in_review", "done", "cancelled", "blocked"];
 
-function statusLabel(status: string): string {
-  return status.replace(/_/g, " ").replace(/\b\w/g, (c) => c.toUpperCase());
+function statusKey(status: string): string {
+  return status.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
 }
 
 interface StatusIconProps {
@@ -21,46 +22,48 @@ interface StatusIconProps {
   size?: StatusGlyphSize;
 }
 
-function blockedAttentionLabel(blockerAttention: IssueBlockerAttention | null | undefined) {
-  if (!blockerAttention || blockerAttention.state === "none") return "Blocked";
+function blockedAttentionLabel(
+  blockerAttention: IssueBlockerAttention | null | undefined,
+  t: (key: string, options?: Record<string, unknown>) => string,
+) {
+  if (!blockerAttention || blockerAttention.state === "none") return t("status.blocked");
 
   if (blockerAttention.reason === "active_child") {
     const count = blockerAttention.coveredBlockerCount;
     if (count === 1 && blockerAttention.sampleBlockerIdentifier) {
-      return `Blocked · waiting on active sub-task ${blockerAttention.sampleBlockerIdentifier}`;
+      return t("blockedAttention.activeChildOne", { id: blockerAttention.sampleBlockerIdentifier });
     }
-    if (count === 1) return "Blocked · waiting on 1 active sub-task";
-    return `Blocked · waiting on ${count} active sub-tasks`;
+    if (count === 1) return t("blockedAttention.activeChildOneNoId");
+    return t("blockedAttention.activeChildMany", { count });
   }
 
   if (blockerAttention.reason === "active_dependency") {
     const count = blockerAttention.coveredBlockerCount;
     if (count === 1 && blockerAttention.sampleBlockerIdentifier) {
-      return `Blocked · covered by active dependency ${blockerAttention.sampleBlockerIdentifier}`;
+      return t("blockedAttention.activeDependencyOne", { id: blockerAttention.sampleBlockerIdentifier });
     }
-    if (count === 1) return "Blocked · covered by 1 active dependency";
-    return `Blocked · covered by ${count} active dependencies`;
+    if (count === 1) return t("blockedAttention.activeDependencyOneNoId");
+    return t("blockedAttention.activeDependencyMany", { count });
   }
 
   if (blockerAttention.reason === "stalled_review") {
     const count = blockerAttention.stalledBlockerCount;
     const leaf = blockerAttention.sampleStalledBlockerIdentifier ?? blockerAttention.sampleBlockerIdentifier;
-    if (count === 1 && leaf) return `Blocked · review stalled on ${leaf}`;
-    if (count === 1) return "Blocked · review stalled with no clear next step";
-    return `Blocked · ${count} reviews stalled with no clear next step`;
+    if (count === 1 && leaf) return t("blockedAttention.stalledReviewOne", { leaf });
+    if (count === 1) return t("blockedAttention.stalledReviewOneNoLeaf");
+    return t("blockedAttention.stalledReviewMany", { count });
   }
 
   if (blockerAttention.reason === "attention_required") {
     const count = blockerAttention.attentionBlockerCount || blockerAttention.unresolvedBlockerCount;
-    const attentionCopy = `${count} ${count === 1 ? "blocker needs" : "blockers need"} attention`;
     const coveredCount = blockerAttention.coveredBlockerCount;
     if (coveredCount > 0) {
-      return `Blocked · ${attentionCopy}; ${coveredCount} covered by active work`;
+      return t("blockedAttention.attentionRequiredCovered", { count, covered: coveredCount });
     }
-    return `Blocked · ${attentionCopy}`;
+    return t("blockedAttention.attentionRequiredOnly", { count });
   }
 
-  return "Blocked";
+  return t("status.blocked");
 }
 
 /**
@@ -77,8 +80,9 @@ function blockedAttentionLabel(blockerAttention: IssueBlockerAttention | null | 
  */
 export function StatusIcon({ status, blockerAttention, onChange, className, showLabel, size = "md" }: StatusIconProps) {
   const [open, setOpen] = useState(false);
+  const { t } = useTranslation();
   const isCoveredBlocked = status === "blocked" && blockerAttention?.state === "covered";
-  const ariaLabel = status === "blocked" ? blockedAttentionLabel(blockerAttention) : statusLabel(status);
+  const ariaLabel = status === "blocked" ? blockedAttentionLabel(blockerAttention, t) : t(`status.${statusKey(status)}`);
   const glyphStatus = isCoveredBlocked ? "in_queue" : status;
 
   const glyph = (
@@ -94,7 +98,7 @@ export function StatusIcon({ status, blockerAttention, onChange, className, show
     return showLabel ? (
       <span className="inline-flex items-center gap-1.5">
         {glyph}
-        <span className="text-sm">{statusLabel(status)}</span>
+        <span className="text-sm">{t(`status.${statusKey(status)}`)}</span>
       </span>
     ) : (
       glyph
@@ -104,17 +108,17 @@ export function StatusIcon({ status, blockerAttention, onChange, className, show
   const trigger = showLabel ? (
     <button
       type="button"
-      aria-label={`Change status (current: ${ariaLabel})`}
+      aria-label={t("aria.changeStatus", { current: ariaLabel })}
       className="inline-flex min-h-5 items-center gap-1.5 cursor-pointer hover:bg-accent/50 rounded px-1 -mx-1 py-0.5 transition-colors"
     >
       {glyph}
-      <span className="text-sm">{statusLabel(status)}</span>
+      <span className="text-sm">{t(`status.${statusKey(status)}`)}</span>
     </button>
   ) : (
     <button
       type="button"
       data-slot="icon-button"
-      aria-label={`Change status (current: ${ariaLabel})`}
+      aria-label={t("aria.changeStatus", { current: ariaLabel })}
       className="inline-flex cursor-pointer items-center justify-center rounded-sm focus-visible:outline-none focus-visible:ring-(length:--rad-3) focus-visible:ring-ring"
     >
       {glyph}
@@ -137,7 +141,7 @@ export function StatusIcon({ status, blockerAttention, onChange, className, show
             }}
           >
             <StatusIcon status={s} size="lg" />
-            {statusLabel(s)}
+            {t(`status.${statusKey(s)}`)}
           </Button>
         ))}
       </PopoverContent>

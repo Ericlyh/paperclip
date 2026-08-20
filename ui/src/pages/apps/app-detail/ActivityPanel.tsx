@@ -1,4 +1,7 @@
 import { useMemo } from "react";
+// Callers pass the i18next `t`; the alias keeps the identity default assignable
+// (i18next's branded TFunction type cannot be satisfied by a plain function).
+type Translate = (key: string, options?: Record<string, unknown>) => string;
 import {
   humanizeConnectionDisplayName,
   type Agent,
@@ -10,6 +13,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { timeAgo } from "@/lib/timeAgo";
 import { appTabHref } from "../app-tabs";
+import { useTranslation } from "@/i18n";
 import type { ActivityPanelProps } from "./types";
 
 export function ActivityPanel(props: ActivityPanelProps) {
@@ -38,6 +42,7 @@ function RecentActivity({
   appName,
   userLabelById,
 }: ActivityPanelProps) {
+  const { t } = useTranslation();
   const nameById = useMemo(() => new Map(agents.map((a) => [a.id, a.name])), [agents]);
 
   const rows = useMemo<TimelineRow[]>(() => {
@@ -48,7 +53,8 @@ function RecentActivity({
           event,
           nameById.get(event.agentId ?? "") ?? null,
           event.actionRequestId ? actionRequests[event.actionRequestId] : undefined,
-          isTestEvent(event) ? resolveActorLabel(event.actorId, userLabelById) : null,
+          isTestEvent(event) ? resolveActorLabel(event.actorId, userLabelById, t) : null,
+          t,
         );
         return {
           key: `call:${event.id}`,
@@ -63,20 +69,20 @@ function RecentActivity({
     const lifecycleRows: TimelineRow[] = lifecycleEvents.map((event) => ({
       key: `lifecycle:${event.id}`,
       createdAt: event.createdAt,
-      primary: humanizeLifecycleEvent(event, appName, nameById.get(event.agentId ?? "") ?? null),
+      primary: humanizeLifecycleEvent(event, appName, nameById.get(event.agentId ?? "") ?? null, t),
       dotClass: lifecycleDotColor(event),
-      link: { to: setupHref, label: lifecycleLinkLabel(event) },
+      link: { to: setupHref, label: lifecycleLinkLabel(event, t) },
     }));
 
     return [...callRows, ...lifecycleRows].sort(
       (a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime(),
     );
-  }, [events, lifecycleEvents, issues, actionRequests, nameById, connectionId, appName, userLabelById]);
+  }, [events, lifecycleEvents, issues, actionRequests, nameById, connectionId, appName, userLabelById, t]);
 
   return (
     <section className="space-y-2">
       <div>
-        <h2 className="text-sm font-bold text-foreground">Recent activity</h2>
+        <h2 className="text-sm font-bold text-foreground">{t("activity.recentActivityTitle")}</h2>
       </div>
       {loading ? (
         <div className="space-y-2 py-4">
@@ -84,7 +90,7 @@ function RecentActivity({
           <Skeleton className="h-4 w-2/3" />
         </div>
       ) : rows.length === 0 ? (
-        <p className="py-5 text-sm text-muted-foreground">No activity yet.</p>
+        <p className="py-5 text-sm text-muted-foreground">{t("apps.activityPanel.empty")}</p>
       ) : (
         <ul className="divide-y divide-border">
           {rows.map((row) => (
@@ -95,7 +101,7 @@ function RecentActivity({
                 <span className="block truncate text-xs text-muted-foreground">
                   {row.issue ? (
                     <>
-                      while working on{" "}
+                      {t("apps.activityPanel.whileWorkingOn")}{" "}
                       <Link
                         to={`/issues/${row.issue.identifier}`}
                         className="font-medium text-muted-foreground hover:text-foreground hover:underline"
@@ -147,13 +153,14 @@ export function isTestEvent(event: ToolCallEvent): boolean {
 export function resolveActorLabel(
   actorId: string | null,
   userLabelById: Map<string, string> | undefined,
+  t: Translate = (key) => key,
 ): string {
   if (actorId) {
     const label = userLabelById?.get(actorId);
     if (label) return label;
-    if (actorId === "local-board") return "Board";
+    if (actorId === "local-board") return t("apps.activityPanel.board");
   }
-  return "Someone";
+  return t("apps.activityPanel.someone");
 }
 
 export function humanizeEvent(
@@ -162,6 +169,7 @@ export function humanizeEvent(
   actionRequest?: ActivityPanelProps["actionRequests"][string],
   /** When set, this row is a Test-tab call run by the named user; prefix accordingly. */
   testRunnerLabel?: string | null,
+  t: Translate = (key) => key,
 ): { primary: string } {
   // For Test-tab calls, surface "<User> tested as <Agent>" so prosumer test runs are
   // distinguishable from real heartbeat agent activity in the audit trail (PAP-11415).
@@ -175,34 +183,35 @@ export function humanizeEvent(
     case "call_completed":
       return {
         primary: event.outcome === "success"
-          ? `${who} used ${action}`
-          : `${who} ran ${action}, but it didn't finish`,
+          ? t("apps.activityPanel.callCompleted", { who, action })
+          : t("apps.activityPanel.callCompletedFailure", { who, action }),
       };
     case "call_failed":
-      return { primary: `${action} didn't work for ${lower(who)}` };
+      return { primary: t("apps.activityPanel.callFailed", { who: lower(who), action }) };
     case "call_denied":
       return {
         primary: testRunnerLabel
-          ? `${who} - ${action} is turned off`
-          : `Blocked ${action} - it isn't turned on`,
+          ? t("apps.activityPanel.callDeniedTest", { who, action })
+          : t("apps.activityPanel.callDenied", { action }),
       };
     case "approval_requested":
-      return { primary: `${who} asked before running ${action}` };
+      return { primary: t("apps.activityPanel.approvalRequested", { who, action }) };
     case "approval_resolved":
-      return { primary: humanizeApprovalResolved(action, actionRequest) };
+      return { primary: humanizeApprovalResolved(action, actionRequest, t) };
     default:
-      return { primary: `${who} used ${action}` };
+      return { primary: t("apps.activityPanel.callCompleted", { who, action }) };
   }
 }
 
 function humanizeApprovalResolved(
   action: string,
   actionRequest?: ActivityPanelProps["actionRequests"][string],
+  t: Translate = (key) => key,
 ): string {
-  const resolver = actionRequest?.resolverDisplayName ?? "Someone";
-  if (actionRequest?.status === "approved") return `${resolver} approved ${action}`;
-  if (actionRequest?.status === "rejected") return `${resolver} said no to ${action}`;
-  return `${resolver} reviewed ${action}`;
+  const resolver = actionRequest?.resolverDisplayName ?? t("apps.activityPanel.someone");
+  if (actionRequest?.status === "approved") return t("apps.activityPanel.approved", { resolver, action });
+  if (actionRequest?.status === "rejected") return t("apps.activityPanel.rejected", { resolver, action });
+  return t("apps.activityPanel.reviewed", { resolver, action });
 }
 
 /** Humanize a connection lifecycle event into a prosumer sentence (PAP-11284). */
@@ -210,47 +219,54 @@ function humanizeLifecycleEvent(
   event: ToolConnectionLifecycleEvent,
   appName: string,
   agentName: string | null,
+  t: Translate = (key) => key,
 ): string {
-  const who = event.actorDisplayName ?? agentName ?? "Someone";
+  const who = event.actorDisplayName ?? agentName ?? t("apps.activityPanel.someone");
   switch (event.type) {
     case "app_connected":
-      return `${who} connected ${appName}`;
+      return t("apps.activityPanel.appConnected", { who, appName });
     case "app_paused":
-      return `${who} paused this app`;
+      return t("apps.activityPanel.appPaused", { who });
     case "app_resumed":
-      return `${who} resumed this app`;
+      return t("apps.activityPanel.appResumed", { who });
     case "reconnected":
-      return `${who} reconnected ${appName}`;
+      return t("apps.activityPanel.reconnected", { who, appName });
     case "disconnected":
-      return `${who} disconnected ${appName}`;
+      return t("apps.activityPanel.disconnected", { who, appName });
     case "allowlist_changed":
-      return humanizeAllowlistChange(who, event.details);
+      return humanizeAllowlistChange(who, event.details, t);
     case "actions_quarantined": {
       const count = numberFrom(event.details?.count);
-      return `${count} new ${count === 1 ? "action" : "actions"} need review`;
+      return t("apps.activityPanel.actionsQuarantined", { count });
     }
     default:
-      return `${who} updated this app`;
+      return t("apps.activityPanel.appUpdated", { who });
   }
 }
 
-function humanizeAllowlistChange(who: string, details: Record<string, unknown> | null): string {
+function humanizeAllowlistChange(
+  who: string,
+  details: Record<string, unknown> | null,
+  t: Translate = (key) => key,
+): string {
   const added = numberFrom(details?.added);
   const removed = numberFrom(details?.removed);
   if (added > 0 && removed === 0) {
-    return `${who} added ${added} ${added === 1 ? "sheet" : "sheets"} to the allowlist`;
+    return t("apps.activityPanel.allowlistAdded", { who, count: added });
   }
   if (removed > 0 && added === 0) {
-    return `${who} removed ${removed} ${removed === 1 ? "sheet" : "sheets"} from the allowlist`;
+    return t("apps.activityPanel.allowlistRemoved", { who, count: removed });
   }
   if (added > 0 && removed > 0) {
-    return `${who} updated the allowlist (added ${added}, removed ${removed})`;
+    return t("apps.activityPanel.allowlistUpdated", { who, added, removed });
   }
-  return `${who} updated the allowlist`;
+  return t("apps.activityPanel.allowlistTouched", { who });
 }
 
-function lifecycleLinkLabel(event: ToolConnectionLifecycleEvent): string {
-  return event.type === "actions_quarantined" ? "Review in Setup" : "View in Setup";
+function lifecycleLinkLabel(event: ToolConnectionLifecycleEvent, t: Translate = (key) => key): string {
+  return event.type === "actions_quarantined"
+    ? t("apps.activityPanel.reviewInSetup")
+    : t("apps.activityPanel.viewInSetup");
 }
 
 function numberFrom(value: unknown): number {

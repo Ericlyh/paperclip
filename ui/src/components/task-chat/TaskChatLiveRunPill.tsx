@@ -6,6 +6,16 @@ import { formatDurationWords } from "@/lib/issue-chat-messages";
 import { isCommandTool } from "@/lib/transcriptPresentation";
 import { isTerminalRunStatus } from "@/components/task-chat/transcript-adapter";
 
+// NOTE: the i18n keys `chatThread.toolSummary.ranCommands`,
+// `chatThread.toolSummary.calledTools`, `chatThread.liveRun.working`,
+// `chatThread.liveRun.worked`, `chatThread.liveRun.forElapsed` are not yet
+// present in any locale file (verified across all 38 files under
+// ui/src/i18n/locales/). HARD RULE #1 forbids editing locale JSON, and
+// HARD RULE #7 forbids inventing new keys the orchestrator will not merge.
+// Mirror IssueChatThread's CoT header (which also uses inline English for
+// the same strings) until the orchestrator lands the chatThread namespace
+// centrally. Reported to the orchestrator as missing keys.
+
 /**
  * "ran N commands, called M tools" for the live tail's status pill, counted off
  * the streamed transcript entries. Mirrors IssueChatThread's `toolCountSummary`
@@ -14,7 +24,9 @@ import { isTerminalRunStatus } from "@/components/task-chat/transcript-adapter";
  * tool_call as its status progresses, so calls carrying a `toolUseId` are
  * counted once.
  */
-export function toolCountSummaryFromEntries(entries: readonly TranscriptEntry[]): string | null {
+export function toolCountSummaryFromEntries(
+  entries: readonly TranscriptEntry[],
+): string | null {
   const seen = new Set<string>();
   let commands = 0;
   let other = 0;

@@ -14,6 +14,7 @@ import type {
   TaskChatTurnItem,
 } from "./task-chat-model";
 import { isGenericToolName, mcpToolSegment, toolTaxonomy } from "./tool-taxonomy";
+import { t } from "../../i18n";
 
 const TERMINAL_STATUSES = new Set([
   "failed",
@@ -120,7 +121,7 @@ export function summarizeToolInput(input: unknown): string | undefined {
  */
 export function toolDisplayName(name: string | undefined | null): string {
   const raw = (name ?? "").trim();
-  if (isGenericToolName(raw)) return "Tool";
+  if (isGenericToolName(raw)) return t("transcript.tool.generic", { defaultValue: "Tool" });
   const mcp = mcpToolSegment(raw);
   if (mcp) return mcp;
   return raw.charAt(0).toUpperCase() + raw.slice(1);
@@ -134,7 +135,13 @@ function thoughtDurationLabel(startTs: string | undefined, endTs: string): strin
   if (!Number.isFinite(start) || !Number.isFinite(end)) return undefined;
   const secs = Math.round((end - start) / 1000);
   if (secs < 1) return undefined;
-  return secs < 60 ? `Thought for ${secs}s` : `Thought for ${Math.floor(secs / 60)}m ${secs % 60}s`;
+  return secs < 60
+    ? t("transcript.thoughtForSeconds", { value: secs, defaultValue: `Thought for ${secs}s` })
+    : t("transcript.thoughtForMinutesSeconds", {
+        minutes: Math.floor(secs / 60),
+        seconds: secs % 60,
+        defaultValue: `Thought for ${Math.floor(secs / 60)}m ${secs % 60}s`,
+      });
 }
 
 const DETAIL_MAX = 600;
@@ -296,7 +303,7 @@ export function transcriptToTaskChatItems(
           items.push({
             id: `${runId}:diff:${i}`,
             kind: "tool",
-            name: "Edit",
+            name: t("transcript.tool.edit", { defaultValue: "Edit" }),
             status: "completed",
             diff: {
               added: line.kind === "add" ? 1 : 0,
@@ -345,17 +352,24 @@ export function settledRunChildren(parsed: readonly TaskChatItem[]): TaskChatTur
 function formatDurationLabel(ms: number): string | undefined {
   if (!Number.isFinite(ms) || ms <= 0) return undefined;
   const totalSec = Math.round(ms / 1000);
-  if (totalSec < 1) return "1s";
-  if (totalSec < 60) return `${totalSec}s`;
+  if (totalSec < 1) return t("time.secondsCompact", { value: 1, defaultValue: "1s" });
+  if (totalSec < 60)
+    return t("time.secondsCompact", { value: totalSec, defaultValue: `${totalSec}s` });
   const min = Math.floor(totalSec / 60);
   const sec = totalSec % 60;
-  return sec === 0 ? `${min}m` : `${min}m ${sec}s`;
+  return sec === 0
+    ? t("time.minutesCompact", { value: min, defaultValue: `${min}m` })
+    : t("time.minutesSecondsCompact", {
+        minutes: min,
+        seconds: sec,
+        defaultValue: `${min}m ${sec}s`,
+      });
 }
 
 function formatTokensLabel(tokens: number): string | undefined {
   if (!Number.isFinite(tokens) || tokens <= 0) return undefined;
   const label = tokens >= 1000 ? `${(tokens / 1000).toFixed(1)}k` : `${tokens}`;
-  return `${label} tokens`;
+  return t("transcript.tokensLabel", { value: label, defaultValue: `${label} tokens` });
 }
 
 /** First→last ts span of a transcript, or undefined when unknowable. */
@@ -660,9 +674,13 @@ export function deriveRunStatusLabel(entries: readonly TranscriptEntry[]): {
         }
       }
       const selfTalk = flattenSelfTalk(parts.join(""));
-      return { label: "Responding", selfTalk: selfTalk || undefined };
+      return {
+        label: t("transcript.status.responding", { defaultValue: "Responding" }),
+        selfTalk: selfTalk || undefined,
+      };
     }
-    if (entry.kind === "thinking") return { label: "Thinking" };
+    if (entry.kind === "thinking")
+      return { label: t("transcript.status.thinking", { defaultValue: "Thinking" }) };
   }
-  return { label: "Running" };
+  return { label: t("transcript.status.running", { defaultValue: "Running" }) };
 }

@@ -264,7 +264,7 @@ export function Companies() {
                 </div>
                 <div className="flex items-center gap-1.5 ml-auto">
                   <Calendar className="h-3.5 w-3.5" />
-                  <span>Created {relativeTime(company.createdAt)}</span>
+                  <span>{t("companies.createdAgo", { value: relativeTime(company.createdAt) })}</span>
                 </div>
               </div>
 

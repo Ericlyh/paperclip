@@ -1511,7 +1511,7 @@ function IssueDetailActivityTab({
                 ) : null}
                 {issueCostSummary.hasRuntime ? (
                   <span>
-                    Runtime {formatDurationMs(issueCostSummary.runtimeMs)}
+                    {t("issueDetail.time.runtime", { value: formatDurationMs(issueCostSummary.runtimeMs) })}
                     {` (${issueCostSummary.runCount} run${issueCostSummary.runCount === 1 ? "" : "s"})`}
                   </span>
                 ) : null}
@@ -1537,7 +1537,7 @@ function IssueDetailActivityTab({
                   </span>
                   {issueTreeCostSummary.runCount > 0 ? (
                     <span>
-                      Runtime {formatDurationMs(issueTreeCostSummary.runtimeMs)}
+                      {t("issueDetail.time.runtime", { value: formatDurationMs(issueTreeCostSummary.runtimeMs) })}
                       {` (${issueTreeCostSummary.runCount} run${issueTreeCostSummary.runCount === 1 ? "" : "s"})`}
                     </span>
                   ) : null}
@@ -3338,6 +3338,7 @@ export function IssueDetail() {
     sourceBreadcrumb.label,
     breadcrumbStatusLeading,
     breadcrumbStatusKey,
+    t,
   ]);
 
   const isFromInbox = resolvedIssueDetailState?.issueDetailSource === "inbox";
@@ -3763,7 +3764,7 @@ export function IssueDetail() {
     );
 
     return () => setMobileToolbar(null);
-  }, [showInboxToolbar, backHref, issue?.id, issueHidden, archivePending, setMobileToolbar]);
+  }, [showInboxToolbar, backHref, issue?.id, issueHidden, archivePending, setMobileToolbar, t]);
 
   const attachmentsInitialLoading = attachmentsLoading && attachments === undefined;
   const loadOlderComments = useCallback(() => {
@@ -4783,7 +4784,7 @@ export function IssueDetail() {
                 {childIssues.length === 0
                   ? "1 task held"
                   : `${heldDescendantCount} descendant${heldDescendantCount === 1 ? "" : "s"} held`}
-                {activeRootPauseHold?.createdAt ? ` · started ${relativeTime(activeRootPauseHold.createdAt)}` : ""}
+                {activeRootPauseHold?.createdAt ? ` · ${t("time.startedAgo", { value: relativeTime(activeRootPauseHold.createdAt) })}` : ""}
               </div>
               {canShowSubtreeControls || canResumeLeafWork ? (
                 <div className="flex flex-wrap items-center gap-2">

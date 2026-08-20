@@ -15,6 +15,7 @@ import {
 } from "../lib/recovery-display";
 import { StatusIcon } from "./StatusIcon";
 import { productivityReviewTriggerLabel } from "./ProductivityReviewBadge";
+import { t as i18nT } from "../i18n";
 import { hasAssignedBacklogBlocker } from "../lib/issue-blockers";
 import { ExternalObjectStatusSummary } from "./ExternalObjectStatusSummary";
 import { Badge } from "@/components/ui/badge";
@@ -136,8 +137,10 @@ export function IssueRow({
         "inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full border border-amber-500/40 bg-amber-500/10 text-amber-600 dark:text-amber-300",
         selected ? "border-muted-foreground text-muted-foreground" : null,
       )}
-      title={`Productivity review: ${productivityReviewTriggerLabel(productivityReview.trigger)}`}
-      aria-label="Productivity review open"
+      title={i18nT("productivityReview.rowTitle", {
+        trigger: productivityReviewTriggerLabel(productivityReview.trigger),
+      })}
+      aria-label={i18nT("productivityReview.rowAriaLabel")}
     >
       <Eye className="h-2.5 w-2.5" aria-hidden />
     </span>

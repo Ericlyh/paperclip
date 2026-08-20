@@ -12,6 +12,7 @@ import { cn } from "../lib/utils";
 import { Button } from "@/components/ui/button";
 import { createIssueDetailPath } from "../lib/issueDetailBreadcrumb";
 import { formatMonitorOffset } from "../lib/issue-monitor";
+import { useTranslation } from "../i18n";
 import { useRetryNowMutation } from "../hooks/useRetryNowMutation";
 import { IssueLinkQuicklook } from "./IssueLinkQuicklook";
 import { RetryErrorBand } from "./IssueScheduledRetryCard";
@@ -54,16 +55,17 @@ function SuccessfulRunRetryNowControl({
   issueId: string;
   scheduledRetry: IssueScheduledRetry;
 }) {
+  const { t } = useTranslation();
   const retryNow = useRetryNowMutation(issueId);
   const dueAtIso = scheduledRetry.scheduledRetryAt
     ? new Date(scheduledRetry.scheduledRetryAt).toISOString()
     : null;
   const relative = dueAtIso ? formatMonitorOffset(dueAtIso) : null;
   const scheduleLabel = relative === "now"
-    ? "due now"
+    ? t("issueBlockedNotice.scheduleLabel.dueNow")
     : relative
-      ? `scheduled ${relative}`
-      : "scheduled";
+      ? t("issueBlockedNotice.scheduleLabel.scheduledRelative", { relative })
+      : t("issueBlockedNotice.scheduleLabel.scheduled");
   const success = retryNow.isSuccess
     && (retryNow.data?.outcome === "promoted" || retryNow.data?.outcome === "already_promoted");
 

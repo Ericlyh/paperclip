@@ -441,6 +441,7 @@ function StudioNewSkillPanel({
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const toast = useOptionalToastActions();
+  const { t } = useTranslation();
   const initialDraft = useMemo(() => {
     const base = forkSkill ? buildForkSkillDraft(forkSkill) : buildBlankSkillDraft();
     // An explicit folder context from the URL wins over a fork source's folder
@@ -862,6 +863,7 @@ function StudioLandingRow({
   skill: CompanySkillListItem;
   onSelect: () => void;
 }) {
+  const { t } = useTranslation();
   const editor = skillEditorAvatar(skill.lastEditor);
   return (
     <button
@@ -877,7 +879,7 @@ function StudioLandingRow({
         ) : null}
       </span>
       <span className="shrink-0 text-xs text-muted-foreground">
-        updated {relativeTime(skill.updatedAt)}
+        {t("time.updatedAgo", { value: relativeTime(skill.updatedAt) })}
       </span>
       {editor ? (
         <Tooltip>
@@ -2921,6 +2923,7 @@ function RunHistoryRow({
   agents: Agent[];
   onSelect: () => void;
 }) {
+  const { t } = useTranslation();
   const agent = agents.find((a) => a.id === run.agentId) ?? null;
   const removed = !agent;
   const snapshotName =
@@ -2931,7 +2934,7 @@ function RunHistoryRow({
       leading={<StatusBadge status={runBadgeStatus(run.status)} />}
       identifier={runShortId(run)}
       title={removed ? `${name} (removed)` : name}
-      subtitle={relativeTime(run.createdAt)}
+      subtitle={t("time.agoValue", { value: relativeTime(run.createdAt) })}
       trailing={
         <span className="font-mono text-xs text-muted-foreground">
           {formatCents(run.cost.costCents)}
@@ -3029,6 +3032,7 @@ function RunDetailView({
   const skillId = skill.id;
   const queryClient = useQueryClient();
   const onError = useMutationErrorToast();
+  const { t } = useTranslation();
   const detailQuery = useQuery({
     queryKey: queryKeys.companySkills.testRunDetail(companyId, skillId, runId),
     queryFn: () => companySkillsApi.testRunDetail(companyId, skillId, runId),
@@ -3132,7 +3136,7 @@ function RunDetailView({
           <PropRow label="Input" value={detail.inputId ? "saved input" : "ad-hoc paste"} />
           <PropRow label="Template" value={detail.templateName ?? "No template"} />
           <PropRow label="Skill version" value={`v${detail.skillVersion.revisionNumber}`} />
-          <PropRow label="Created" value={relativeTime(detail.createdAt)} />
+          <PropRow label="Created" value={t("time.agoValue", { value: relativeTime(detail.createdAt) })} />
         </div>
 
         {showRunErrorCard(detail.status) && (
@@ -3285,6 +3289,7 @@ function RunHarnessUnavailableNotice({
 }
 
 function RunDocumentsSection({ documents }: { documents: IssueDocument[] }) {
+  const { t } = useTranslation();
   return (
     <section className="space-y-2">
       <div className="flex items-center gap-2">
@@ -3299,7 +3304,7 @@ function RunDocumentsSection({ documents }: { documents: IssueDocument[] }) {
               <span className="truncate font-medium text-foreground">
                 {document.title ?? document.key}
               </span>
-              <span className="ml-auto shrink-0">{relativeTime(document.updatedAt)}</span>
+              <span className="ml-auto shrink-0">{t("time.agoValue", { value: relativeTime(document.updatedAt) })}</span>
             </div>
             <MarkdownBody className="paperclip-edit-in-place-content text-sm leading-7" softBreaks={false}>
               {document.body}
@@ -3428,6 +3433,7 @@ function VersionHistorySheet({
 }) {
   const skillId = skill.id;
   const queryClient = useQueryClient();
+  const { t } = useTranslation();
   const versionsQuery = useQuery({
     queryKey: queryKeys.companySkills.versions(companyId, skillId),
     queryFn: () => companySkillsApi.versions(companyId, skillId),
@@ -3479,7 +3485,7 @@ function VersionHistorySheet({
                   key={v.id}
                   identifier={`v${v.revisionNumber}`}
                   title={v.label ?? `Version ${v.revisionNumber}`}
-                  subtitle={relativeTime(v.createdAt)}
+                  subtitle={t("time.agoValue", { value: relativeTime(v.createdAt) })}
                   selected={v.id === leftId || v.id === rightId}
                   onClick={() => {
                     // click to build a two-version diff selection

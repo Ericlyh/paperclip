@@ -5,6 +5,7 @@ import {
   type RoutineListProjectSummary,
   type RoutineListRowItem,
 } from "@/components/RoutineList";
+import { useTranslation } from "../i18n";
 
 export type ManagedRoutinesListAgent = {
   id: string;
@@ -93,6 +94,7 @@ export function ManagedRoutinesList({
   onReconcile,
   onReset,
 }: ManagedRoutinesListProps) {
+  const { t } = useTranslation();
   const agentById = new Map<string, RoutineListAgentSummary>(
     agents.map((agent) => [agent.id, { name: agent.name, icon: agent.icon }]),
   );
@@ -127,7 +129,7 @@ export function ManagedRoutinesList({
               runningRoutineId={runningRoutineKey}
               statusMutationRoutineId={statusMutationRoutineKey}
               href={href}
-              configureLabel="Configure"
+              configureLabel={t("common.edit")}
               managedByLabel={managedBy ? `Managed by ${managedBy}` : null}
               runNowButton
               hideArchiveAction

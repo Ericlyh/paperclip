@@ -128,9 +128,9 @@ function rangeWindow(range: DateRangeState): Pick<WorkTimelineParams, "from" | "
   return { from: from.toISOString(), to: to.toISOString() };
 }
 
-function rangeError(range: DateRangeState): string | null {
-  if (!range.fromDate || !range.toDate) return "Choose a start and end date.";
-  if (!rangeWindow(range)) return "Start date must be before end date.";
+function rangeErrorKey(range: DateRangeState): string | null {
+  if (!range.fromDate || !range.toDate) return "timeline.rangeErrorMissing";
+  if (!rangeWindow(range)) return "timeline.rangeErrorOrder";
   return null;
 }
 
@@ -244,26 +244,27 @@ function Segmented<T extends string>({
 
 /** Encoding key for the "Signal" timeline: colour = how each run started. */
 function TimelineLegend() {
+  const { t } = useTranslation();
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-3.5 py-2 text-xs text-muted-foreground">
       <span className="flex items-center gap-1.5">
         <span className="h-2.5 w-4 rounded-sm" style={{ backgroundColor: TIMELINE_COLORS.delegated }} />
-        Delegated
+        {t("timeline.legend.delegated")}
       </span>
       <span className="flex items-center gap-1.5">
         <span className="h-2.5 w-4 rounded-sm" style={{ backgroundColor: TIMELINE_COLORS.automation }} />
-        Automation
+        {t("timeline.legend.automation")}
       </span>
       <span className="flex items-center gap-1.5">
         <span
           className="h-2.5 w-4 rounded-sm border border-dashed bg-transparent"
           style={{ borderColor: TIMELINE_COLORS.cancelled }}
         />
-        Cancelled
+        {t("timeline.legend.cancelled")}
       </span>
       <span className="flex items-center gap-1.5">
         <span className="h-3.5 w-0.5" style={{ backgroundColor: TIMELINE_COLORS.now }} />
-        Now
+        {t("timeline.legend.now")}
       </span>
     </div>
   );
@@ -274,13 +275,14 @@ function TimelineSummaryStats({
 }: {
   summary: ReturnType<typeof timelineSummary>;
 }) {
+  const { t } = useTranslation();
   const stats: { label: string; value: string; icon: LucideIcon }[] = [
-    { label: "Runs", value: formatInteger(summary.runs), icon: GanttChartSquare },
-    { label: "Agents", value: formatInteger(summary.agents), icon: Bot },
-    { label: "Run time", value: formatDuration(0, summary.activeMs), icon: Clock3 },
+    { label: t("timeline.stats.runs"), value: formatInteger(summary.runs), icon: GanttChartSquare },
+    { label: t("timeline.stats.agents"), value: formatInteger(summary.agents), icon: Bot },
+    { label: t("timeline.stats.runTime"), value: formatDuration(0, summary.activeMs), icon: Clock3 },
     {
-      label: "Tokens used",
-      value: summary.totalTokens > 0 ? formatCompactInteger(summary.totalTokens) : "Not tracked",
+      label: t("timeline.stats.tokensUsed"),
+      value: summary.totalTokens > 0 ? formatCompactInteger(summary.totalTokens) : t("timeline.stats.notTracked"),
       icon: Coins,
     },
   ];
@@ -318,7 +320,7 @@ export function Timeline() {
     setBreadcrumbs([{ label: t("timeline.title") }]);
   }, [setBreadcrumbs, t]);
 
-  const dateRangeError = rangeError(dateRange);
+  const dateRangeError = rangeErrorKey(dateRange);
   const params: WorkTimelineParams | null = useMemo(() => {
     const window = rangeWindow(dateRange);
     if (!window) return null;
@@ -411,7 +413,7 @@ export function Timeline() {
         className="h-8 w-(--sz-150px) text-xs"
         aria-label={t("timeline.startDateAria")}
       />
-      <span>to</span>
+      <span>{t("timeline.rangeSeparator")}</span>
       <Input
         type="date"
         value={dateRange.toDate}
@@ -475,7 +477,7 @@ export function Timeline() {
         <div className="space-y-3">
           <EmptyState
             icon={GanttChartSquare}
-            message={dateRangeError}
+            message={t(dateRangeError)}
           />
           <div className="flex flex-wrap items-center justify-end gap-3">
             {rangeControls}
@@ -486,14 +488,14 @@ export function Timeline() {
       {error && (
         <EmptyState
           icon={GanttChartSquare}
-          message="Couldn't load the timeline. The aggregation endpoint may be unavailable."
+          message={t("timeline.loadError")}
         />
       )}
 
       {data && !isLoading && !dateRangeError && (
         data.spans.length === 0 ? (
           <div className="space-y-3">
-            <EmptyState icon={GanttChartSquare} message="No activity in this window." />
+            <EmptyState icon={GanttChartSquare} message={t("timeline.noActivity")} />
             <div className="flex flex-wrap items-center justify-end gap-3">
               {rangeControls}
             </div>
@@ -516,9 +518,12 @@ export function Timeline() {
             </Card>
             <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-xs text-muted-foreground">
-                {data.spans.length} run{data.spans.length === 1 ? "" : "s"} ·{" "}
-                {new Date(data.window.from).toLocaleString()} to {new Date(data.window.to).toLocaleString()}
-                {data.window.capped ? " · window capped" : ""}
+                {t("timeline.runCount", { count: data.spans.length })} ·{" "}
+                {t("timeline.windowRange", {
+                  from: new Date(data.window.from).toLocaleString(),
+                  to: new Date(data.window.to).toLocaleString(),
+                })}
+                {data.window.capped ? ` · ${t("timeline.windowCapped")}` : ""}
               </p>
               {rangeControls}
             </div>

@@ -59,6 +59,7 @@ import {
 } from "@/lib/recent-assignees";
 import { getRecentProjectIds, trackRecentProject } from "@/lib/recent-projects";
 import { copyTextToClipboard } from "@/lib/clipboard";
+import { useTranslation } from "@/i18n";
 
 // ---------------------------------------------------------------------------
 // Global bridge registry
@@ -449,13 +450,14 @@ function PluginSdkProjectPicker({
   value,
   onChange,
   placeholder = "Project",
-  noneLabel = "No project",
+  noneLabel,
   searchPlaceholder = "Search projects...",
   emptyMessage = "No projects found.",
   includeArchived = false,
   className,
   onConfirm,
 }: PluginProjectPickerProps) {
+  const { t } = useTranslation();
   const hostContext = useHostContext();
   const resolvedCompanyId = companyId ?? hostContext.companyId ?? null;
   const { data: session } = useQuery({
@@ -493,7 +495,7 @@ function PluginSdkProjectPicker({
     options,
     recentOptionIds: recentProjectIds,
     placeholder,
-    noneLabel,
+    noneLabel: noneLabel ?? t("routines.noProject"),
     searchPlaceholder,
     emptyMessage,
     className,

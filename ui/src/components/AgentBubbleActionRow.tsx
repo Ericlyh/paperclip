@@ -6,6 +6,7 @@ import type {
 import { cn, formatShortDate } from "../lib/utils";
 import { timeAgo } from "../lib/timeAgo";
 import { copyTextToClipboard } from "../lib/clipboard";
+import { useTranslation } from "../i18n";
 import { Button } from "@/components/ui/button";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -48,14 +49,15 @@ export function agentBubbleDateLabel(date: Date | string | undefined): string {
  * re-declaring the same button markup on each surface.
  */
 export function BubbleCopyButton({ copyText }: { copyText: string }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   return (
     <button
       type="button"
       className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
-      title="Copy message"
-      aria-label="Copy message"
+      title={t("feedbackVote.copyMessage")}
+      aria-label={t("feedbackVote.copyMessage")}
       onClick={() => {
         void copyTextToClipboard(copyText)
           .then(() => {
@@ -109,6 +111,7 @@ export function AgentBubbleActionRow({
   menuItems?: ReactNode;
   className?: string;
 }) {
+  const { t } = useTranslation();
   return (
     <div className={cn("mt-2 flex items-center gap-1", className)}>
       <BubbleCopyButton copyText={copyText} />
@@ -141,8 +144,8 @@ export function AgentBubbleActionRow({
             variant="ghost"
             size="icon-xs"
             className="text-muted-foreground hover:text-foreground"
-            title="More actions"
-            aria-label="More actions"
+            title={t("feedbackVote.moreActions")}
+            aria-label={t("feedbackVote.moreActions")}
           >
             <MoreHorizontal className="h-3.5 w-3.5" />
           </Button>
@@ -154,7 +157,7 @@ export function AgentBubbleActionRow({
             }}
           >
             <Copy className="mr-2 h-3.5 w-3.5" />
-            Copy message
+            {t("feedbackVote.copyMessage")}
           </DropdownMenuItem>
           {menuItems}
         </DropdownMenuContent>
@@ -179,6 +182,7 @@ export function IssueChatFeedbackButtons({
   termsUrl: string | null;
   onVote: (vote: FeedbackVoteValue, options?: { allowSharing?: boolean; reason?: string }) => Promise<void>;
 }) {
+  const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
   const [optimisticVote, setOptimisticVote] = useState<FeedbackVoteValue | null>(null);
   const [reasonOpen, setReasonOpen] = useState(false);
@@ -258,8 +262,8 @@ export function IssueChatFeedbackButtons({
             ? "text-green-600 dark:text-green-400"
             : "text-muted-foreground hover:bg-accent hover:text-foreground",
         )}
-        title="Helpful"
-        aria-label="Helpful"
+        title={t("feedbackVote.helpful")}
+        aria-label={t("feedbackVote.helpful")}
         onClick={handleThumbsUp}
       >
         <ThumbsUp className="h-3.5 w-3.5" />
@@ -275,19 +279,19 @@ export function IssueChatFeedbackButtons({
                 ? "text-amber-600 dark:text-amber-400"
                 : "text-muted-foreground hover:bg-accent hover:text-foreground",
             )}
-            title="Needs work"
-            aria-label="Needs work"
+            title={t("feedbackVote.needsWork")}
+            aria-label={t("feedbackVote.needsWork")}
             onClick={handleThumbsDown}
           >
             <ThumbsDown className="h-3.5 w-3.5" />
           </button>
         </PopoverTrigger>
         <PopoverContent side="top" align="start" className="w-80 p-3">
-          <div className="mb-2 text-sm font-medium">What could have been better?</div>
+          <div className="mb-2 text-sm font-medium">{t("feedbackVote.downvotePrompt")}</div>
           <Textarea
             value={downvoteReason}
             onChange={(event) => setDownvoteReason(event.target.value)}
-            placeholder="Add a short note"
+            placeholder={t("feedbackVote.notePlaceholder")}
             className="min-h-20 resize-y bg-background text-sm"
             disabled={isSaving}
           />
@@ -302,7 +306,7 @@ export function IssueChatFeedbackButtons({
                 setDownvoteReason("");
               }}
             >
-              Dismiss
+              {t("feedbackVote.dismiss")}
             </Button>
             <Button
               type="button"
@@ -310,7 +314,7 @@ export function IssueChatFeedbackButtons({
               disabled={isSaving || !downvoteReason.trim()}
               onClick={handleSubmitReason}
             >
-              {isSaving ? "Saving..." : "Save note"}
+              {isSaving ? t("feedbackVote.saving") : t("feedbackVote.saveNote")}
             </Button>
           </div>
         </PopoverContent>
@@ -327,21 +331,21 @@ export function IssueChatFeedbackButtons({
       >
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Save your feedback sharing preference</DialogTitle>
+            <DialogTitle>{t("feedbackVote.sharingTitle")}</DialogTitle>
             <DialogDescription>
-              Choose whether voted AI outputs can be shared with Paperclip Labs. This
-              answer becomes the default for future thumbs up and thumbs down votes.
+              {t("feedbackVote.sharingDescription")}
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 text-sm text-muted-foreground">
-            <p>This vote is always saved locally.</p>
+            <p>{t("feedbackVote.voteAlwaysLocal")}</p>
             <p>
-              Choose <span className="font-medium text-foreground">Always allow</span> to share
-              this vote and future voted AI outputs. Choose{" "}
-              <span className="font-medium text-foreground">Don't allow</span> to keep this vote
-              and future votes local.
+              {t("feedbackVote.sharingHelpStart")}{" "}
+              <span className="font-medium text-foreground">{t("feedbackVote.allow")}</span>{" "}
+              {t("feedbackVote.sharingHelpMiddle")}{" "}
+              <span className="font-medium text-foreground">{t("feedbackVote.deny")}</span>{" "}
+              {t("feedbackVote.sharingHelpEnd")}
             </p>
-            <p>You can change this later in Instance Settings &gt; General.</p>
+            <p>{t("feedbackVote.sharingSettingsHint")}</p>
             {termsUrl ? (
               <a
                 href={termsUrl}
@@ -349,7 +353,7 @@ export function IssueChatFeedbackButtons({
                 rel="noreferrer"
                 className="inline-flex text-sm text-foreground underline underline-offset-4"
               >
-                Read our terms of service
+                {t("feedbackVote.tosLink")}
               </a>
             ) : null}
           </div>
@@ -366,7 +370,7 @@ export function IssueChatFeedbackButtons({
                 ).then(() => setPendingSharingDialog(null));
               }}
             >
-              {isSaving ? "Saving..." : "Don't allow"}
+              {isSaving ? t("feedbackVote.saving") : t("feedbackVote.deny")}
             </Button>
             <Button
               type="button"
@@ -379,7 +383,7 @@ export function IssueChatFeedbackButtons({
                 }).then(() => setPendingSharingDialog(null));
               }}
             >
-              {isSaving ? "Saving..." : "Always allow"}
+              {isSaving ? t("feedbackVote.saving") : t("feedbackVote.allow")}
             </Button>
           </DialogFooter>
         </DialogContent>

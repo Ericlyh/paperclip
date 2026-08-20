@@ -1,6 +1,7 @@
 import type { ReactNode } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { cn, relativeTime } from "../lib/utils";
+import { useTranslation } from "../i18n";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -86,6 +87,7 @@ export function DocumentFrameHeader({
   titleSlot,
   actionsSlot,
 }: DocumentFrameHeaderProps) {
+  const { t } = useTranslation();
   return (
     <div className="flex items-start justify-between gap-3">
       <div className="min-w-0">
@@ -94,7 +96,7 @@ export function DocumentFrameHeader({
             type="button"
             className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-sm text-muted-foreground transition-colors hover:bg-accent/60 hover:text-foreground"
             onClick={onToggleFolded}
-            aria-label={folded ? `Expand ${documentKey} document` : `Collapse ${documentKey} document`}
+            aria-label={folded ? t("document.expandAria", { key: documentKey, defaultValue: `Expand ${documentKey} document` }) : t("document.collapseAria", { key: documentKey, defaultValue: `Collapse ${documentKey} document` })}
             aria-expanded={!folded}
           >
             {folded ? <ChevronRight className="h-3.5 w-3.5" /> : <ChevronDown className="h-3.5 w-3.5" />}
@@ -123,14 +125,14 @@ export function DocumentFrameHeader({
                     revisionMenu.historicalPreview && "text-amber-700 hover:text-amber-800 dark:text-amber-300 dark:hover:text-amber-200",
                   )}
                 >
-                  rev {revisionMenu.displayedRevisionNumber}
+                  {t("revision.revisionLabel", { number: revisionMenu.displayedRevisionNumber, defaultValue: `rev ${revisionMenu.displayedRevisionNumber}` })}
                   <ChevronDown className="h-3 w-3" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="start" className="w-72">
-                <DropdownMenuLabel>Revision history</DropdownMenuLabel>
+                <DropdownMenuLabel>{t("revision.history", { defaultValue: "Revision history" })}</DropdownMenuLabel>
                 {revisionMenu.loading && revisionMenu.revisions.length === 0 ? (
-                  <DropdownMenuItem disabled>Loading revisions...</DropdownMenuItem>
+                  <DropdownMenuItem disabled>{t("revision.loading", { defaultValue: "Loading revisions..." })}</DropdownMenuItem>
                 ) : revisionMenu.revisions.length > 0 ? (
                   <DropdownMenuRadioGroup value={revisionMenu.selectedRevisionId ?? revisionMenu.currentRevisionId ?? ""}>
                     {revisionMenu.revisions.map((revision) => {
@@ -144,17 +146,17 @@ export function DocumentFrameHeader({
                         >
                           <div className="flex min-w-0 flex-col">
                             <div className="flex items-center gap-2">
-                              <span className="font-medium">rev {revision.revisionNumber}</span>
+                              <span className="font-medium">{t("revision.revisionLabel", { number: revision.revisionNumber, defaultValue: `rev ${revision.revisionNumber}` })}</span>
                               {isCurrentRevision ? (
                                 <Badge variant="outline" className="border-border px-1.5 text-(length:--text-nano) uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-                                  Current
+                                  {t("revision.current", { defaultValue: "Current" })}
                                 </Badge>
                               ) : null}
                             </div>
                             <div className="mt-1 flex min-w-0 items-center gap-1.5 text-(length:--text-micro) text-muted-foreground">
                               <RevisionActorAvatar actor={revision.actor} />
                               <span className="truncate">
-                                {relativeTime(revision.createdAt)} • {revision.actor.name}
+                                {t("time.revisionCaption", { value: relativeTime(revision.createdAt), actor: revision.actor.name, defaultValue: `${relativeTime(revision.createdAt)} · ${revision.actor.name}` })}
                               </span>
                             </div>
                           </div>
@@ -163,7 +165,7 @@ export function DocumentFrameHeader({
                     })}
                   </DropdownMenuRadioGroup>
                 ) : (
-                  <DropdownMenuItem disabled>No revisions yet</DropdownMenuItem>
+                  <DropdownMenuItem disabled>{t("revision.empty", { defaultValue: "No revisions yet" })}</DropdownMenuItem>
                 )}
               </DropdownMenuContent>
             </DropdownMenu>
@@ -173,7 +175,7 @@ export function DocumentFrameHeader({
               href={updatedHref ?? `#document-${encodeURIComponent(documentKey)}`}
               className="truncate text-(length:--text-micro) text-muted-foreground transition-colors hover:text-foreground hover:underline"
             >
-              updated {relativeTime(updatedAt)}
+              {t("time.updatedAgo", { value: relativeTime(updatedAt), defaultValue: `updated ${relativeTime(updatedAt)}` })}
             </a>
           ) : null}
           {annotationSlot}

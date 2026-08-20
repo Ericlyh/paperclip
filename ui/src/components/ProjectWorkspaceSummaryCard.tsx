@@ -6,6 +6,7 @@ import { IssuesQuicklook } from "./IssuesQuicklook";
 import type { ProjectWorkspaceLinkedIssue, ProjectWorkspaceSummary } from "../lib/project-workspaces-tab";
 import { cn, projectWorkspaceUrl } from "../lib/utils";
 import { timeAgo } from "../lib/timeAgo";
+import { useTranslation } from "../i18n";
 import { Copy, ExternalLink, FolderOpen, GitBranch, Loader2, Play, Square } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 
@@ -45,6 +46,7 @@ export function ProjectWorkspaceSummaryCard({
   onRuntimeAction,
   onCloseWorkspace,
 }: ProjectWorkspaceSummaryCardProps) {
+  const { t } = useTranslation();
   const visibleIssues = summary.issues.slice(0, 4);
   const hiddenIssueCount = Math.max(summary.linkedIssueCount - visibleIssues.length, 0);
   const workspaceHref =
@@ -64,7 +66,7 @@ export function ProjectWorkspaceSummaryCard({
                 {workspaceKindLabel(summary.kind)}
               </Badge>
               <Badge variant="outline" className="border-border/70 bg-background px-2.5 py-1 text-muted-foreground">
-                Updated {timeAgo(summary.lastUpdatedAt)}
+                {t("time.updatedAgo", { value: timeAgo(summary.lastUpdatedAt) })}
               </Badge>
               {summary.serviceCount > 0 ? (
                 <Badge variant="outline"

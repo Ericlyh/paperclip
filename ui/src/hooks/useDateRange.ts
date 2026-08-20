@@ -1,15 +1,24 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import type { TFunction } from "i18next";
 
 export type DatePreset = "mtd" | "7d" | "30d" | "ytd" | "all" | "custom";
 
-export const PRESET_LABELS: Record<DatePreset, string> = {
-  mtd: "Month to Date",
-  "7d": "Last 7 Days",
-  "30d": "Last 30 Days",
-  ytd: "Year to Date",
-  all: "All Time",
-  custom: "Custom",
-};
+export function presetLabel(key: DatePreset, t: TFunction): string {
+  switch (key) {
+    case "mtd":
+      return t("costs.preset.monthToDate");
+    case "7d":
+      return t("costs.preset.last7Days");
+    case "30d":
+      return t("costs.preset.last30Days");
+    case "ytd":
+      return t("costs.preset.yearToDate");
+    case "all":
+      return t("costs.preset.allTime");
+    case "custom":
+      return t("costs.preset.custom");
+  }
+}
 
 export const PRESET_KEYS: DatePreset[] = ["mtd", "7d", "30d", "ytd", "all", "custom"];
 

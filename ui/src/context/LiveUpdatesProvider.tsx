@@ -25,6 +25,7 @@ import { queryKeys } from "../lib/queryKeys";
 import { toCompanyRelativePath } from "../lib/company-routes";
 import { useLocation } from "../lib/router";
 import { buildSameOriginWebSocketUrl } from "../lib/websocket-url";
+import { t as tI18n } from "../i18n";
 
 const TOAST_COOLDOWN_WINDOW_MS = 10_000;
 const TOAST_COOLDOWN_MAX = 3;
@@ -138,13 +139,13 @@ function resolveActorLabel(
   actorId: string | null,
 ): string {
   if (actorType === "agent" && actorId) {
-    return resolveAgentName(queryClient, companyId, actorId) ?? `Agent ${shortId(actorId)}`;
+    return resolveAgentName(queryClient, companyId, actorId) ?? tI18n("toasts.agentFallbackName", { id: shortId(actorId) });
   }
-  if (actorType === "system") return "System";
+  if (actorType === "system") return tI18n("toasts.actorSystem");
   if (actorType === "user" && actorId) {
-    return resolveUserName(queryClient, companyId, actorId) ?? "Board";
+    return resolveUserName(queryClient, companyId, actorId) ?? tI18n("toasts.actorBoard");
   }
-  return "Someone";
+  return tI18n("toasts.actorSomeone");
 }
 
 interface IssueToastContext {
@@ -213,7 +214,7 @@ function resolveIssueToastContext(
     readString(details?.identifier) ??
     readString(details?.issueIdentifier) ??
     cachedIssue?.identifier ??
-    `Task ${shortId(issueId)}`;
+    tI18n("toasts.issueFallbackRef", { id: shortId(issueId) });
   const title =
     readString(details?.title) ??
     readString(details?.issueTitle) ??
@@ -657,20 +658,28 @@ const RUN_TOAST_STATUSES = new Set(["failed", "timed_out", "cancelled"]);
 function describeIssueUpdate(details: Record<string, unknown> | null): string | null {
   if (!details) return null;
   const changes: string[] = [];
-  if (typeof details.status === "string") changes.push(`status -> ${details.status.replace(/_/g, " ")}`);
-  if (typeof details.priority === "string") changes.push(`priority -> ${details.priority}`);
+  if (typeof details.status === "string") {
+    changes.push(tI18n("toasts.change.status", { value: details.status.replace(/_/g, " ") }));
+  }
+  if (typeof details.priority === "string") {
+    changes.push(tI18n("toasts.change.priority", { value: details.priority }));
+  }
   if (typeof details.assigneeAgentId === "string" || typeof details.assigneeUserId === "string") {
-    changes.push("reassigned");
+    changes.push(tI18n("toasts.change.reassigned"));
   } else if (details.assigneeAgentId === null || details.assigneeUserId === null) {
-    changes.push("unassigned");
+    changes.push(tI18n("toasts.change.unassigned"));
   }
   if (details.reopened === true) {
     const from = readString(details.reopenedFrom);
-    changes.push(from ? `reopened from ${from.replace(/_/g, " ")}` : "reopened");
+    changes.push(
+      from
+        ? tI18n("toasts.reopenedFrom", { value: from.replace(/_/g, " ") })
+        : tI18n("toasts.reopened"),
+    );
   }
-  if (typeof details.title === "string") changes.push("title changed");
-  if (typeof details.description === "string") changes.push("description changed");
-  if (changes.length > 0) return changes.join(", ");
+  if (typeof details.title === "string") changes.push(tI18n("toasts.change.titleChanged"));
+  if (typeof details.description === "string") changes.push(tI18n("toasts.change.descriptionChanged"));
+  if (changes.length > 0) return changes.join(tI18n("common.listSeparator"));
   return null;
 }
 
@@ -700,10 +709,10 @@ function buildActivityToast(
 
   if (action === "issue.created") {
     return {
-      title: `${actor} created ${issue.ref}`,
+      title: tI18n("toasts.issueCreated", { actor, ref: issue.ref }),
       body: issue.title ? truncate(issue.title, 96) : undefined,
       tone: "success",
-      action: { label: `View ${issue.ref}`, href: issue.href },
+      action: { label: tI18n("toasts.viewIssue", { ref: issue.ref }), href: issue.href },
       dedupeKey: `activity:${action}:${entityId}`,
     };
   }
@@ -716,16 +725,16 @@ function buildActivityToast(
     const changeDesc = describeIssueUpdate(details);
     const body = changeDesc
       ? issue.title
-        ? `${truncate(issue.title, 64)} - ${changeDesc}`
+        ? tI18n("toasts.titleWithChange", { title: truncate(issue.title, 64), change: changeDesc })
         : changeDesc
       : issue.title
         ? truncate(issue.title, 96)
         : issue.label;
     return {
-      title: `${actor} updated ${issue.ref}`,
+      title: tI18n("toasts.issueUpdated", { actor, ref: issue.ref }),
       body: truncate(body, 100),
       tone: "info",
-      action: { label: `View ${issue.ref}`, href: issue.href },
+      action: { label: tI18n("toasts.viewIssue", { ref: issue.ref }), href: issue.href },
       dedupeKey: `activity:${action}:${entityId}`,
     };
   }
@@ -737,28 +746,31 @@ function buildActivityToast(
   const reopenedFrom = readString(details?.reopenedFrom);
   const reopenedLabel = reopened
     ? reopenedFrom
-      ? `reopened from ${reopenedFrom.replace(/_/g, " ")}`
-      : "reopened"
+      ? tI18n("toasts.reopenedFrom", { value: reopenedFrom.replace(/_/g, " ") })
+      : tI18n("toasts.reopened")
     : null;
   const title = reopened
-    ? `${actor} reopened and commented on ${issue.ref}`
+    ? tI18n("toasts.issueReopenedAndCommented", { actor, ref: issue.ref })
     : updated
-      ? `${actor} commented and updated ${issue.ref}`
-      : `${actor} commented on ${issue.ref}`;
+      ? tI18n("toasts.issueCommentedAndUpdated", { actor, ref: issue.ref })
+      : tI18n("toasts.issueCommented", { actor, ref: issue.ref });
   const body = bodySnippet
     ? reopenedLabel
-      ? `${reopenedLabel} - ${bodySnippet.replace(/^#+\s*/m, "").replace(/\n/g, " ")}`
+      ? tI18n("toasts.labelledBody", {
+          label: reopenedLabel,
+          body: bodySnippet.replace(/^#+\s*/m, "").replace(/\n/g, " "),
+        })
       : bodySnippet.replace(/^#+\s*/m, "").replace(/\n/g, " ")
     : reopenedLabel
       ? issue.title
-        ? `${reopenedLabel} - ${issue.title}`
+        ? tI18n("toasts.labelledBody", { label: reopenedLabel, body: issue.title })
         : reopenedLabel
       : issue.title ?? undefined;
   return {
     title,
     body: body ? truncate(body, 96) : undefined,
     tone: "info",
-    action: { label: `View ${issue.ref}`, href: issue.href },
+    action: { label: tI18n("toasts.viewIssue", { ref: issue.ref }), href: issue.href },
     dedupeKey: `activity:${action}:${entityId}:${commentId ?? "na"}`,
   };
 }
@@ -775,13 +787,12 @@ function buildJoinRequestToast(
   if (action !== "join.requested" && action !== "join.request_replayed") return null;
 
   const requestType = readString(details?.requestType);
-  const label = requestType === "agent" ? "Agent" : "Someone";
 
   return {
-    title: `${label} wants to join`,
-    body: "A new join request is waiting for approval.",
+    title: requestType === "agent" ? tI18n("toasts.joinRequestAgent") : tI18n("toasts.joinRequestSomeone"),
+    body: tI18n("toasts.joinRequestBody"),
     tone: "info",
-    action: { label: "View inbox", href: "/inbox/mine" },
+    action: { label: tI18n("toasts.viewInbox"), href: "/inbox/mine" },
     dedupeKey: `join-request:${entityId}`,
   };
 }
@@ -797,11 +808,11 @@ function buildAgentStatusToast(
   if (!agentId || !status || !AGENT_TOAST_STATUSES.has(status)) return null;
 
   const tone = status === "error" ? "error" : "info";
-  const name = nameOf(agentId) ?? `Agent ${shortId(agentId)}`;
+  const name = nameOf(agentId) ?? tI18n("toasts.agentFallbackName", { id: shortId(agentId) });
   const title =
     status === "running"
-      ? `${name} started`
-      : `${name} errored`;
+      ? tI18n("toasts.agentStarted", { name })
+      : tI18n("toasts.agentErrored", { name });
 
   const agents = queryClient.getQueryData<Agent[]>(queryKeys.agents.list(companyId));
   const agent = agents?.find((a) => a.id === agentId);
@@ -811,7 +822,7 @@ function buildAgentStatusToast(
     title,
     body,
     tone,
-    action: { label: "View agent", href: `/agents/${agentId}` },
+    action: { label: tI18n("toasts.viewAgent"), href: `/agents/${agentId}` },
     dedupeKey: `agent-status:${agentId}:${status}`,
   };
 }
@@ -827,20 +838,22 @@ function buildRunStatusToast(
 
   const error = readString(payload.error);
   const triggerDetail = readString(payload.triggerDetail);
-  const name = nameOf(agentId) ?? `Agent ${shortId(agentId)}`;
+  const name = nameOf(agentId) ?? tI18n("toasts.agentFallbackName", { id: shortId(agentId) });
   const tone = status === "succeeded" ? "success" : status === "cancelled" ? "warn" : "error";
-  const statusLabel =
-    status === "succeeded" ? "succeeded"
-      : status === "failed" ? "failed"
-        : status === "timed_out" ? "timed out"
-          : "cancelled";
-  const title = `${name} run ${statusLabel}`;
+  const title =
+    status === "succeeded"
+      ? tI18n("toasts.runSucceeded", { name })
+      : status === "failed"
+        ? tI18n("toasts.runFailed", { name })
+        : status === "timed_out"
+          ? tI18n("toasts.runTimedOut", { name })
+          : tI18n("toasts.runCancelled", { name });
 
   let body: string | undefined;
   if (error) {
     body = truncate(error, 100);
   } else if (triggerDetail) {
-    body = `Trigger: ${triggerDetail}`;
+    body = tI18n("toasts.runTrigger", { detail: triggerDetail });
   }
 
   return {
@@ -848,7 +861,7 @@ function buildRunStatusToast(
     body,
     tone,
     ttlMs: status === "succeeded" ? 5000 : 7000,
-    action: { label: "View run", href: `/agents/${agentId}/runs/${runId}` },
+    action: { label: tI18n("toasts.viewRun"), href: `/agents/${agentId}/runs/${runId}` },
     dedupeKey: `run-status:${runId}:${status}`,
   };
 }

@@ -21,6 +21,7 @@ import { queryKeys } from "../lib/queryKeys";
 import { buildLineDiff, type DiffRow } from "../lib/line-diff";
 import { relativeTime } from "../lib/utils";
 import { useToastActions } from "../context/ToastContext";
+import { useTranslation } from "../i18n";
 import { Button } from "@/components/ui/button";
 import {
   Dialog,
@@ -425,6 +426,7 @@ function RevisionList({
   onShowOlder: () => void;
   showOlder: boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <aside className="space-y-1">
       <header className="flex items-center justify-between pb-2">
@@ -472,7 +474,7 @@ function RevisionList({
               )}
             </div>
             <div className="text-xs text-muted-foreground truncate">
-              {relativeTime(revision.createdAt)} • {getActorLabel(revision)}
+              {t("routineHistory.revisionMeta", { time: relativeTime(revision.createdAt), actor: getActorLabel(revision) })}
               {revision.changeSummary ? ` • ${revision.changeSummary}` : ""}
             </div>
           </button>
@@ -508,6 +510,7 @@ function RevisionPreview({
   restorePending: boolean;
   highlighted: boolean;
 }) {
+  const { t } = useTranslation();
   const snapshot = revision.snapshot.routine;
   const triggers = revision.snapshot.triggers;
   const currentSnapshot = currentRevision?.snapshot.routine ?? null;
@@ -548,7 +551,9 @@ function RevisionPreview({
     {
       key: "projectId",
       label: "Project",
-      value: resolveProjectName(snapshot.projectId, projects),
+      value: snapshot.projectId == null
+        ? t("routineHistory.noProjectFallback")
+        : (projects.get(snapshot.projectId)?.name ?? snapshot.projectId),
       differs: !!currentSnapshot && currentSnapshot.projectId !== snapshot.projectId,
     },
     {
@@ -578,7 +583,7 @@ function RevisionPreview({
           <div className="space-y-1 min-w-0">
             <p className="text-sm font-medium">rev {revision.revisionNumber}</p>
             <p className="text-xs text-muted-foreground truncate">
-              Saved {relativeTime(revision.createdAt)} by {getActorLabel(revision)}
+              {t("routineHistory.savedBy", { time: relativeTime(revision.createdAt), actor: getActorLabel(revision) })}
               {revision.changeSummary ? ` · ${revision.changeSummary}` : ""}
             </p>
           </div>
@@ -794,6 +799,7 @@ function RoutineRevisionDiffModal({
 }) {
   const [leftId, setLeftId] = useState<string>(initialOldRevisionId);
   const [rightId, setRightId] = useState<string>(initialNewRevisionId);
+  const { t } = useTranslation();
 
   useEffect(() => {
     if (open) {
@@ -805,8 +811,8 @@ function RoutineRevisionDiffModal({
   const left = revisions.find((r) => r.id === leftId) ?? null;
   const right = revisions.find((r) => r.id === rightId) ?? null;
   const fieldChanges = useMemo(
-    () => (left && right ? computeFieldChanges(left, right, agents, projects, secrets) : []),
-    [left, right, agents, projects, secrets],
+    () => (left && right ? computeFieldChanges(left, right, agents, projects, secrets, t) : []),
+    [left, right, agents, projects, secrets, t],
   );
   const descriptionDiff = useMemo<DiffRow[]>(
     () => (left && right
@@ -907,6 +913,7 @@ function RevisionPicker({
   revisions: RoutineRevision[];
   tone: "red" | "green";
 }) {
+  const { t } = useTranslation();
   const toneClass = tone === "red"
     ? "border-red-500/30 bg-red-500/10 text-red-700 dark:text-red-300"
     : "border-green-500/30 bg-green-500/10 text-green-700 dark:text-green-300";
@@ -924,7 +931,7 @@ function RevisionPicker({
       >
         {revisions.map((revision) => (
           <option key={revision.id} value={revision.id}>
-            rev {revision.revisionNumber} — {relativeTime(revision.createdAt)}
+            {t("routineHistory.revisionOption", { number: revision.revisionNumber, time: relativeTime(revision.createdAt) })}
             {revision.changeSummary ? ` • ${revision.changeSummary}` : ""}
           </option>
         ))}
@@ -992,8 +999,8 @@ function resolveAgentName(agentId: string | null, lookup: AgentLookup) {
   return lookup.get(agentId)?.name ?? agentId;
 }
 
-function resolveProjectName(projectId: string | null, lookup: ProjectLookup) {
-  if (!projectId) return "No project";
+function resolveProjectName(projectId: string | null, lookup: ProjectLookup, t: (key: string) => string) {
+  if (!projectId) return t("routineHistory.noProjectFallback");
   return lookup.get(projectId)?.name ?? projectId;
 }
 
@@ -1042,6 +1049,7 @@ function computeFieldChanges(
   agents: AgentLookup,
   projects: ProjectLookup,
   secrets: SecretLookup,
+  t: (key: string) => string,
 ): Array<{ field: string; oldValue: string | null; newValue: string | null }> {
   const oldRoutine = left.snapshot.routine;
   const newRoutine = right.snapshot.routine;
@@ -1068,8 +1076,8 @@ function computeFieldChanges(
   compareScalar(
     "projectId",
     "Project",
-    resolveProjectName(oldRoutine.projectId, projects),
-    resolveProjectName(newRoutine.projectId, projects),
+    resolveProjectName(oldRoutine.projectId, projects, t),
+    resolveProjectName(newRoutine.projectId, projects, t),
   );
   compareScalar("concurrencyPolicy", "Concurrency", oldRoutine.concurrencyPolicy, newRoutine.concurrencyPolicy);
   compareScalar("catchUpPolicy", "Catch-up", oldRoutine.catchUpPolicy, newRoutine.catchUpPolicy);

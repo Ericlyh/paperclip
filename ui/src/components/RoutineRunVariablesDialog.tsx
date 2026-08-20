@@ -17,6 +17,7 @@ import { InlineEntitySelector, type InlineEntityOption } from "./InlineEntitySel
 import { getRecentAssigneeIds, sortAgentsByRecency, trackRecentAssignee } from "../lib/recent-assignees";
 import { getRecentProjectIds, trackRecentProject } from "../lib/recent-projects";
 import { Button } from "@/components/ui/button";
+import { useTranslation } from "../i18n";
 import {
   Dialog,
   DialogContent,
@@ -209,6 +210,7 @@ export function RoutineRunVariablesDialog({
   isPending: boolean;
   onSubmit: (data: RoutineRunDialogSubmitData) => void;
 }) {
+  const { t } = useTranslation();
   const [values, setValues] = useState<Record<string, unknown>>({});
   const [selection, setSelection] = useState(() => buildInitialRunSelection({
     defaultAssigneeAgentId,
@@ -401,7 +403,7 @@ export function RoutineRunVariablesDialog({
                 options={projectOptions}
                 recentOptionIds={recentProjectIds}
                 placeholder="Project"
-                noneLabel="No project"
+                noneLabel={t("routines.noProject")}
                 searchPlaceholder="Search projects..."
                 emptyMessage="No projects found."
                 disablePortal
@@ -428,7 +430,7 @@ export function RoutineRunVariablesDialog({
                       <span className="truncate">{option.label}</span>
                     </>
                   ) : (
-                    <span className="text-muted-foreground">No project</span>
+                    <span className="text-muted-foreground">{t("routines.noProject")}</span>
                   )
                 }
                 renderOption={(option) => {

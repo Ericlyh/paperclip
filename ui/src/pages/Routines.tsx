@@ -11,9 +11,8 @@ import { heartbeatsApi } from "../api/heartbeats";
 import { accessApi } from "../api/access";
 import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
-import { useTranslation } from "../i18n";
+import { t, useTranslation } from "../i18n";
 import { useToastActions } from "../context/ToastContext";
-import { useTranslation } from "../i18n";
 import { buildMarkdownMentionOptions } from "../lib/company-members";
 import { cn } from "../lib/utils";
 import { queryKeys } from "../lib/queryKeys";
@@ -185,8 +184,8 @@ export function buildRoutineGroups(
         const positionCompare = leftPosition - rightPosition;
         if (positionCompare !== 0) return positionCompare;
 
-        const labelCompare = (leftFolder?.name ?? "Unknown folder").localeCompare(
-          rightFolder?.name ?? "Unknown folder",
+        const labelCompare = (leftFolder?.name ?? t("routines.unknownFolder")).localeCompare(
+          rightFolder?.name ?? t("routines.unknownFolder"),
           undefined,
           { sensitivity: "base" },
         );
@@ -194,7 +193,7 @@ export function buildRoutineGroups(
       })
       .map((key) => ({
         key,
-        label: key === "__unfiled" ? "Unfiled" : (folderById.get(key)?.name ?? "Unknown folder"),
+        label: key === "__unfiled" ? t("routines.unfiled") : (folderById.get(key)?.name ?? t("routines.unknownFolder")),
         items: groups[key]!,
       }));
   }
@@ -203,13 +202,13 @@ export function buildRoutineGroups(
     const groups = groupBy(routines, (routine) => routine.projectId ?? "__no_project");
     return Object.keys(groups)
       .sort((left, right) => {
-        const leftLabel = left === "__no_project" ? "No project" : (projectById.get(left)?.name ?? "Unknown project");
-        const rightLabel = right === "__no_project" ? "No project" : (projectById.get(right)?.name ?? "Unknown project");
+        const leftLabel = left === "__no_project" ? t("routines.noProject") : (projectById.get(left)?.name ?? t("routines.unknownProject"));
+        const rightLabel = right === "__no_project" ? t("routines.noProject") : (projectById.get(right)?.name ?? t("routines.unknownProject"));
         return leftLabel.localeCompare(rightLabel);
       })
       .map((key) => ({
         key,
-        label: key === "__no_project" ? "No project" : (projectById.get(key)?.name ?? "Unknown project"),
+        label: key === "__no_project" ? t("routines.noProject") : (projectById.get(key)?.name ?? t("routines.unknownProject")),
         items: groups[key]!,
       }));
   }
@@ -217,13 +216,13 @@ export function buildRoutineGroups(
   const groups = groupBy(routines, (routine) => routine.assigneeAgentId ?? "__unassigned");
   return Object.keys(groups)
     .sort((left, right) => {
-      const leftLabel = left === "__unassigned" ? "Unassigned" : (agentById.get(left)?.name ?? "Unknown agent");
-      const rightLabel = right === "__unassigned" ? "Unassigned" : (agentById.get(right)?.name ?? "Unknown agent");
+      const leftLabel = left === "__unassigned" ? t("routines.unassigned") : (agentById.get(left)?.name ?? t("routines.unknownAgent"));
+      const rightLabel = right === "__unassigned" ? t("routines.unassigned") : (agentById.get(right)?.name ?? t("routines.unknownAgent"));
       return leftLabel.localeCompare(rightLabel);
     })
     .map((key) => ({
       key,
-      label: key === "__unassigned" ? "Unassigned" : (agentById.get(key)?.name ?? "Unknown agent"),
+      label: key === "__unassigned" ? t("routines.unassigned") : (agentById.get(key)?.name ?? t("routines.unknownAgent")),
       items: groups[key]!,
     }));
 }
@@ -245,7 +244,7 @@ export function buildRoutineSections(
     .filter((group) => group.items.length > 0)
     .map((group) => (
       builtInRoutines.length > 0 && groupByValue === "none" && group.key === "__all"
-        ? { ...group, label: "Custom routines" }
+        ? { ...group, label: t("routines.customRoutines") }
         : group
     ));
 
@@ -255,7 +254,7 @@ export function buildRoutineSections(
     ...customGroups,
     {
       key: builtInRoutineGroupKey,
-      label: "Built-in routines",
+      label: t("routines.builtInRoutines"),
       items: builtInRoutines,
     },
   ];
@@ -700,11 +699,11 @@ export function Routines() {
   const recentRunsIssueLinkState = useMemo(
     () =>
       createIssueDetailLocationState(
-        "Recent Runs",
+        t("routines.recentRuns"),
         buildRoutinesTabHref("runs"),
         "issues",
       ),
-    [],
+    [t],
   );
   const currentAssignee = draft.assigneeAgentId ? agentById.get(draft.assigneeAgentId) ?? null : null;
   const currentProject = draft.projectId ? projectById.get(draft.projectId) ?? null : null;
@@ -814,12 +813,12 @@ export function Routines() {
             {t("sidebar.routines")}
           </h1>
           <p className="text-sm text-muted-foreground">
-            Recurring work definitions that materialize into auditable execution tasks.
+            {t("routines.recurringWorkDescription")}
           </p>
         </div>
         <Button onClick={openCreateRoutine}>
           <Plus className="mr-2 h-4 w-4" />
-          Create routine
+          {t("routines.createRoutine")}
         </Button>
       </div>
 
@@ -829,8 +828,8 @@ export function Routines() {
           value={activeTab}
           onValueChange={handleTabChange}
           items={[
-            { value: "routines", label: "Routines" },
-            { value: "runs", label: "Recent Runs" },
+            { value: "routines", label: t("sidebar.routines") },
+            { value: "runs", label: t("routines.recentRuns") },
           ]}
         />
         <TabsContent value="routines" className="space-y-4">
@@ -841,9 +840,9 @@ export function Routines() {
             <div className="flex items-center gap-1">
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-xs" title="Sort">
+                  <Button variant="ghost" size="sm" className="text-xs" title={t("routines.sort")}>
                     <ArrowUpDown className="h-3.5 w-3.5 sm:h-3 sm:w-3 sm:mr-1" />
-                    <span className="hidden sm:inline">Sort</span>
+                    <span className="hidden sm:inline">{t("routines.sort")}</span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent align="end" className="w-44 p-0">
@@ -882,9 +881,9 @@ export function Routines() {
               </Popover>
               <Popover>
                 <PopoverTrigger asChild>
-                  <Button variant="ghost" size="sm" className="text-xs" title="Group">
+                  <Button variant="ghost" size="sm" className="text-xs" title={t("routines.group")}>
                     <Layers className="h-3.5 w-3.5 sm:h-3 sm:w-3 sm:mr-1" />
-                    <span className="hidden sm:inline">Group</span>
+                    <span className="hidden sm:inline">{t("routines.group")}</span>
                   </Button>
                 </PopoverTrigger>
                 <PopoverContent align="end" className="w-44 p-0">
@@ -914,7 +913,7 @@ export function Routines() {
               {routineViewState.groupBy === "folder" && !hasRoutineFolders ? (
                 <Button variant="outline" size="sm" onClick={() => openCreateFolder()}>
                   <Plus className="mr-2 h-3.5 w-3.5" />
-                  New folder
+                  {t("routines.newFolder")}
                 </Button>
               ) : null}
               {showFolderRail ? (
@@ -1073,7 +1072,7 @@ export function Routines() {
                     options={projectOptions}
                     recentOptionIds={recentProjectIds}
                     placeholder={t("routines.noProject")}
-                    noneLabel="No project"
+                    noneLabel={t("routines.noProject")}
                     searchPlaceholder="Search projects..."
                     emptyMessage="No projects found."
                     onChange={(projectId) => {
@@ -1120,7 +1119,7 @@ export function Routines() {
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="__unfiled">Unfiled</SelectItem>
+                      <SelectItem value="__unfiled">{t("routines.unfiled")}</SelectItem>
                       {(routineFolders?.folders ?? []).map((folder) => (
                         <SelectItem key={folder.id} value={folder.id}>
                           {folder.name}
@@ -1213,7 +1212,7 @@ export function Routines() {
                 }
               >
                 <Plus className="mr-2 h-4 w-4" />
-                {createRoutine.isPending ? "Creating..." : "Create routine"}
+                {createRoutine.isPending ? t("routines.creating") : t("routines.createRoutine")}
               </Button>
               {createRoutine.isError ? (
                 <p className="text-sm text-destructive">
@@ -1258,7 +1257,7 @@ export function Routines() {
               {folderSelection === "all" ? <FolderIconHeader label={t("routines.allRoutines")} count={sortedRoutines.length} /> : (
                 <div className="flex min-w-0 items-center gap-2 text-sm">
                   <FolderSwatch color={activeFolder?.color} />
-                  <span className="truncate font-medium">{folderSelection === "unfiled" ? "Unfiled" : activeFolder?.name ?? "Folder"}</span>
+                  <span className="truncate font-medium">{folderSelection === "unfiled" ? t("routines.unfiled") : activeFolder?.name ?? t("routines.folderFallback")}</span>
                   <span className="text-muted-foreground">{sortedRoutines.length} routine{sortedRoutines.length === 1 ? "" : "s"}</span>
                 </div>
               )}
@@ -1339,6 +1338,7 @@ export function Routines() {
                           runningRoutineId={runningRoutineId}
                           statusMutationRoutineId={statusMutationRoutineId}
                           href={`/routines/${routine.id}`}
+                          configureLabel={t("common.edit")}
                           runNowButton
                           divider={false}
                           onRunNow={handleRunNow}

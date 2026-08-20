@@ -340,7 +340,7 @@ export function FailedRunInboxRow({
               <StatusBadge status={run.status} />
               {linkedAgentName && issue ? <span>{linkedAgentName}</span> : null}
               <span className="truncate max-w-[300px]">{displayError}</span>
-              <span>{timeAgo(run.createdAt)}</span>
+              <span>{t("time.agoValue", { value: timeAgo(run.createdAt) })}</span>
             </span>
           </span>
         </Link>
@@ -487,7 +487,7 @@ function ApprovalInboxRow({
             <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
               <span className="capitalize">{approvalStatusLabel(approval.status)}</span>
               {requesterName ? <span>requested by {requesterName}</span> : null}
-              <span>updated {timeAgo(approval.updatedAt)}</span>
+              <span>{t("time.updatedAgo", { value: timeAgo(approval.updatedAt) })}</span>
             </span>
           </span>
         </Link>
@@ -616,7 +616,7 @@ function JoinRequestInboxRow({
               {label}
             </span>
             <span className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
-              <span>requested {timeAgo(joinRequest.createdAt)} from IP {joinRequest.requestIp}</span>
+              <span>{t("time.requestedAgoFromIp", { value: timeAgo(joinRequest.createdAt), ip: joinRequest.requestIp })}</span>
               {joinRequest.adapterType && <span>adapter: {joinRequest.adapterType}</span>}
             </span>
           </span>

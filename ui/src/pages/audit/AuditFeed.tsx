@@ -25,6 +25,7 @@ import { agentsApi } from "@/api/agents";
 import { accessApi } from "@/api/access";
 import { ApiError } from "@/api/client";
 import { useToastActions } from "@/context/ToastContext";
+import { useTranslation } from "@/i18n";
 
 const PAGE_SIZE = 50;
 const ALL = "__all";
@@ -176,6 +177,7 @@ function AuditRow({
   agentMap: Map<string, Agent>;
   userProfileMap: Map<string, CompanyUserProfile>;
 }) {
+  const { t } = useTranslation();
   const verb = formatActivityVerb(record.action, record.details, { agentMap, userProfileMap });
   const responsible = record.responsibleUserId ? userProfileMap.get(record.responsibleUserId) : null;
   // Suppress the "on behalf of" chip when the human actor *is* the responsible user.
@@ -229,7 +231,19 @@ function AuditRow({
           dateTime={record.createdAt}
           title={new Date(record.createdAt).toLocaleString()}
         >
-          {relativeTime(record.createdAt)}
+          {(() => {
+            const now = Date.now();
+            const then = new Date(record.createdAt).getTime();
+            const diffSec = Math.round((now - then) / 1000);
+            if (diffSec < 60) return t("time.justNow", { defaultValue: "just now" });
+            const diffMin = Math.round(diffSec / 60);
+            if (diffMin < 60) return t("time.minutesAgo", { value: diffMin, defaultValue: `${diffMin}m ago` });
+            const diffHr = Math.round(diffMin / 60);
+            if (diffHr < 24) return t("time.hoursAgo", { value: diffHr, defaultValue: `${diffHr}h ago` });
+            const diffDay = Math.round(diffHr / 24);
+            if (diffDay < 30) return t("time.daysAgo", { value: diffDay, defaultValue: `${diffDay}d ago` });
+            return relativeTime(record.createdAt);
+          })()}
         </time>
       </div>
     </li>
@@ -264,6 +278,7 @@ export function AuditFeed({
   mode,
   onModeChange,
 }: AuditFeedProps) {
+  const { t } = useTranslation();
   const { pushToast } = useToastActions();
   const [agent, setAgent] = useState<string>(ALL);
   const [responsibleUser, setResponsibleUser] = useState<string>(ALL);
@@ -478,8 +493,8 @@ export function AuditFeed({
       {showModeToggle ? (
         <Tabs value={resolvedMode} onValueChange={(value) => onModeChange?.(value as AuditFeedMode)}>
           <TabsList aria-label="Activity scope">
-            <TabsTrigger value="all">All activity</TabsTrigger>
-            <TabsTrigger value="agents">Agent actions</TabsTrigger>
+            <TabsTrigger value="all">{t("activity.allActivity")}</TabsTrigger>
+            <TabsTrigger value="agents">{t("activity.agentActions")}</TabsTrigger>
           </TabsList>
         </Tabs>
       ) : null}

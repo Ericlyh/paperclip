@@ -4,6 +4,7 @@ import { cn, relativeTime } from "@/lib/utils";
 import { formatBytes, outputFilename, type IssueOutputItem } from "@/lib/issue-output";
 import { OutputFileTile } from "./OutputFileTile";
 import { Card } from "@/components/ui/card";
+import { useTranslation } from "../../i18n";
 
 interface OutputRowProps {
   item: IssueOutputItem;
@@ -12,6 +13,7 @@ interface OutputRowProps {
 
 /** Compact row for a non-primary output ("ALSO PRODUCED"). */
 export function OutputRow({ item, creatorName }: OutputRowProps) {
+  const { t } = useTranslation();
   const filename = outputFilename(item);
   const meta = item.metadata;
 
@@ -21,7 +23,7 @@ export function OutputRow({ item, creatorName }: OutputRowProps) {
     metaBits.push(formatBytes(meta.byteSize));
   }
   if (creatorName) metaBits.push(creatorName);
-  metaBits.push(relativeTime(item.createdAt));
+  metaBits.push(t("time.updatedAgo", { value: relativeTime(item.createdAt) }));
 
   return (
     <Card className="flex-row items-center gap-2.5 p-2">
@@ -36,18 +38,26 @@ export function OutputRow({ item, creatorName }: OutputRowProps) {
             item.degraded ? "text-destructive" : "text-muted-foreground",
           )}
         >
-          {item.degraded ? "File details unavailable" : metaBits.join(" · ")}
+          {item.degraded ? t("issueOutput.fileDetailsUnavailable") : metaBits.join(" · ")}
         </p>
       </div>
       {meta ? (
         <div className="flex shrink-0 items-center gap-1">
-          <Button asChild variant="ghost" size="icon-sm" title="Open in new tab">
-            <a href={meta.openPath} target="_blank" rel="noreferrer" aria-label={`Open ${filename}`}>
+          <Button asChild variant="ghost" size="icon-sm" title={t("issueOutput.openInNewTab")}>
+            <a
+              href={meta.openPath}
+              target="_blank"
+              rel="noreferrer"
+              aria-label={t("issueOutput.openFileAriaLabel", { name: filename })}
+            >
               <ExternalLink className="h-4 w-4" />
             </a>
           </Button>
-          <Button asChild variant="ghost" size="icon-sm" title="Download">
-            <a href={meta.downloadPath} aria-label={`Download ${filename}`}>
+          <Button asChild variant="ghost" size="icon-sm" title={t("issueOutput.download")}>
+            <a
+              href={meta.downloadPath}
+              aria-label={t("issueOutput.downloadFileAriaLabel", { name: filename })}
+            >
               <Download className="h-4 w-4" />
             </a>
           </Button>

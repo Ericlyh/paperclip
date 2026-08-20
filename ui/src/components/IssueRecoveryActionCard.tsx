@@ -35,6 +35,7 @@ import {
   deriveRecoveryDisplayState,
   type RecoveryDisplayState,
 } from "@/lib/recovery-display";
+import { useTranslation } from "../i18n";
 
 export type RecoveryCardCardState = RecoveryDisplayState;
 export const deriveRecoveryCardState = deriveRecoveryDisplayState;
@@ -749,7 +750,10 @@ function readWakePolicySummary(action: IssueRecoveryAction): string | null {
   return type.replaceAll("_", " ");
 }
 
-function formatTimeShort(value: string | Date | null | undefined): string | null {
+function formatTimeShort(
+  value: string | Date | null | undefined,
+  t: (key: string, options?: Record<string, unknown>) => string,
+): string | null {
   if (!value) return null;
   try {
     const date = value instanceof Date ? value : new Date(value);
@@ -758,7 +762,9 @@ function formatTimeShort(value: string | Date | null | undefined): string | null
     const diffMs = date.getTime() - now;
     const absMin = Math.round(Math.abs(diffMs) / 60_000);
     if (absMin < 60) {
-      return diffMs >= 0 ? `in ${absMin}m` : `${absMin}m ago`;
+      return diffMs >= 0
+        ? t("recovery.time.inMinutes", { value: absMin })
+        : t("recovery.time.minutesAgo", { value: absMin });
     }
     return date.toLocaleString(undefined, {
       month: "short",
@@ -914,6 +920,7 @@ export function IssueRecoveryActionCard({
   variant = "full",
   className,
 }: IssueRecoveryActionCardProps) {
+  const { t } = useTranslation();
   const cardState: RecoveryCardCardState = forcedState ?? deriveRecoveryCardState(action);
   const tone = STATE_TONE[cardState];
   const ToneIcon = tone.Icon;
@@ -921,10 +928,12 @@ export function IssueRecoveryActionCard({
 
   const headline = useMemo(() => {
     if (cardState === "resolved" && action.outcome) {
-      return `Recovery resolved as ${OUTCOME_LABEL[action.outcome] ?? action.outcome}.`;
+      return t("recovery.headline.resolvedAs", {
+        outcome: OUTCOME_LABEL[action.outcome] ?? action.outcome,
+      });
     }
     return KIND_HEADLINE[action.kind] ?? KIND_HEADLINE.missing_disposition;
-  }, [action.kind, action.outcome, cardState]);
+  }, [action.kind, action.outcome, cardState, t]);
 
   const wakeSummary = readWakePolicySummary(action);
   const evidenceSummary = pickEvidenceSummary(action);
@@ -941,7 +950,7 @@ export function IssueRecoveryActionCard({
       return false;
     }
   })();
-  const updatedAtLabel = formatTimeShort(action.updatedAt);
+  const updatedAtLabel = formatTimeShort(action.updatedAt, t);
 
   const ariaState = ({
     needed: "needed",
@@ -1102,7 +1111,9 @@ export function IssueRecoveryActionCard({
             ) : null}
             {showTimeoutInline ? (
               <span className="rounded-md border border-border/50 bg-background/60 px-1.5 py-0.5 text-(length:--text-micro) text-muted-foreground">
-                Times out {formatTimeShort(action.timeoutAt) ?? "soon"}
+                {t("recovery.timesOut", {
+                  when: formatTimeShort(action.timeoutAt, t) ?? t("recovery.time.soon"),
+                })}
               </span>
             ) : null}
           </span>
@@ -1110,8 +1121,12 @@ export function IssueRecoveryActionCard({
         {cardState === "resolved" && action.outcome ? (
           <MetadataRow label="Resolution">
             <span className={cn("font-medium", tone.labelClass)}>
-              Resolved as {OUTCOME_LABEL[action.outcome]}
-              {action.resolvedAt ? ` · ${formatTimeShort(action.resolvedAt) ?? ""}` : ""}
+              {t("recovery.resolvedAs", { outcome: OUTCOME_LABEL[action.outcome] })}
+              {action.resolvedAt
+                ? t("recovery.time.dotTime", {
+                    time: formatTimeShort(action.resolvedAt, t) ?? "",
+                  })
+                : ""}
             </span>
           </MetadataRow>
         ) : null}

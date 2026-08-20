@@ -255,7 +255,7 @@ export function InstanceSettings() {
                           title={agent.lastHeartbeatAt ? formatDateTime(agent.lastHeartbeatAt) : undefined}
                         >
                           {agent.lastHeartbeatAt
-                            ? relativeTime(agent.lastHeartbeatAt)
+                            ? t("instanceSettings.status.lastHeartbeatAgo", { value: relativeTime(agent.lastHeartbeatAt) })
                             : t("instanceSettings.status.never")}
                         </span>
                         <span className="ml-auto flex items-center gap-1.5 shrink-0">
