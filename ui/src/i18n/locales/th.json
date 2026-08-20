@@ -5971,5 +5971,185 @@
     "preparingLogin": "Preparing the login…",
     "claudeLoginBound": "The saved Claude login is bound to this agent now.",
     "completingLogin": "Completing the login…"
+  },
+  "activityVerb": {
+    "issue": {
+      "created": "created",
+      "updated": "updated",
+      "checked_out": "checked out",
+      "released": "released",
+      "comment_added": "commented on",
+      "comment_cancelled": "cancelled a queued comment on",
+      "comment_deleted": "deleted a comment on",
+      "attachment_added": "attached file to",
+      "attachment_removed": "removed attachment from",
+      "document_created": "created document for",
+      "document_updated": "updated document on",
+      "document_locked": "locked document on",
+      "document_unlocked": "unlocked document on",
+      "document_deleted": "deleted document from",
+      "monitor_scheduled": "scheduled monitor on",
+      "monitor_triggered": "triggered monitor for",
+      "monitor_cleared": "cleared monitor on",
+      "monitor_skipped": "skipped monitor for",
+      "monitor_exhausted": "exhausted monitor on",
+      "monitor_recovery_wake_queued": "queued monitor recovery for",
+      "monitor_recovery_issue_created": "created monitor recovery for",
+      "monitor_escalated_to_board": "escalated monitor for",
+      "commented": "commented on",
+      "deleted": "deleted",
+      "successful_run_handoff_required": "flagged missing next step on",
+      "successful_run_handoff_resolved": "recorded next step chosen on",
+      "successful_run_handoff_escalated": "escalated missing next step on",
+      "accepted_plan_decomposition_updated": "updated accepted-plan decomposition on",
+      "recovery_action_opened": "opened a recovery action on",
+      "recovery_action_resolved": "resolved the recovery action on",
+      "recovery_action_escalated": "escalated the recovery action on",
+      "thread_interaction_created": "asked for a decision on",
+      "thread_interaction_accepted": "accepted the request on",
+      "thread_interaction_rejected": "rejected the request on",
+      "thread_interaction_answered": "answered the request on",
+      "thread_interaction_withdrawn": "withdrew the request on",
+      "thread_interaction_cancelled": "cancelled the request on",
+      "thread_interaction_expired": "expired the request on",
+      "thread_interaction_item_verdicts_submitted": "submitted verdicts on",
+      "stalled_review_decided": "recorded a review verdict on"
+    },
+    "agent": {
+      "created": "created",
+      "updated": "updated",
+      "paused": "paused",
+      "resumed": "resumed",
+      "error_cleared": "cleared error on",
+      "terminated": "terminated",
+      "key_created": "created API key for",
+      "budget_updated": "updated budget for",
+      "runtime_session_reset": "reset session for"
+    },
+    "heartbeat": {
+      "invoked": "invoked heartbeat for",
+      "cancelled": "cancelled heartbeat for",
+      "output_stale_source_resolved": "system-folded stale run on",
+      "output_stale_recovery_recursion_refused": "refused recovery-on-recovery for"
+    },
+    "approval": {
+      "created": "requested approval",
+      "approved": "approved",
+      "rejected": "rejected"
+    },
+    "project": {
+      "created": "created",
+      "updated": "updated",
+      "deleted": "deleted"
+    },
+    "goal": {
+      "created": "created",
+      "updated": "updated",
+      "deleted": "deleted"
+    },
+    "cost": {
+      "reported": "reported cost for",
+      "recorded": "recorded cost for"
+    },
+    "company": {
+      "created": "created company",
+      "updated": "updated company",
+      "archived": "archived",
+      "reactivated": "reactivated",
+      "budget_updated": "updated budget for"
+    },
+    "audit": {
+      "exported": "exported the agent audit log for"
+    }
+  },
+  "activityAction": {
+    "issue": {
+      "created": "created the issue",
+      "updated": "updated the issue",
+      "checked_out": "checked out the issue",
+      "released": "released the issue",
+      "comment_added": "added a comment",
+      "comment_cancelled": "cancelled a queued comment",
+      "comment_deleted": "deleted a comment",
+      "feedback_vote_saved": "saved feedback on an AI output",
+      "attachment_added": "added an attachment",
+      "attachment_removed": "removed an attachment",
+      "document_created": "created a document",
+      "document_updated": "updated a document",
+      "document_locked": "locked a document",
+      "document_unlocked": "unlocked a document",
+      "document_deleted": "deleted a document",
+      "monitor_scheduled": "scheduled a monitor",
+      "monitor_triggered": "triggered a monitor",
+      "monitor_cleared": "cleared a monitor",
+      "monitor_skipped": "skipped a monitor",
+      "monitor_exhausted": "exhausted a monitor",
+      "monitor_recovery_wake_queued": "queued a monitor recovery wake",
+      "monitor_recovery_issue_created": "created a monitor recovery issue",
+      "monitor_escalated_to_board": "escalated a monitor to the board",
+      "deleted": "deleted the issue",
+      "successful_run_handoff_required": "Run finished without a clear next step",
+      "successful_run_handoff_resolved": "Next step chosen",
+      "successful_run_handoff_escalated": "Run finished without a next step - recovery escalated",
+      "cross_issue_influence_cap_rejected": "hit the per-run cross-task write cap",
+      "cross_issue_influence_observed": "made a cross-task write",
+      "attribution_spoof_rejected": "tried to choose its own responsible user",
+      "recovery_action_opened": "Opened a source-scoped recovery action",
+      "recovery_action_resolved": "Resolved the recovery action",
+      "recovery_action_escalated": "Escalated the recovery action",
+      "accepted_plan_decomposition_updated": "updated the accepted-plan decomposition",
+      "thread_interaction_created": "asked for a decision",
+      "thread_interaction_accepted": "accepted the request",
+      "thread_interaction_rejected": "rejected the request",
+      "thread_interaction_answered": "answered the request",
+      "thread_interaction_withdrawn": "withdrew the request",
+      "thread_interaction_cancelled": "cancelled the request",
+      "thread_interaction_expired": "expired the request",
+      "thread_interaction_item_verdicts_submitted": "submitted verdicts on the request",
+      "stalled_review_decided": "recorded a review verdict"
+    },
+    "agent": {
+      "created": "created an agent",
+      "updated": "updated the agent",
+      "paused": "paused the agent",
+      "resumed": "resumed the agent",
+      "error_cleared": "cleared the agent error",
+      "terminated": "terminated the agent"
+    },
+    "heartbeat": {
+      "invoked": "invoked a heartbeat",
+      "cancelled": "cancelled a heartbeat",
+      "output_stale_source_resolved": "System folded a stale run",
+      "output_stale_recovery_recursion_refused": "Refused recovery-on-recovery escalation"
+    },
+    "approval": {
+      "created": "requested approval",
+      "approved": "approved",
+      "rejected": "rejected"
+    }
+  },
+  "activityReviewDecision": {
+    "approve": "approved the review",
+    "request_changes": "requested changes on the review",
+    "send_back": "sent the review back to work"
+  },
+  "activityInteractionAccepted": {
+    "request_confirmation": "approved the request",
+    "request_checkbox_confirmation": "approved the request",
+    "suggest_tasks": "accepted the task suggestions",
+    "ask_user_questions": "accepted the answers"
+  },
+  "activityInteractionRejected": {
+    "request_confirmation": "rejected the request",
+    "request_checkbox_confirmation": "rejected the request",
+    "suggest_tasks": "declined the task suggestions",
+    "ask_user_questions": "declined the questions"
+  },
+  "activityActor": {
+    "board": "Board",
+    "you": "You",
+    "userPrefix": "user",
+    "agent": "agent",
+    "task": "task"
   }
 }

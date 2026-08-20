@@ -1,6 +1,7 @@
 import type { Agent } from "@paperclipai/shared";
 import type { CompanyUserProfile } from "./company-members";
 import { formatReviewPolicyValue } from "./review-policy";
+import { t } from "../i18n";
 
 type ActivityDetails = Record<string, unknown> | null | undefined;
 
@@ -195,14 +196,20 @@ const INTERACTION_REJECTED_LABELS: Record<string, string> = {
  * above already say it well enough.
  */
 function formatInteractionOutcomeLabel(action: string, details: ActivityDetails): string | null {
-  const table = action === "issue.thread_interaction_accepted"
+  const acceptedTable = action === "issue.thread_interaction_accepted"
     ? INTERACTION_ACCEPTED_LABELS
-    : action === "issue.thread_interaction_rejected"
-      ? INTERACTION_REJECTED_LABELS
-      : null;
-  if (!table) return null;
+    : null;
+  const rejectedTable = action === "issue.thread_interaction_rejected"
+    ? INTERACTION_REJECTED_LABELS
+    : null;
+  if (!acceptedTable && !rejectedTable) return null;
   const kind = typeof details?.interactionKind === "string" ? details.interactionKind : null;
-  return kind ? table[kind] ?? null : null;
+  if (!kind) return null;
+  const table = acceptedTable ?? rejectedTable;
+  const fallback = table?.[kind] ?? null;
+  if (!fallback) return null;
+  const namespace = acceptedTable ? "activityInteractionAccepted" : "activityInteractionRejected";
+  return t(`${namespace}.${kind}`, { defaultValue: fallback });
 }
 
 function asRecord(value: unknown): Record<string, unknown> | null {
@@ -238,17 +245,17 @@ function readIssueReferences(details: ActivityDetails, key: string): ActivityIss
 }
 
 function formatUserLabel(userId: string | null | undefined, options: ActivityFormatOptions = {}): string {
-  if (!userId || userId === "local-board") return "Board";
-  if (options.currentUserId && userId === options.currentUserId) return "You";
+  if (!userId || userId === "local-board") return t("activityActor.board", { defaultValue: "Board" });
+  if (options.currentUserId && userId === options.currentUserId) return t("activityActor.you", { defaultValue: "You" });
   const profile = options.userProfileMap?.get(userId);
   if (profile) return profile.label;
-  return `user ${userId.slice(0, 5)}`;
+  return `${t("activityActor.userPrefix", { defaultValue: "user" })} ${userId.slice(0, 5)}`;
 }
 
 function formatParticipantLabel(participant: ActivityParticipant, options: ActivityFormatOptions): string {
   if (participant.type === "agent") {
     const agentId = participant.agentId ?? "";
-    return options.agentMap?.get(agentId)?.name ?? "agent";
+    return options.agentMap?.get(agentId)?.name ?? t("activityActor.agent", { defaultValue: "agent" });
   }
   return formatUserLabel(participant.userId, options);
 }
@@ -257,7 +264,7 @@ function formatIssueReferenceLabel(reference: ActivityIssueReference): string {
   if (reference.identifier) return reference.identifier;
   if (reference.title) return reference.title;
   if (reference.id) return reference.id.slice(0, 8);
-  return "task";
+  return t("activityActor.task", { defaultValue: "task" });
 }
 
 function formatChangedEntityLabel(
@@ -420,7 +427,7 @@ export function formatActivityVerb(
   if (action === "issue.stalled_review_decided") {
     const decision = typeof details?.action === "string" ? details.action : null;
     const label = decision ? STALLED_REVIEW_DECISION_LABELS[decision] : null;
-    if (label) return `${label} on`;
+    if (label) return `${t(`activityReviewDecision.${decision}`, { defaultValue: label })} on`;
   }
 
   const outcomeLabel = formatInteractionOutcomeLabel(action, details);
@@ -434,7 +441,9 @@ export function formatActivityVerb(
   });
   if (structuredChange) return structuredChange;
 
-  return ACTIVITY_ROW_VERBS[action] ?? action.replace(/[._]/g, " ");
+  const fallback = ACTIVITY_ROW_VERBS[action];
+  if (fallback === undefined) return action.replace(/[._]/g, " ");
+  return t(`activityVerb.${action}`, { defaultValue: fallback });
 }
 
 export function formatIssueActivityAction(
@@ -463,7 +472,7 @@ export function formatIssueActivityAction(
   if (action === "issue.stalled_review_decided") {
     const decision = typeof details?.action === "string" ? details.action : null;
     const label = decision ? STALLED_REVIEW_DECISION_LABELS[decision] : null;
-    if (label) return label;
+    if (label) return t(`activityReviewDecision.${decision}`, { defaultValue: label });
   }
 
   const outcomeLabel = formatInteractionOutcomeLabel(action, details);
@@ -473,7 +482,10 @@ export function formatIssueActivityAction(
     const serviceName = typeof details.serviceName === "string" && details.serviceName.trim()
       ? details.serviceName.trim()
       : null;
-    const base = ISSUE_ACTIVITY_LABELS[action] ?? action.replace(/[._]/g, " ");
+    const tableEntry = ISSUE_ACTIVITY_LABELS[action];
+    const base = tableEntry !== undefined
+      ? t(`activityAction.${action}`, { defaultValue: tableEntry })
+      : action.replace(/[._]/g, " ");
     return serviceName ? `${base} for ${serviceName}` : base;
   }
 
@@ -489,8 +501,14 @@ export function formatIssueActivityAction(
   ) {
     const key = typeof details.key === "string" ? details.key : "document";
     const title = typeof details.title === "string" && details.title ? ` (${details.title})` : "";
-    return `${ISSUE_ACTIVITY_LABELS[action] ?? action} ${key}${title}`;
+    const tableEntry = ISSUE_ACTIVITY_LABELS[action];
+    const verb = tableEntry !== undefined
+      ? t(`activityAction.${action}`, { defaultValue: tableEntry })
+      : action;
+    return `${verb} ${key}${title}`;
   }
 
-  return ISSUE_ACTIVITY_LABELS[action] ?? action.replace(/[._]/g, " ");
+  const fallback = ISSUE_ACTIVITY_LABELS[action];
+  if (fallback === undefined) return action.replace(/[._]/g, " ");
+  return t(`activityAction.${action}`, { defaultValue: fallback });
 }

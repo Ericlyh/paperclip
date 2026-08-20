@@ -5971,5 +5971,185 @@
     "preparingLogin": "Preparing the login…",
     "claudeLoginBound": "The saved Claude login is bound to this agent now.",
     "completingLogin": "Completing the login…"
+  },
+  "activityVerb": {
+    "issue": {
+      "created": "建立了",
+      "updated": "更新了",
+      "checked_out": "領取了",
+      "released": "釋出了",
+      "comment_added": "留言於",
+      "comment_cancelled": "取消了待發送的留言於",
+      "comment_deleted": "刪除了留言於",
+      "attachment_added": "將檔案附加到",
+      "attachment_removed": "從移除了附件",
+      "document_created": "為建立了文件",
+      "document_updated": "更新了文件於",
+      "document_locked": "鎖定了文件於",
+      "document_unlocked": "解鎖了文件於",
+      "document_deleted": "從刪除了文件",
+      "monitor_scheduled": "為排定了監控",
+      "monitor_triggered": "觸發了監控，服務為",
+      "monitor_cleared": "清除了監控於",
+      "monitor_skipped": "略過了監控，服務為",
+      "monitor_exhausted": "耗盡了監控於",
+      "monitor_recovery_wake_queued": "為排定了監控恢復喚醒",
+      "monitor_recovery_issue_created": "為建立了監控恢復任務",
+      "monitor_escalated_to_board": "將監控升級至董事會，服務為",
+      "commented": "留言於",
+      "deleted": "刪除了",
+      "successful_run_handoff_required": "標記了缺少下一步於",
+      "successful_run_handoff_resolved": "記錄了所選下一步於",
+      "successful_run_handoff_escalated": "將缺少下一步的事項升級於",
+      "accepted_plan_decomposition_updated": "更新了已接受計畫的分解於",
+      "recovery_action_opened": "為開啟了恢復動作",
+      "recovery_action_resolved": "解決了恢復動作於",
+      "recovery_action_escalated": "將恢復動作升級於",
+      "thread_interaction_created": "請求決定於",
+      "thread_interaction_accepted": "接受了請求於",
+      "thread_interaction_rejected": "拒絕了請求於",
+      "thread_interaction_answered": "回應了請求於",
+      "thread_interaction_withdrawn": "撤回了請求於",
+      "thread_interaction_cancelled": "取消了請求於",
+      "thread_interaction_expired": "讓請求過期於",
+      "thread_interaction_item_verdicts_submitted": "提交了裁決於",
+      "stalled_review_decided": "記錄了審查裁決於"
+    },
+    "agent": {
+      "created": "建立了",
+      "updated": "更新了",
+      "paused": "暫停了",
+      "resumed": "恢復了",
+      "error_cleared": "清除了錯誤於",
+      "terminated": "終止了",
+      "key_created": "為建立了 API 金鑰",
+      "budget_updated": "更新了預算於",
+      "runtime_session_reset": "重設了工作階段於"
+    },
+    "heartbeat": {
+      "invoked": "為觸發了心跳",
+      "cancelled": "取消了心跳於",
+      "output_stale_source_resolved": "系統收起了過時的執行於",
+      "output_stale_recovery_recursion_refused": "拒絕了恢復中再恢復於"
+    },
+    "approval": {
+      "created": "提出了核准請求",
+      "approved": "核准了",
+      "rejected": "拒絕了"
+    },
+    "project": {
+      "created": "建立了",
+      "updated": "更新了",
+      "deleted": "刪除了"
+    },
+    "goal": {
+      "created": "建立了",
+      "updated": "更新了",
+      "deleted": "刪除了"
+    },
+    "cost": {
+      "reported": "回報了費用於",
+      "recorded": "記錄了費用於"
+    },
+    "company": {
+      "created": "建立了公司",
+      "updated": "更新了公司",
+      "archived": "封存了",
+      "reactivated": "重新啟用了",
+      "budget_updated": "更新了預算於"
+    },
+    "audit": {
+      "exported": "匯出了代理稽核記錄於"
+    }
+  },
+  "activityAction": {
+    "issue": {
+      "created": "建立了這個任務",
+      "updated": "更新了這個任務",
+      "checked_out": "領取了這個任務",
+      "released": "釋出了這個任務",
+      "comment_added": "新增了一則留言",
+      "comment_cancelled": "取消了一則待發送的留言",
+      "comment_deleted": "刪除了一則留言",
+      "feedback_vote_saved": "對 AI 輸出儲存了回饋",
+      "attachment_added": "新增了一個附件",
+      "attachment_removed": "移除了一個附件",
+      "document_created": "建立了一份文件",
+      "document_updated": "更新了一份文件",
+      "document_locked": "鎖定了一份文件",
+      "document_unlocked": "解鎖了一份文件",
+      "document_deleted": "刪除了一份文件",
+      "monitor_scheduled": "排定了一個監控",
+      "monitor_triggered": "觸發了一個監控",
+      "monitor_cleared": "清除了監控警報",
+      "monitor_skipped": "略過了一個監控",
+      "monitor_exhausted": "耗盡了一個監控",
+      "monitor_recovery_wake_queued": "排定了監控恢復喚醒",
+      "monitor_recovery_issue_created": "建立了一個監控恢復任務",
+      "monitor_escalated_to_board": "將監控升級至董事會",
+      "deleted": "刪除了這個任務",
+      "successful_run_handoff_required": "執行已完成但缺少明確的下一步",
+      "successful_run_handoff_resolved": "已選擇下一步",
+      "successful_run_handoff_escalated": "執行已完成但缺少下一步 — 恢復已升級",
+      "cross_issue_influence_cap_rejected": "已達到單次執行的跨任務寫入上限",
+      "cross_issue_influence_observed": "進行了跨任務寫入",
+      "attribution_spoof_rejected": "嘗試自行指定負責的使用者",
+      "recovery_action_opened": "已開啟來源範圍的恢復動作",
+      "recovery_action_resolved": "已解決恢復動作",
+      "recovery_action_escalated": "已將恢復動作升級",
+      "accepted_plan_decomposition_updated": "更新了已接受計畫的分解",
+      "thread_interaction_created": "請求進行決定",
+      "thread_interaction_accepted": "接受了請求",
+      "thread_interaction_rejected": "拒絕了請求",
+      "thread_interaction_answered": "回應了請求",
+      "thread_interaction_withdrawn": "撤回了請求",
+      "thread_interaction_cancelled": "取消了請求",
+      "thread_interaction_expired": "已讓請求過期",
+      "thread_interaction_item_verdicts_submitted": "提交了對請求的裁決",
+      "stalled_review_decided": "記錄了審查裁決"
+    },
+    "agent": {
+      "created": "建立了一個代理",
+      "updated": "更新了代理",
+      "paused": "暫停了代理",
+      "resumed": "恢復了代理",
+      "error_cleared": "清除了代理錯誤",
+      "terminated": "終止了代理"
+    },
+    "heartbeat": {
+      "invoked": "觸發了一次心跳",
+      "cancelled": "取消了心跳",
+      "output_stale_source_resolved": "系統收起了過時的執行",
+      "output_stale_recovery_recursion_refused": "已拒絕恢復中再恢復的升級"
+    },
+    "approval": {
+      "created": "提出了核准請求",
+      "approved": "核准了",
+      "rejected": "拒絕了"
+    }
+  },
+  "activityReviewDecision": {
+    "approve": "核准了審查",
+    "request_changes": "要求審查進行修改",
+    "send_back": "將審查退回進行中"
+  },
+  "activityInteractionAccepted": {
+    "request_confirmation": "核准了請求",
+    "request_checkbox_confirmation": "核准了請求",
+    "suggest_tasks": "接受了任務建議",
+    "ask_user_questions": "接受了回應"
+  },
+  "activityInteractionRejected": {
+    "request_confirmation": "拒絕了請求",
+    "request_checkbox_confirmation": "拒絕了請求",
+    "suggest_tasks": "婉拒了任務建議",
+    "ask_user_questions": "婉拒了問題"
+  },
+  "activityActor": {
+    "board": "董事會",
+    "you": "你",
+    "userPrefix": "使用者",
+    "agent": "代理",
+    "task": "任務"
   }
 }
