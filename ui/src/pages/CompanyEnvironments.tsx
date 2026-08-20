@@ -226,7 +226,7 @@ function createEnvironmentFormFromEnvironment(environment: Environment): Environ
   };
 }
 
-const DISCARD_ENVIRONMENT_CHANGES_MESSAGE = "Discard unsaved environment changes?";
+const DISCARD_ENVIRONMENT_CHANGES_MESSAGE_KEY = "companyEnvironments.discardChanges.message" as const;
 
 function stableJsonStringify(value: unknown): string {
   if (Array.isArray(value)) {
@@ -292,9 +292,9 @@ function formatShortId(value: string): string {
   return `${normalized.slice(0, 12)}…`;
 }
 
-function formatBootSourceDriftValue(value: unknown): string {
+function formatBootSourceDriftValue(value: unknown, t: (key: string, options?: Record<string, unknown>) => string): string {
   if (typeof value === "string") return value;
-  if (value === null || value === undefined) return "none";
+  if (value === null || value === undefined) return t("companyEnvironments.templateDetails.driftValueNone");
   return JSON.stringify(value);
 }
 
@@ -307,16 +307,20 @@ function formatBootSourceDriftValue(value: unknown): string {
  */
 function formatBootSourceDriftSummary(
   drift: EnvironmentCustomImageActiveTemplateDrift | null | undefined,
+  t: (key: string, options?: Record<string, unknown>) => string,
 ): string | null {
   if (!drift || drift.classification !== "boot_source_drift") return null;
   const parts = drift.driftedPaths
     .filter((entry) => "from" in entry || "to" in entry)
-    .map(
-      (entry) =>
-        `${entry.path} \`${formatBootSourceDriftValue(entry.from)}\` -> \`${formatBootSourceDriftValue(entry.to)}\``,
+    .map((entry) =>
+      t("companyEnvironments.templateDetails.driftPathItem", {
+        path: entry.path,
+        from: formatBootSourceDriftValue(entry.from, t),
+        to: formatBootSourceDriftValue(entry.to, t),
+      }),
     );
   if (parts.length === 0) return null;
-  return `Base image changed: ${parts.join("; ")}`;
+  return t("companyEnvironments.templateDetails.baseImageChangedSummary", { parts: parts.join("; ") });
 }
 
 function readConnectionCommand(payload: EnvironmentCustomImageConnectionPayload | null | undefined): string | null {
@@ -329,19 +333,19 @@ function setupConnectionFallbackMessage(input: {
   payload: EnvironmentCustomImageConnectionPayload | null;
   refreshError: unknown;
   isLoading: boolean;
-}): string | null {
+}, t: (key: string, options?: Record<string, unknown>) => string): string | null {
   if (input.refreshError) {
-    return "Setup connection details could not be refreshed. You can still finish or cancel this setup.";
+    return t("companyEnvironments.setupSession.connectionDetailsCouldNotRefresh");
   }
   if (input.isLoading) return null;
   if (!input.payload) {
-    return "Connection details are not available yet. You can still finish or cancel this setup.";
+    return t("companyEnvironments.setupSession.connectionDetailsUnavailable");
   }
   if (input.payload.type !== "ssh") {
-    return "Browser terminal is not available for this provider connection. Use the provider setup instructions, then finish or cancel here.";
+    return t("companyEnvironments.setupSession.browserTerminalUnavailableForProvider");
   }
   if (!readConnectionCommand(input.payload)) {
-    return "Connection details are not available yet. You can still finish or cancel this setup.";
+    return t("companyEnvironments.setupSession.connectionDetailsUnavailable");
   }
   return null;
 }
@@ -389,23 +393,23 @@ function parseTerminalFrame(raw: string): Record<string, unknown> | null {
   }
 }
 
-function customImageTerminalStatusCopy(state: CustomImageTerminalConnectionState) {
+function customImageTerminalStatusCopy(state: CustomImageTerminalConnectionState, t: (key: string, options?: Record<string, unknown>) => string) {
   switch (state) {
     case "connecting":
-      return "Connecting";
+      return t("companyEnvironments.browserTerminal.statusConnecting");
     case "connected":
-      return "Connected";
+      return t("companyEnvironments.browserTerminal.statusConnected");
     case "closed":
-      return "Closed";
+      return t("companyEnvironments.browserTerminal.statusClosed");
     case "error":
-      return "Connection failed";
+      return t("companyEnvironments.browserTerminal.statusError");
     case "idle":
     default:
-      return "Ready to connect";
+      return t("companyEnvironments.browserTerminal.statusIdle");
   }
 }
 
-function customImageTerminalCloseReasonCopy(reason: unknown) {
+function customImageTerminalCloseReasonCopy(reason: unknown, t: (key: string, options?: Record<string, unknown>) => string) {
   if (
     reason !== "expired"
     && reason !== "ssh_closed"
@@ -413,20 +417,20 @@ function customImageTerminalCloseReasonCopy(reason: unknown) {
     && reason !== "setup_finished"
     && reason !== "setup_cancelled"
   ) {
-    return typeof reason === "string" && reason.trim() ? "Terminal closed." : null;
+    return typeof reason === "string" && reason.trim() ? t("companyEnvironments.browserTerminal.closeReasonGeneric") : null;
   }
 
   switch (reason) {
     case "expired":
-      return "Setup session expired.";
+      return t("companyEnvironments.browserTerminal.closeReasonExpired");
     case "ssh_closed":
-      return "SSH session closed.";
+      return t("companyEnvironments.browserTerminal.closeReasonSshClosed");
     case "server_shutdown":
-      return "Terminal server shut down.";
+      return t("companyEnvironments.browserTerminal.closeReasonServerShutdown");
     case "setup_finished":
-      return "Setup session finished.";
+      return t("companyEnvironments.browserTerminal.closeReasonSetupFinished");
     case "setup_cancelled":
-      return "Setup session cancelled.";
+      return t("companyEnvironments.browserTerminal.closeReasonSetupCancelled");
     default:
       return null;
   }
@@ -439,6 +443,7 @@ function EnvironmentCustomImageBrowserTerminal({
   autoConnect?: boolean;
   sessionId: string;
 }) {
+  const { t } = useTranslation();
   const [connectionState, setConnectionState] = useState<CustomImageTerminalConnectionState>("idle");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const terminalElementRef = useRef<HTMLDivElement | null>(null);
@@ -608,7 +613,7 @@ function EnvironmentCustomImageBrowserTerminal({
   const connectTerminal = useCallback(async () => {
     if (typeof WebSocket === "undefined") {
       setConnectionState("error");
-      setErrorMessage("Browser terminal is unavailable in this browser.");
+      setErrorMessage(t("companyEnvironments.browserTerminal.unavailableInBrowser"));
       return;
     }
 
@@ -656,13 +661,13 @@ function EnvironmentCustomImageBrowserTerminal({
 
         if (frame.type === "error") {
           setConnectionState("error");
-          setErrorMessage(typeof frame.message === "string" ? frame.message : "Terminal connection failed.");
+          setErrorMessage(typeof frame.message === "string" ? frame.message : t("companyEnvironments.browserTerminal.connectionFailed"));
           return;
         }
 
         if (frame.type === "closed") {
           setConnectionState("closed");
-          setErrorMessage(customImageTerminalCloseReasonCopy(frame.reason));
+          setErrorMessage(customImageTerminalCloseReasonCopy(frame.reason, t));
         }
       };
 
@@ -675,13 +680,13 @@ function EnvironmentCustomImageBrowserTerminal({
       socket.onerror = () => {
         if (socketRef.current !== socket) return;
         setConnectionState("error");
-        setErrorMessage("Terminal websocket connection failed.");
+        setErrorMessage(t("companyEnvironments.browserTerminal.websocketFailed"));
       };
     } catch (error) {
       setConnectionState("error");
-      setErrorMessage(error instanceof Error ? error.message : "Terminal session could not be opened.");
+      setErrorMessage(error instanceof Error ? error.message : t("companyEnvironments.browserTerminal.sessionCouldNotOpen"));
     }
-  }, [closeSocket, fitTerminal, getTerminalDimensions, resetTerminalScreen, sendTerminalResize, sessionId]);
+  }, [closeSocket, fitTerminal, getTerminalDimensions, resetTerminalScreen, sendTerminalResize, sessionId, t]);
 
   useEffect(() => {
     if (!autoConnect || connectionState !== "idle") return;
@@ -705,13 +710,13 @@ function EnvironmentCustomImageBrowserTerminal({
       <div className="flex flex-wrap items-center justify-between gap-2 border-b border-border/60 px-3 py-2">
         <div className="flex min-w-0 items-center gap-2 text-xs">
           <Terminal className="h-3.5 w-3.5 text-muted-foreground" />
-          <span className="font-medium">Browser terminal</span>
-          <span className="text-muted-foreground">{customImageTerminalStatusCopy(connectionState)}</span>
+          <span className="font-medium">{t("companyEnvironments.browserTerminal.title")}</span>
+          <span className="text-muted-foreground">{customImageTerminalStatusCopy(connectionState, t)}</span>
         </div>
         <div className="flex items-center gap-2">
           {terminalInteractive ? (
             <Button size="sm" variant="ghost" onClick={disconnectTerminal}>
-              Disconnect
+              {t("companyEnvironments.browserTerminal.disconnect")}
             </Button>
           ) : (
             <Button
@@ -721,7 +726,9 @@ function EnvironmentCustomImageBrowserTerminal({
               disabled={connectionState === "connecting"}
             >
               <Terminal className="mr-1.5 h-3.5 w-3.5" />
-              {connectionState === "closed" || connectionState === "error" ? "Reconnect" : "Open terminal"}
+              {connectionState === "closed" || connectionState === "error"
+                ? t("companyEnvironments.browserTerminal.reconnect")
+                : t("companyEnvironments.browserTerminal.openTerminal")}
             </Button>
           )}
         </div>
@@ -730,7 +737,7 @@ function EnvironmentCustomImageBrowserTerminal({
         <div
           ref={terminalElementRef}
           data-testid={`custom-image-terminal-screen-${sessionId}`}
-          aria-label="Custom image browser terminal"
+          aria-label={t("companyEnvironments.browserTerminal.ariaLabel")}
           role="application"
           tabIndex={0}
           onFocus={() => xtermRef.current?.focus()}
@@ -747,48 +754,48 @@ function EnvironmentCustomImageBrowserTerminal({
   );
 }
 
-function capabilityState(capability: EnvironmentProviderCapability | null | undefined) {
+function capabilityState(capability: EnvironmentProviderCapability | null | undefined, t: (key: string, options?: Record<string, unknown>) => string) {
   if (!capability || capability.status !== "supported" || !capability.supportsInteractiveSetup) {
     return {
       kind: "unsupported" as const,
-      label: "Unsupported provider",
-      reason: "This provider does not advertise interactive template setup.",
+      label: t("companyEnvironments.capability.unsupportedProvider"),
+      reason: t("companyEnvironments.capability.unsupportedProviderReason"),
     };
   }
 
   if (!capability.supportsTemplateCapture) {
     return {
       kind: "capture_unavailable" as const,
-      label: "Setup capture unavailable",
-      reason: "This provider advertises setup, but image capture is unavailable.",
+      label: t("companyEnvironments.capability.setupCaptureUnavailable"),
+      reason: t("companyEnvironments.capability.setupCaptureUnavailableReason"),
     };
   }
 
   return {
     kind: "supported" as const,
-    label: "Template setup",
+    label: t("companyEnvironments.capability.templateSetup"),
     reason: null,
   };
 }
 
-function sessionStatusCopy(status: EnvironmentCustomImageSetupSession["status"]) {
+function sessionStatusCopy(status: EnvironmentCustomImageSetupSession["status"], t: (key: string, options?: Record<string, unknown>) => string) {
   switch (status) {
     case "starting":
-      return "Setup starting";
+      return t("companyEnvironments.sessionStatus.starting");
     case "waiting_for_user":
-      return "Setup running";
+      return t("companyEnvironments.sessionStatus.running");
     case "capturing":
-      return "Capturing template";
+      return t("companyEnvironments.sessionStatus.capturing");
     case "promoted":
-      return "Template captured";
+      return t("companyEnvironments.sessionStatus.captured");
     case "cancelled":
-      return "Setup cancelled";
+      return t("companyEnvironments.sessionStatus.cancelled");
     case "timed_out":
-      return "Setup expired";
+      return t("companyEnvironments.sessionStatus.expired");
     case "failed":
-      return "Setup failed";
+      return t("companyEnvironments.sessionStatus.failed");
     default:
-      return "Setup status";
+      return t("companyEnvironments.sessionStatus.default");
   }
 }
 
@@ -801,8 +808,8 @@ class RelinkConfirmationDeclined extends Error {
   }
 }
 
-function formatRelinkDriftValue(value: unknown): string {
-  if (value === null || value === undefined) return "(none)";
+function formatRelinkDriftValue(value: unknown, t: (key: string, options?: Record<string, unknown>) => string): string {
+  if (value === null || value === undefined) return t("companyEnvironments.templateDetails.driftValueNoneRelink");
   if (typeof value === "string") return value;
   return JSON.stringify(value);
 }
@@ -810,17 +817,21 @@ function formatRelinkDriftValue(value: unknown): string {
 // Turns the sanitized 409 drift body into the operator warning. Value-bearing
 // drift shows the changed field; an unclassified result warns that the snapshot
 // will override the current base image.
-function relinkDriftWarning(conflict: EnvironmentCustomImageRelinkConflict): string {
+function relinkDriftWarning(conflict: EnvironmentCustomImageRelinkConflict, t: (key: string, options?: Record<string, unknown>) => string): string {
   if (conflict.classification === "boot_source_drift") {
     const valued = conflict.driftedPaths.find(
       (entry) => entry.from !== undefined || entry.to !== undefined,
     );
     if (valued) {
-      return `The base image changed: ${valued.path} ${formatRelinkDriftValue(valued.from)} -> ${formatRelinkDriftValue(valued.to)}.`;
+      return t("companyEnvironments.templateDetails.driftValuePathChange", {
+        path: valued.path,
+        from: formatRelinkDriftValue(valued.from, t),
+        to: formatRelinkDriftValue(valued.to, t),
+      });
     }
-    return "The base image changed since this image was captured.";
+    return t("companyEnvironments.templateDetails.driftValueGeneric");
   }
-  return "The server cannot verify the boot source; the snapshot will override the current base image.";
+  return t("companyEnvironments.templateDetails.driftValueUnverified");
 }
 
 function EnvironmentImageTemplatePanel({
@@ -835,8 +846,9 @@ function EnvironmentImageTemplatePanel({
   providerDisplayName: string;
 }) {
   const { pushToast } = useToast();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
-  const state = capabilityState(providerCapability);
+  const state = capabilityState(providerCapability, t);
   const overviewKey = queryKeys.environments.customImageTemplate(environment.id);
 
   const overviewQuery = useQuery({
@@ -882,15 +894,15 @@ function EnvironmentImageTemplatePanel({
       }));
       setSessionResult(result);
       pushToast({
-        title: "Setup session started",
-        body: "Connect details are available while the session is active.",
+        title: t("companyEnvironments.templateActions.setupSessionStarted"),
+        body: t("companyEnvironments.templateActions.setupSessionStartedBody"),
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to start setup",
-        body: error instanceof Error ? error.message : "Setup session could not be started.",
+        title: t("companyEnvironments.templateActions.failedToStartSetup"),
+        body: error instanceof Error ? error.message : t("companyEnvironments.templateActions.failedToStartSetupBody"),
         tone: "error",
       });
     },
@@ -907,15 +919,15 @@ function EnvironmentImageTemplatePanel({
       setSessionResult({ session: result.session, connectionPayload: null });
       invalidateOverview();
       pushToast({
-        title: "Template captured",
-        body: "Future runs can use the promoted template.",
+        title: t("companyEnvironments.templateActions.templateCaptured"),
+        body: t("companyEnvironments.templateActions.templateCapturedBody"),
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to capture template",
-        body: error instanceof Error ? error.message : "Template capture failed.",
+        title: t("companyEnvironments.templateActions.failedToCaptureTemplate"),
+        body: error instanceof Error ? error.message : t("companyEnvironments.templateActions.failedToCaptureTemplateBody"),
         tone: "error",
       });
     },
@@ -933,15 +945,15 @@ function EnvironmentImageTemplatePanel({
       setSessionResult({ session, connectionPayload: null });
       invalidateOverview();
       pushToast({
-        title: "Setup cancelled",
-        body: "The active template was not changed.",
+        title: t("companyEnvironments.templateActions.setupCancelled"),
+        body: t("companyEnvironments.templateActions.setupCancelledBody"),
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to cancel setup",
-        body: error instanceof Error ? error.message : "Setup session could not be cancelled.",
+        title: t("companyEnvironments.templateActions.failedToCancelSetup"),
+        body: error instanceof Error ? error.message : t("companyEnvironments.templateActions.failedToCancelSetupBody"),
         tone: "error",
       });
     },
@@ -957,15 +969,15 @@ function EnvironmentImageTemplatePanel({
       }));
       invalidateOverview();
       pushToast({
-        title: "Template rolled back",
-        body: "Future runs will use the previous template.",
+        title: t("companyEnvironments.templateActions.templateRolledBack"),
+        body: t("companyEnvironments.templateActions.templateRolledBackBody"),
         tone: "success",
       });
     },
     onError: (error) => {
       pushToast({
-        title: "Failed to roll back template",
-        body: error instanceof Error ? error.message : "Rollback failed.",
+        title: t("companyEnvironments.templateActions.failedToRollbackTemplate"),
+        body: error instanceof Error ? error.message : t("companyEnvironments.templateActions.failedToRollbackTemplateBody"),
         tone: "error",
       });
     },
@@ -980,8 +992,8 @@ function EnvironmentImageTemplatePanel({
       } catch (error) {
         if (error instanceof ApiError && error.status === 409) {
           const conflict = (error.body as { details?: EnvironmentCustomImageRelinkConflict } | null)?.details;
-          const warning = conflict ? relinkDriftWarning(conflict) : error.message;
-          if (!window.confirm(`${warning}\n\nRelink this image anyway?`)) {
+          const warning = conflict ? relinkDriftWarning(conflict, t) : error.message;
+          if (!window.confirm(t("companyEnvironments.templateActions.relinkAnywayPrompt", { warning }))) {
             throw new RelinkConfirmationDeclined();
           }
           return await environmentsApi.relinkCustomImageTemplate(environment.id, companyId, {
@@ -1000,16 +1012,16 @@ function EnvironmentImageTemplatePanel({
       }));
       invalidateOverview();
       pushToast({
-        title: "Template relinked",
-        body: "Runs use the captured image again.",
+        title: t("companyEnvironments.templateActions.templateRelinked"),
+        body: t("companyEnvironments.templateActions.templateRelinkedBody"),
         tone: "success",
       });
     },
     onError: (error) => {
       if (error instanceof RelinkConfirmationDeclined) return;
       pushToast({
-        title: "Failed to relink template",
-        body: error instanceof Error ? error.message : "Relink failed.",
+        title: t("companyEnvironments.templateActions.failedToRelinkTemplate"),
+        body: error instanceof Error ? error.message : t("companyEnvironments.templateActions.failedToRelinkTemplateBody"),
         tone: "error",
       });
     },
@@ -1080,7 +1092,7 @@ function EnvironmentImageTemplatePanel({
         payload: connectionPayload,
         refreshError: sessionQuery.isError ? sessionQuery.error : null,
         isLoading: sessionQuery.isLoading,
-      })
+      }, t)
     : null;
   const sessionExpiresAt = formatDateTime(connectionPayload?.expiresAt ?? session?.expiresAt ?? null);
   const capturedAt = formatDateTime(activeTemplate?.capturedAt ?? activeTemplate?.createdAt ?? null);
@@ -1099,7 +1111,7 @@ function EnvironmentImageTemplatePanel({
       <div className="mt-3 border-t border-border/60 pt-3" data-testid={`custom-image-template-state-${environment.id}`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">
-            <div className="text-xs font-medium">{sessionStatusCopy(session.status)}</div>
+            <div className="text-xs font-medium">{sessionStatusCopy(session.status, t)}</div>
             <div className="text-xs text-muted-foreground">
               {providerDisplayName}{sessionExpiresAt ? ` · expires ${sessionExpiresAt}` : ""}
             </div>
@@ -1158,12 +1170,12 @@ function EnvironmentImageTemplatePanel({
   if (activeTemplate) {
     const templateRef = activeTemplate.templateRef?.trim() || null;
     const templateOutOfSync = overview?.activeTemplateMatchesConfig === false;
-    const bootSourceDriftSummary = formatBootSourceDriftSummary(overview?.activeTemplateDrift);
+    const bootSourceDriftSummary = formatBootSourceDriftSummary(overview?.activeTemplateDrift, t);
     return (
       <div className="mt-3 border-t border-border/60 pt-3" data-testid={`custom-image-template-state-${environment.id}`}>
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div className="min-w-0 space-y-1">
-            <div className="text-xs font-medium">Active template</div>
+            <div className="text-xs font-medium">{t("companyEnvironments.templateDetails.active")}</div>
             <div className="text-xs text-muted-foreground">
               {providerDisplayName} · {activeTemplate.templateKind}
               {" · "}
@@ -1237,10 +1249,10 @@ function EnvironmentImageTemplatePanel({
     <div className="mt-3 border-t border-border/60 pt-3" data-testid={`custom-image-template-state-${environment.id}`}>
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="space-y-1">
-          <div className="text-xs font-medium">Not configured</div>
+          <div className="text-xs font-medium">{t("companyEnvironments.templateDetails.notConfigured")}</div>
           <div className="text-xs text-muted-foreground">
             {latestSession
-              ? sessionStatusCopy(latestSession.status)
+              ? sessionStatusCopy(latestSession.status, t)
               : `Capture a custom ${providerDisplayName} image with your tools already logged in.`}
           </div>
           {latestSession?.failureReason ? (
@@ -1604,7 +1616,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
     return (
       !environmentHasUnsavedChanges ||
       typeof window === "undefined" ||
-      window.confirm(DISCARD_ENVIRONMENT_CHANGES_MESSAGE)
+      window.confirm(t(DISCARD_ENVIRONMENT_CHANGES_MESSAGE_KEY))
     );
   }
 
@@ -1646,7 +1658,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
         return;
       }
 
-      if (window.confirm(DISCARD_ENVIRONMENT_CHANGES_MESSAGE)) return;
+      if (window.confirm(t(DISCARD_ENVIRONMENT_CHANGES_MESSAGE_KEY))) return;
       event.preventDefault();
       event.stopPropagation();
     }
@@ -1750,7 +1762,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
   );
 
   if (!selectedCompanyId) {
-    return <div className="text-sm text-muted-foreground">Select a company context to manage environment secrets and bindings.</div>;
+    return <div className="text-sm text-muted-foreground">{t("companyEnvironments.common.selectCompany")}</div>;
   }
 
   if (!environmentsEnabled) {
@@ -1770,7 +1782,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
         <div className="rounded-md border border-border/60 bg-muted/20 px-3 py-3">
           <div className="flex flex-wrap items-start justify-between gap-3">
             <div className="space-y-1">
-              <div className="text-sm font-medium">Default</div>
+              <div className="text-sm font-medium">{t("companyEnvironments.list.defaultSection")}</div>
             </div>
             <div className="min-w-(--sz-18rem) flex-1">
               <select
@@ -1790,7 +1802,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                     </option>
                   ) : null
                 ) : (
-                  <option value="">Local</option>
+                  <option value="">{t("accountMenu.local")}</option>
                 )}
                 {nonLocalEnvironments.map((environment) => (
                   <option key={environment.id} value={environment.id}>
@@ -1805,7 +1817,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
         <div className="space-y-3">
           <div className="flex justify-end">
             <Button size="sm" asChild>
-              <Link to={`${ENVIRONMENTS_PATH}/new`}>Add environment</Link>
+              <Link to={`${ENVIRONMENTS_PATH}/new`}>{t("companyEnvironments.list.addEnvironment")}</Link>
             </Button>
           </div>
           {savedEnvironments.map((environment) => {
@@ -1850,7 +1862,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                         })()}
                       </div>
                     ) : (
-                      <div className="text-xs text-muted-foreground">Runs on this Paperclip host.</div>
+                      <div className="text-xs text-muted-foreground">{t("companyEnvironments.list.runsOnPaperclipHost")}</div>
                     )}
                   </div>
                   <div className="flex flex-wrap items-center gap-2">
@@ -1869,7 +1881,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                       </Button>
                     ) : null}
                     <Button size="sm" variant="ghost" asChild>
-                      <Link to={environmentEditPath(environment.id)}>Edit</Link>
+                      <Link to={environmentEditPath(environment.id)}>{t("common.edit")}</Link>
                     </Button>
                   </div>
                 </div>
@@ -1902,10 +1914,10 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
 
       {isEnvironmentFormPage && mode === "edit" && environments !== undefined && !editingEnvironment ? (
         <div className="space-y-3 rounded-md border border-border px-4 py-4 text-sm">
-          <div className="font-medium">Environment not found</div>
-          <div className="text-muted-foreground">The environment may have been removed or is not available in this company.</div>
+          <div className="font-medium">{t("companyEnvironments.list.notFoundTitle")}</div>
+          <div className="text-muted-foreground">{t("companyEnvironments.list.notFoundDescription")}</div>
           <Button size="sm" variant="outline" asChild>
-            <Link to={ENVIRONMENTS_PATH}>Back to environments</Link>
+            <Link to={ENVIRONMENTS_PATH}>{t("companyEnvironments.common.backToEnvironments")}</Link>
           </Button>
         </div>
       ) : null}
@@ -2041,11 +2053,11 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                     }))}
                 >
                   {sandboxCreationEnabled || environmentForm.driver === "sandbox" ? (
-                    <option value="sandbox">Sandbox</option>
+                    <option value="sandbox">{t("companyEnvironments.fields.driverSandbox")}</option>
                   ) : null}
-                  <option value="ssh">SSH</option>
+                  <option value="ssh">{t("companyEnvironments.fields.driverSsh")}</option>
                   {environmentForm.driver === "local" ? (
-                    <option value="local">Local</option>
+                    <option value="local">{t("accountMenu.local")}</option>
                   ) : null}
                 </select>
               </Field>
@@ -2100,7 +2112,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                             sshPrivateKey: e.target.value ? "" : current.sshPrivateKey,
                           }))}
                       >
-                        <option value="">No saved secret</option>
+                        <option value="">{t("companyEnvironments.fields.noSavedSecret")}</option>
                         {(secrets ?? []).map((secret) => (
                           <option key={secret.id} value={secret.id}>{secret.name}</option>
                         ))}
@@ -2196,7 +2208,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
               environmentForm.driver === "sandbox" &&
               selectedCompanyId ? (
                 <div className="space-y-2 rounded-md border border-border/60 bg-muted/20 px-3 py-3">
-                  <div className="text-sm font-medium">Custom image</div>
+                  <div className="text-sm font-medium">{t("companyEnvironments.customImage.sectionTitle")}</div>
                   <div className="text-xs text-muted-foreground">
                     Start a setup sandbox, SSH in to customize the instance, then capture the
                     running machine as a reusable image for future runs.
