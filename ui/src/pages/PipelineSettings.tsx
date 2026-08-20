@@ -84,6 +84,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
+import { useTranslation } from "../i18n";
 import { useCompany } from "../context/CompanyContext";
 import { useToastActions } from "../context/ToastContext";
 import { buildCompanyUserInlineOptions, isAgentTaskTarget } from "../lib/company-members";
@@ -1276,6 +1277,7 @@ export function PipelineSettings() {
   const { pipelineId } = useParams<{ pipelineId: string }>();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const { pushToast } = useToastActions();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -1643,11 +1645,11 @@ export function PipelineSettings() {
   useEffect(() => {
     if (!pipeline) return;
     setBreadcrumbs([
-      { label: "Pipelines", href: "/pipelines" },
+      { label: t("sidebar.pipelines"), href: "/pipelines" },
       { label: pipeline.name, href: `/pipelines/${pipeline.id}` },
-      { label: "Settings" },
+      { label: t("sidebar.settings") },
     ]);
-  }, [pipeline, setBreadcrumbs]);
+  }, [pipeline, setBreadcrumbs, t]);
 
   // Deep-link from a board-header health warning: ?stage=<id> preselects the
   // flagged stage so the warning's "fix" lands on the right panel.
