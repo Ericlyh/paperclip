@@ -3,7 +3,7 @@ import { Bot, FileText, Hexagon, MessageSquare, Paperclip, Quote } from "lucide-
 import type { Agent, CompanySearchResult } from "@paperclipai/shared";
 import { Link } from "@/lib/router";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "../../i18n";
+import { t, useTranslation } from "../../i18n";
 import { StatusIcon } from "../StatusIcon";
 import { Identity } from "../Identity";
 import { HighlightedText, type HighlightedTextProps } from "./HighlightedText";
@@ -13,15 +13,16 @@ type SnippetStyle = {
   label: string;
 };
 
-const SNIPPET_STYLES: Record<string, SnippetStyle> = {
-  comment: { Icon: MessageSquare, label: "Comment" },
-  document: { Icon: FileText, label: "Doc" },
-  artifact: { Icon: Paperclip, label: "Artifact" },
-  description: { Icon: Quote, label: "Description" },
+const SNIPPET_STYLES: Record<string, Omit<SnippetStyle, "label"> & { labelKey: string }> = {
+  comment: { Icon: MessageSquare, labelKey: "search.matchSource.comment" },
+  document: { Icon: FileText, labelKey: "search.matchSource.document" },
+  artifact: { Icon: Paperclip, labelKey: "search.matchSource.artifact" },
+  description: { Icon: Quote, labelKey: "search.matchSource.description" },
 };
 
 function snippetStyle(field: string, fallbackLabel: string): SnippetStyle {
-  return SNIPPET_STYLES[field] ?? { Icon: Quote, label: fallbackLabel };
+  const style = SNIPPET_STYLES[field];
+  return style ? { Icon: style.Icon, label: t(style.labelKey) } : { Icon: Quote, label: fallbackLabel };
 }
 
 function formatRelativeTime(
@@ -84,7 +85,7 @@ function SearchResultRowImpl({
               text={result.snippets[0]?.text ?? result.snippet}
               highlights={result.snippets[0]?.highlights}
               field="agent"
-              fallbackLabel={result.sourceLabel ?? "Agent"}
+              fallbackLabel={result.sourceLabel ?? t("search.chip.agent")}
             />
           ) : null}
         </div>
@@ -107,7 +108,7 @@ function SearchResultRowImpl({
               text={result.snippets[0]?.text ?? result.snippet}
               highlights={result.snippets[0]?.highlights}
               field="project"
-              fallbackLabel={result.sourceLabel ?? "Project"}
+              fallbackLabel={result.sourceLabel ?? t("search.chip.projectFallback")}
             />
           ) : null}
         </div>
@@ -139,7 +140,7 @@ function SearchResultRowImpl({
               text={result.snippets[0]?.text ?? result.snippet}
               highlights={result.snippets[0]?.highlights}
               field="artifact"
-              fallbackLabel={result.sourceLabel ?? "Artifact"}
+              fallbackLabel={result.sourceLabel ?? t("search.matchSource.artifact")}
               multiline
             />
           ) : null}

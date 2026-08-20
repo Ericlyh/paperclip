@@ -29,9 +29,9 @@ const runSegmentColors = {
 } as const;
 
 // Compact per-day tooltip that also attributes failures to their error class.
-function runDayTooltip(entry: DashboardRunActivityDay, t?: (key: string) => string): string {
+function runDayTooltip(entry: DashboardRunActivityDay, t?: (key: string, options?: Record<string, unknown>) => string): string {
   const tr = (key: string, fallback: string) => (t ? t(key) : fallback);
-  const lines = [`${entry.date}: ${entry.total} run${entry.total === 1 ? "" : "s"}`];
+  const lines = [`${entry.date}: ${t ? t("activity.runCount", { count: entry.total }) : `${entry.total} run${entry.total === 1 ? "" : "s"}`}`];
   if (entry.succeeded > 0) lines.push(`  ${tr("run.succeeded", "succeeded")}: ${entry.succeeded}`);
   if (entry.recovered > 0) lines.push(`  ${tr("run.recovered", "recovered")}: ${entry.recovered} (${tr("run.retrySucceeded", "retry succeeded")})`);
   if (entry.failed > 0) {
@@ -203,7 +203,7 @@ export function PriorityChart({ issues }: { issues: { priority: string; createdA
           const total = Object.values(entry).reduce((a, b) => a + b, 0);
           const heightPct = (total / maxValue) * 100;
           return (
-            <div key={day} className="flex-1 h-full flex flex-col justify-end" title={`${day}: ${total} issues`}>
+            <div key={day} className="flex-1 h-full flex flex-col justify-end" title={`${day}: ${t("activity.issuesCount", { count: total })}`}>
               {total > 0 ? (
                 <div className="flex flex-col-reverse gap-px overflow-hidden" style={{ height: `${heightPct}%`, minHeight: 2 }}>
                   {priorityOrder.map(p => entry[p] > 0 ? (
@@ -278,7 +278,7 @@ export function IssueStatusChart({ issues }: { issues: { status: string; created
           const total = Object.values(entry).reduce((a, b) => a + b, 0);
           const heightPct = (total / maxValue) * 100;
           return (
-            <div key={day} className="flex-1 h-full flex flex-col justify-end" title={`${day}: ${total} issues`}>
+            <div key={day} className="flex-1 h-full flex flex-col justify-end" title={`${day}: ${t("activity.issuesCount", { count: total })}`}>
               {total > 0 ? (
                 <div className="flex flex-col-reverse gap-px overflow-hidden" style={{ height: `${heightPct}%`, minHeight: 2 }}>
                   {statusOrder.map(s => (entry[s] ?? 0) > 0 ? (

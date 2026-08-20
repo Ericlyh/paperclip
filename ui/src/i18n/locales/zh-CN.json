@@ -104,7 +104,12 @@
     "eventCount": "{{shown}} / {{total}} 个事件",
     "filterLabel": "活动筛选",
     "noEventsMatchFilter": "没有符合此筛选的事件",
-    "recentActivityTitle": "近期活动"
+    "recentActivityTitle": "近期活动",
+    "unknownActor": "Unknown",
+    "runCount_one": "{{count}} run",
+    "runCount_other": "{{count}} runs",
+    "issuesCount_one": "{{count}} issue",
+    "issuesCount_other": "{{count}} issues"
   },
   "agentDetail": {
     "API_Keys": "API 密钥",
@@ -3210,6 +3215,126 @@
       "updated": "最近更新",
       "created": "最新创建",
       "priority": "优先级"
+    },
+    "title": "Search",
+    "allScopes": "All scopes",
+    "unknownError": "Unknown error",
+    "clearAll": "Clear all",
+    "removeFilter": "Remove filter {{label}}",
+    "insertOperator": "Insert operator {{token}}",
+    "openTasksFilterView": "Open Tasks filter view",
+    "operatorHintTry": "Try",
+    "operatorHintOr": "or",
+    "recentSearches": "Recent searches",
+    "searchingFor": "Searching for “{{query}}”…",
+    "scope": {
+      "all": "All",
+      "issues": "Tasks",
+      "comments": "Comments",
+      "documents": "Documents",
+      "artifacts": "Artifacts",
+      "agents": "Agents",
+      "projects": "Projects"
+    },
+    "matchSource": {
+      "title": "Title",
+      "identifier": "Identifier",
+      "comment": "Comment",
+      "document": "Doc",
+      "artifact": "Artifact",
+      "description": "Description"
+    },
+    "initial": {
+      "heading": "Type to search company memory.",
+      "subheading": "Tasks, comments, plan documents, artifacts, agents, projects — same surface, ranked by relevance."
+    },
+    "tips": {
+      "identifierLabel": "Identifier lookup:",
+      "identifierBefore": "type",
+      "identifierAfter": "to jump straight to a task.",
+      "quotedLabel": "Quoted phrases:",
+      "quotedBody": "wrap a phrase in quotes to match the exact sequence.",
+      "paletteLabel": "⌘K:",
+      "paletteBody": "reopens the command palette pre-seeded with your current query."
+    },
+    "error": {
+      "heading": "Couldn’t run that search",
+      "serverStatus": "The server returned {{status}}.",
+      "requestFailed": "The request failed.",
+      "body": "Your input and filters are still here, so you can retry or fall back to the Tasks filter."
+    },
+    "empty": {
+      "heading": "No results for “{{query}}”",
+      "body": "We couldn’t find a match in {{scope}}. Try widening the scope or rephrasing your query.",
+      "searchAllScopes": "Search all scopes",
+      "createTask": "Create task from this query",
+      "tipFewerTokens": "Try fewer tokens or a single distinctive term.",
+      "tipIdentifier": "Use an identifier shortcut like",
+      "tipQuotes": "Wrap multi-word phrases in quotes."
+    },
+    "results": {
+      "count_one": "{{count}} result",
+      "count_other": "{{count}} results",
+      "partial": "{{shown}} of {{total}} results",
+      "sortedBy": " · sorted by {{sort}}",
+      "filtersActive_one": " · {{count}} filter active",
+      "filtersActive_other": " · {{count}} filters active",
+      "updating": "Updating…"
+    },
+    "chip": {
+      "status": "Status: {{value}}",
+      "priority": "Priority: {{value}}",
+      "assignee": "Assignee",
+      "assignee_value": "Assignee: {{value}}",
+      "project": "Project: {{value}}",
+      "label": "Label: {{value}}",
+      "updated": "Updated: {{value}}",
+      "updatedWindow": "Updated window",
+      "unassigned": "Unassigned",
+      "me": "Me",
+      "agent": "Agent",
+      "user": "User",
+      "projectFallback": "Project",
+      "labelFallback": "Label"
+    },
+    "updatedWithin": {
+      "24h": "Last 24 hours",
+      "7d": "Last 7 days",
+      "30d": "Last 30 days",
+      "90d": "Last 90 days",
+      "atMost": "Updated ≤ {{value}}"
+    },
+    "filterBar": {
+      "updated": "Updated",
+      "openItems": "Open items",
+      "searchAssignees": "Search assignees…",
+      "noAssignees": "No assignees",
+      "searchProjects": "Search projects…",
+      "noProjects": "No projects",
+      "searchLabels": "Search labels…",
+      "noLabels": "No labels",
+      "searchTextMe": "me mine",
+      "searchTextUnassigned": "unassigned none nobody"
+    },
+    "filterMenu": {
+      "searchPlaceholder": "Search…",
+      "noOptions": "No options"
+    },
+    "sheet": {
+      "filters": "Filters",
+      "showResults": "Show results",
+      "showResultsCount": "Show results ({{count}})"
+    },
+    "zeroResults": {
+      "heading": "No results with these filters",
+      "matchCount_one": "1 result matches",
+      "matchCount_other": "{{count}} results match",
+      "butFiltersHide_one": ", but your active filter hides all of them.",
+      "butFiltersHide_other": ", but your {{count}} active filters hide all of them.",
+      "loosenAFilter": "Loosen a filter",
+      "additionalCount_one": "+{{count}} result",
+      "additionalCount_other": "+{{count}} results",
+      "clearAllFilters": "Clear all filters"
     }
   },
   "myIssues": {
@@ -3572,7 +3697,48 @@
     "breadcrumb": "技能",
     "forkSkill": "拷贝技能",
     "newSkill": "新技能",
-    "detail": "详细信息",
+    "detail": {
+      "breadcrumb": "详细信息",
+      "skillNotFound": "Skill not found.",
+      "files": "Files",
+      "view": "View",
+      "code": "Code",
+      "cancel": "Cancel",
+      "saving": "Saving…",
+      "save": "Save",
+      "edit": "Edit",
+      "forkToEdit": "Fork this skill to edit it.",
+      "fork": "Fork",
+      "selectFile": "Select a file to inspect.",
+      "about": "About",
+      "noOverview": "No overview yet.",
+      "key": "Key",
+      "source": "Source",
+      "version": "Version",
+      "mode": "Mode",
+      "editable": "Editable",
+      "readOnly": "Read only",
+      "noSavedVersions": "No saved versions yet.",
+      "showLess": "Show less",
+      "viewAll": "View all",
+      "openInStudio": "Open in Studio",
+      "install": "install",
+      "installs": "installs",
+      "installsTooltip": "Agents in this company that currently have this skill installed.",
+      "unstar": "Unstar this skill",
+      "star": "Star this skill",
+      "starred": "Starred",
+      "forkThisSkill": "Fork this skill",
+      "unsavedChanges": "Unsaved changes",
+      "discard": "Discard",
+      "saveChanges": "Save changes",
+      "tabs": {
+        "overview": "Overview",
+        "files": "Files",
+        "versions": "Versions",
+        "agents": "Agents"
+      }
+    },
     "back": "返回",
     "skillsStore": "技能商店",
     "skillsStoreSubtitle": "探索、安装、拷贝、分享",
@@ -3581,10 +3747,295 @@
       "filtersCount": "筛选条件：{{count}} 个",
       "unfiled": "未分类",
       "sort": "排序",
-      "newFolder": "添加文件夹"
+      "newFolder": "添加文件夹",
+      "source": "Source",
+      "scan": "Scan project workspaces for skills",
+      "studio": "Studio",
+      "new": "New",
+      "createNewSkill": "Create new skill",
+      "browseCatalog": "Browse catalog",
+      "importFromPath": "Import from path or URL",
+      "importFromProject": "Import skills from project",
+      "done": "Done",
+      "select": "Select",
+      "refresh": "Refresh"
     },
     "versions": {
-      "fileCount": "{{count}} 个文件"
+      "fileCount": "{{count}} 个文件",
+      "loading": "Loading versions...",
+      "version": "version",
+      "versions": "versions",
+      "compare": "Compare",
+      "viewDiff": "View diff"
+    },
+    "source": {
+      "label": "Source"
+    },
+    "filter": {
+      "type": {
+        "all": "All",
+        "company": "Company",
+        "bundled": "Bundled",
+        "optional": "Optional",
+        "external": "External",
+        "label": "Type"
+      },
+      "bundled": "Bundled",
+      "optional": "Optional",
+      "category": {
+        "label": "Category"
+      },
+      "allCategories": "All categories",
+      "allSources": "All sources",
+      "allWithCount": "All ({{count}})"
+    },
+    "trustChip": {
+      "markdownOnly": "Markdown only",
+      "markdownOnlyTooltip": "Text only — no scripts, no binaries, no assets.",
+      "includesAssets": "Includes assets",
+      "includesAssetsTooltip": "Ships images, fonts, or other non-script files.",
+      "includesScripts": "Includes scripts",
+      "includesScriptsTooltip": "Ships executable scripts. Review before installing.",
+      "safe": "Safe",
+      "reviewRequired": "Review required",
+      "nonScriptAssets": "Non-script assets"
+    },
+    "compatChip": {
+      "unknownFormat": "Unknown format",
+      "unknownFormatTooltip": "Paperclip could not validate this skill as Agent Skills markdown. Install at your own risk.",
+      "invalid": "Invalid",
+      "invalidTooltip": "This skill cannot be installed — content is not valid Agent Skills markdown."
+    },
+    "provenanceBadge": {
+      "tooltip": "Installed from the app-shipped skills catalog. Provenance is signed by package version and content hash."
+    },
+    "card": {
+      "moveToFolder": "Move to folder…",
+      "forked": "Forked",
+      "agent": "agent",
+      "installed": "Installed",
+      "bundled": "Bundled"
+    },
+    "categoryNav": {
+      "all": "All"
+    },
+    "folder": {
+      "allSkills": "All skills"
+    },
+    "tabs": {
+      "all": "All",
+      "installed": "Installed",
+      "catalog": "Catalog",
+      "bundled": "Bundled"
+    },
+    "empty": {
+      "noSkills": "No skills yet. Create one or install from the catalog.",
+      "noMatchFilters": "No skills match your filters.",
+      "noSkillsInTab": "No skills in this tab yet.",
+      "browseCatalog": "Browse catalog",
+      "createSkill": "Create a skill",
+      "clearFilters": "Clear filters"
+    },
+    "wizard": {
+      "forking": "Forking {{name}}",
+      "skillName": "Skill name",
+      "slugPlaceholder": "skill-shortname",
+      "taglinePlaceholder": "One-line promise for the skill",
+      "newSkill": "New Skill",
+      "noTagline": "No tagline yet.",
+      "color": "Color",
+      "categoriesLabel": "Categories",
+      "categoriesPlaceholder": "engineering, review, memory",
+      "nameLabel": "Name",
+      "untitled": "Untitled",
+      "slugLabel": "Slug",
+      "scopeLabel": "Scope",
+      "private": "Private",
+      "company": "Company",
+      "none": "none",
+      "sharingLabel": "Sharing",
+      "companyDesc": "Visible inside this company.",
+      "privateDesc": "Only visible in your library.",
+      "publicLink": "Public link",
+      "comingLater": "Coming later.",
+      "cancel": "Cancel",
+      "back": "Back",
+      "next": "Next",
+      "creating": "Creating...",
+      "createFork": "Create fork",
+      "createSkill": "Create skill",
+      "forkSourceNotFound": "Fork source skill not found."
+    },
+    "catalog": {
+      "noMatch": "No catalog skills match this filter.",
+      "bundledWithCount": "Bundled · {{count}}",
+      "optionalWithCount": "Optional · {{count}}",
+      "installedWithCount": "Installed · {{count}}",
+      "selectSkill": "Select a catalog skill to inspect.",
+      "installSkill": "Install skill",
+      "cannotInstall": "This skill cannot be installed — its content is not valid Agent Skills markdown.",
+      "preparing": "Preparing...",
+      "installInOrg": "Install skill in this organization",
+      "updateFromCatalog": "Update from catalog",
+      "installedOpenLibrary": "Installed · Open in library",
+      "updateAvailable": "Update available",
+      "updateAvailableTooltip": "Catalog content hash has changed since this skill was installed.",
+      "requires": "Requires:",
+      "roles": "Roles:",
+      "tags": "Tags:",
+      "selectFile": "Select a file to inspect.",
+      "backToStore": "Back to store",
+      "notFound": "Catalog skill not found.",
+      "files": "Files"
+    },
+    "metadata": {
+      "key": "Key",
+      "hash": "Hash",
+      "copiedHash": "Copied hash",
+      "copyHash": "Copy content hash"
+    },
+    "installPreview": {
+      "update": "Update",
+      "replace": "Replace",
+      "install": "Install",
+      "trust": "Trust",
+      "compatibility": "Compatibility",
+      "compatible": "Compatible",
+      "requires": "Requires",
+      "none": "none",
+      "roles": "Roles",
+      "any": "any",
+      "provenance": "Provenance",
+      "files": "Files ({{count}})",
+      "conflict": "An existing skill with key {{key}} is installed ({{source}}). Installing will {{action}}.",
+      "overwriteCatalog": "overwrite the catalog content",
+      "replaceExisting": "replace the existing skill",
+      "advanced": "Advanced",
+      "slugOverride": "Slug override",
+      "forceReplace": "Force replace existing same-key skill",
+      "cancel": "Cancel"
+    },
+    "agents": {
+      "addToAgent": "Add to agent",
+      "version": "Version",
+      "latest": "Latest",
+      "noAgentsSupportSkills": "No agents in this company support skills yet.",
+      "noAgents": "No agents yet.",
+      "required": " · required",
+      "skillsNotSupported": " · skills not supported",
+      "paused": "Paused"
+    },
+    "skillList": {
+      "noSkillsForSource": "No {{source}} skills installed.",
+      "clearFilter": "Clear filter",
+      "noMatch": "No skills match this filter."
+    },
+    "versionDiff": {
+      "title": "Diff · skill files",
+      "old": "Old",
+      "initial": "Initial",
+      "new": "New",
+      "selectToCompare": "Select a version to compare.",
+      "sameVersion": "Both sides are the same version."
+    },
+    "location": {
+      "label": "Location",
+      "copied": "Copied",
+      "copyPath": "Copy path",
+      "move": "Move"
+    },
+    "tags": {
+      "label": "Tags",
+      "removeTag": "Remove tag {{tag}}",
+      "empty": "No tags yet.",
+      "placeholder": "Add a tag…"
+    },
+    "sidebar": {
+      "agents": "Agents",
+      "noAgentsAttached": "No agents attached yet.",
+      "andMore": "and {{count}} more",
+      "source": "Source",
+      "updates": "Updates",
+      "pinnedRevisionAria": "Pinned source revision",
+      "pinnedRevision": "Pinned source revision",
+      "untracked": "untracked",
+      "checkForUpdates": "Check for updates",
+      "installUpdate": "Install update{{pin}}",
+      "upToDate": "Up to date.",
+      "settings": "Settings"
+    },
+    "settings": {
+      "title": "Skill settings",
+      "description": "Manage how {{name}} is grouped and shared.",
+      "categoriesLabel": "Categories",
+      "categoriesPlaceholder": "engineering, review, memory",
+      "categoriesHint": "Separate categories with commas. Leave empty to clear categories.",
+      "sharingLabel": "Sharing",
+      "sharingCompany": "Company — visible inside this company",
+      "sharingPrivate": "Private — only visible in your library",
+      "publicLinkComing": "Public link sharing is coming later.",
+      "reset": "Reset",
+      "saving": "Saving…",
+      "saveSettings": "Save settings",
+      "dangerZone": "Danger zone",
+      "removeSkill": "Remove this skill from the company library.",
+      "detachFirst": "Detach this skill from all agents before removing it.",
+      "removing": "Removing…",
+      "remove": "Remove"
+    },
+    "skillPane": {
+      "openInStudio": "Open in Studio",
+      "removing": "Removing...",
+      "remove": "Remove",
+      "stopEditing": "Stop editing",
+      "edit": "Edit",
+      "source": "Source",
+      "copiedPath": "Copied path",
+      "copySourcePath": "Copy source path",
+      "pin": "Pin",
+      "untracked": "untracked",
+      "tracking": "tracking",
+      "checkForUpdates": "Check for updates",
+      "installUpdate": "Install update{{pin}}",
+      "upToDate": "Up to date",
+      "key": "Key",
+      "mode": "Mode",
+      "editable": "Editable",
+      "readOnly": "Read only",
+      "trust": "Trust",
+      "locallyModified": "Locally modified",
+      "locallyModifiedTooltip": "You have edited this skill after installing. Updates from the catalog will overwrite your changes.",
+      "usedBy": "Used by",
+      "noAgentsAttached": "No agents attached",
+      "selectFile": "Select a file to inspect."
+    },
+    "selectCompany": "Select a company to manage skills.",
+    "dialog": {
+      "removeSkill": "Remove skill",
+      "removeSkillDescription": "Remove this skill from the company library. If any agents still use it, removal will be blocked until it is detached.",
+      "aboutToRemove": "You are about to remove {{name}}.",
+      "aboutToRemoveThis": "You are about to remove this skill.",
+      "currentlyUsedBy": "Currently used by",
+      "detachFirst": "Detach this skill from all agents to enable removal.",
+      "close": "Close",
+      "cancel": "Cancel",
+      "removing": "Removing...",
+      "addSource": "Add a skill source",
+      "addSourceDescription": "Paste a local path, GitHub URL, or `skills.sh` command into the field first.",
+      "browseSkillsSh": "Browse skills.sh",
+      "findCommands": "Find install commands and paste one here.",
+      "searchGithub": "Search GitHub",
+      "lookForRepos": "Look for repositories with `SKILL.md`, then paste the repo URL here."
+    },
+    "import": {
+      "title": "Import a skill",
+      "description": "Paste a local path, GitHub URL, or `skills.sh` command to import a skill into this company.",
+      "placeholder": "Paste path, GitHub URL, or skills.sh command",
+      "import": "Import",
+      "browseSkillsSh": "Browse skills.sh",
+      "findCommands": "Find install commands and paste one here.",
+      "searchGithub": "Search GitHub",
+      "lookForRepos": "Look for repositories with `SKILL.md`, then paste the repo URL."
     }
   },
   "adapterManager": {

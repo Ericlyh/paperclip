@@ -104,7 +104,12 @@
     "eventCount": "{{shown}} / {{total}} 個事件",
     "filterLabel": "活動篩選",
     "noEventsMatchFilter": "沒有符合此篩選的事件",
-    "recentActivityTitle": "近期活動"
+    "recentActivityTitle": "近期活動",
+    "unknownActor": "未知",
+    "runCount_one": "{{count}} 次執行",
+    "runCount_other": "{{count}} 次執行",
+    "issuesCount_one": "{{count}} 個議題",
+    "issuesCount_other": "{{count}} 個議題"
   },
   "agentDetail": {
     "API_Keys": "API 金鑰",
@@ -3210,6 +3215,126 @@
       "updated": "最近更新",
       "created": "最新建立",
       "priority": "優先順序"
+    },
+    "title": "搜尋",
+    "allScopes": "所有範圍",
+    "unknownError": "未知錯誤",
+    "clearAll": "全部清除",
+    "removeFilter": "移除篩選條件 {{label}}",
+    "insertOperator": "插入運算子 {{token}}",
+    "openTasksFilterView": "開啟任務篩選檢視",
+    "operatorHintTry": "試試",
+    "operatorHintOr": "或",
+    "recentSearches": "最近搜尋",
+    "searchingFor": "正在搜尋「{{query}}」…",
+    "scope": {
+      "all": "全部",
+      "issues": "任務",
+      "comments": "留言",
+      "documents": "文件",
+      "artifacts": "產出物",
+      "agents": "代理",
+      "projects": "專案"
+    },
+    "matchSource": {
+      "title": "標題",
+      "identifier": "識別碼",
+      "comment": "留言",
+      "document": "文件",
+      "artifact": "產出物",
+      "description": "描述"
+    },
+    "initial": {
+      "heading": "輸入以搜尋公司記憶庫。",
+      "subheading": "任務、留言、計畫文件、產出物、代理、專案 — 同一介面，依相關性排序。"
+    },
+    "tips": {
+      "identifierLabel": "識別碼查詢：",
+      "identifierBefore": "輸入",
+      "identifierAfter": "即可直接跳至該任務。",
+      "quotedLabel": "引號片語：",
+      "quotedBody": "用引號包住片語，可比對完全相同的字序。",
+      "paletteLabel": "⌘K：",
+      "paletteBody": "重新開啟命令面板，並帶入你目前的查詢字串。"
+    },
+    "error": {
+      "heading": "無法執行該次搜尋",
+      "serverStatus": "伺服器回傳 {{status}}。",
+      "requestFailed": "請求失敗。",
+      "body": "你輸入的內容與篩選條件都還在，可以重試或改用任務篩選檢視。"
+    },
+    "empty": {
+      "heading": "找不到「{{query}}」的結果",
+      "body": "在{{scope}}中找不到相符項目。請試著擴大範圍或改寫查詢字串。",
+      "searchAllScopes": "搜尋所有範圍",
+      "createTask": "以此查詢建立任務",
+      "tipFewerTokens": "試著減少關鍵字，或改用單一具鑑別度的詞。",
+      "tipIdentifier": "使用識別碼捷徑，例如",
+      "tipQuotes": "多字片語請用引號包起來。"
+    },
+    "results": {
+      "count_one": "{{count}} 筆結果",
+      "count_other": "{{count}} 筆結果",
+      "partial": "{{total}} 筆結果中的 {{shown}} 筆",
+      "sortedBy": " · 依{{sort}}排序",
+      "filtersActive_one": " · {{count}} 個篩選條件生效中",
+      "filtersActive_other": " · {{count}} 個篩選條件生效中",
+      "updating": "更新中…"
+    },
+    "chip": {
+      "status": "狀態：{{value}}",
+      "priority": "優先度：{{value}}",
+      "assignee": "負責人",
+      "assignee_value": "負責人：{{value}}",
+      "project": "專案：{{value}}",
+      "label": "標籤：{{value}}",
+      "updated": "更新時間：{{value}}",
+      "updatedWindow": "更新時間範圍",
+      "unassigned": "未指派",
+      "me": "我",
+      "agent": "代理",
+      "user": "使用者",
+      "projectFallback": "專案",
+      "labelFallback": "標籤"
+    },
+    "updatedWithin": {
+      "24h": "過去 24 小時",
+      "7d": "過去 7 天",
+      "30d": "過去 30 天",
+      "90d": "過去 90 天",
+      "atMost": "更新於 ≤ {{value}}"
+    },
+    "filterBar": {
+      "updated": "更新時間",
+      "openItems": "未結項目",
+      "searchAssignees": "搜尋負責人…",
+      "noAssignees": "沒有負責人",
+      "searchProjects": "搜尋專案…",
+      "noProjects": "沒有專案",
+      "searchLabels": "搜尋標籤…",
+      "noLabels": "沒有標籤",
+      "searchTextMe": "me mine 我 我的",
+      "searchTextUnassigned": "unassigned none 未指派 無"
+    },
+    "filterMenu": {
+      "searchPlaceholder": "搜尋…",
+      "noOptions": "沒有選項"
+    },
+    "sheet": {
+      "filters": "篩選條件",
+      "showResults": "顯示結果",
+      "showResultsCount": "顯示結果（{{count}}）"
+    },
+    "zeroResults": {
+      "heading": "在這些篩選條件下沒有結果",
+      "matchCount_one": "有 1 筆結果符合",
+      "matchCount_other": "有 {{count}} 筆結果符合",
+      "butFiltersHide_one": "，但你的篩選條件將它們全部隱藏了。",
+      "butFiltersHide_other": "，但你的 {{count}} 個篩選條件將它們全部隱藏了。",
+      "loosenAFilter": "放寬篩選條件",
+      "additionalCount_one": "+{{count}} 筆結果",
+      "additionalCount_other": "+{{count}} 筆結果",
+      "clearAllFilters": "清除所有篩選條件"
     }
   },
   "myIssues": {
@@ -3572,7 +3697,48 @@
     "breadcrumb": "技能",
     "forkSkill": "複製技能",
     "newSkill": "新技能",
-    "detail": "詳細資訊",
+    "detail": {
+      "breadcrumb": "詳細資訊",
+      "skillNotFound": "找不到此技能。",
+      "files": "檔案",
+      "view": "檢視",
+      "code": "程式碼",
+      "cancel": "取消",
+      "saving": "儲存中…",
+      "save": "儲存",
+      "edit": "編輯",
+      "forkToEdit": "複製此技能以進行編輯。",
+      "fork": "複製",
+      "selectFile": "選擇一個檔案以檢視內容。",
+      "about": "關於",
+      "noOverview": "尚無說明。",
+      "key": "鍵值",
+      "source": "來源",
+      "version": "版本",
+      "mode": "模式",
+      "editable": "可編輯",
+      "readOnly": "唯讀",
+      "noSavedVersions": "尚未儲存任何版本。",
+      "showLess": "收合",
+      "viewAll": "展開全部",
+      "openInStudio": "在編輯室中開啟",
+      "install": "個代理安裝",
+      "installs": "個代理安裝",
+      "installsTooltip": "此公司中目前已安裝此技能的代理。",
+      "unstar": "取消收藏此技能",
+      "star": "收藏此技能",
+      "starred": "已收藏",
+      "forkThisSkill": "複製此技能",
+      "unsavedChanges": "有未儲存的變更",
+      "discard": "捨棄",
+      "saveChanges": "儲存變更",
+      "tabs": {
+        "overview": "總覽",
+        "files": "檔案",
+        "versions": "版本紀錄",
+        "agents": "代理"
+      }
+    },
     "back": "返回",
     "skillsStore": "技能商店",
     "skillsStoreSubtitle": "探索、安裝、複製、分享",
@@ -3581,10 +3747,295 @@
       "filtersCount": "篩選條件：{{count}} 個",
       "unfiled": "未分類",
       "sort": "排序",
-      "newFolder": "新增資料夾"
+      "newFolder": "新增資料夾",
+      "source": "來源",
+      "scan": "掃描專案工作區以尋找技能",
+      "studio": "編輯室",
+      "new": "新增",
+      "createNewSkill": "建立新技能",
+      "browseCatalog": "瀏覽目錄",
+      "importFromPath": "從路徑或 URL 匯入",
+      "importFromProject": "從專案匯入技能",
+      "done": "完成",
+      "select": "選取",
+      "refresh": "重新整理"
     },
     "versions": {
-      "fileCount": "{{count}} 個檔案"
+      "fileCount": "{{count}} 個檔案",
+      "loading": "正在載入版本…",
+      "version": "個版本",
+      "versions": "個版本",
+      "compare": "比較",
+      "viewDiff": "檢視差異"
+    },
+    "source": {
+      "label": "來源"
+    },
+    "filter": {
+      "type": {
+        "all": "全部",
+        "company": "公司",
+        "bundled": "內建",
+        "optional": "選用",
+        "external": "外部",
+        "label": "類型"
+      },
+      "bundled": "內建",
+      "optional": "選用",
+      "category": {
+        "label": "類別"
+      },
+      "allCategories": "所有類別",
+      "allSources": "所有來源",
+      "allWithCount": "全部（{{count}}）"
+    },
+    "trustChip": {
+      "markdownOnly": "僅 Markdown",
+      "markdownOnlyTooltip": "僅文字內容,不含腳本、可執行檔或資產。",
+      "includesAssets": "包含資產",
+      "includesAssetsTooltip": "隨附圖片、字型或其他非腳本檔案。",
+      "includesScripts": "包含腳本",
+      "includesScriptsTooltip": "隨附可執行腳本。安裝前請先檢閱。",
+      "safe": "安全",
+      "reviewRequired": "需要檢閱",
+      "nonScriptAssets": "非腳本資產"
+    },
+    "compatChip": {
+      "unknownFormat": "未知的格式",
+      "unknownFormatTooltip": "Paperclip 無法將此技能驗證為 Agent Skills Markdown,請自行評估風險後再安裝。",
+      "invalid": "無效",
+      "invalidTooltip": "無法安裝此技能 — 內容不是有效的 Agent Skills Markdown。"
+    },
+    "provenanceBadge": {
+      "tooltip": "從應用程式內建的技能目錄安裝,出處以套件版本與內容雜湊簽署。"
+    },
+    "card": {
+      "moveToFolder": "移至資料夾…",
+      "forked": "已複製",
+      "agent": "個代理",
+      "installed": "已安裝",
+      "bundled": "內建"
+    },
+    "categoryNav": {
+      "all": "全部"
+    },
+    "folder": {
+      "allSkills": "所有技能"
+    },
+    "tabs": {
+      "all": "全部",
+      "installed": "已安裝",
+      "catalog": "目錄",
+      "bundled": "內建"
+    },
+    "empty": {
+      "noSkills": "尚無技能,請建立一個或從目錄安裝。",
+      "noMatchFilters": "沒有符合篩選條件的技能。",
+      "noSkillsInTab": "此分頁中尚無技能。",
+      "browseCatalog": "瀏覽目錄",
+      "createSkill": "建立技能",
+      "clearFilters": "清除篩選"
+    },
+    "wizard": {
+      "forking": "正在複製 {{name}}",
+      "skillName": "技能名稱",
+      "slugPlaceholder": "skill-shortname",
+      "taglinePlaceholder": "一句話說明這個技能的用途",
+      "newSkill": "新技能",
+      "noTagline": "尚未填寫說明。",
+      "color": "顏色",
+      "categoriesLabel": "類別",
+      "categoriesPlaceholder": "工程、審查、記憶",
+      "nameLabel": "名稱",
+      "untitled": "未命名",
+      "slugLabel": "Slug",
+      "scopeLabel": "範圍",
+      "private": "私人",
+      "company": "公司",
+      "none": "無",
+      "sharingLabel": "分享設定",
+      "companyDesc": "僅在公司內部成員可見。",
+      "privateDesc": "僅在我的資料庫中可見。",
+      "publicLink": "公開連結",
+      "comingLater": "稍後推出。",
+      "cancel": "取消",
+      "back": "返回",
+      "next": "下一步",
+      "creating": "建立中…",
+      "createFork": "建立副本",
+      "createSkill": "建立技能",
+      "forkSourceNotFound": "找不到要複製的原始技能。"
+    },
+    "catalog": {
+      "noMatch": "沒有符合此篩選條件的目錄技能。",
+      "bundledWithCount": "內建 · {{count}}",
+      "optionalWithCount": "選用 · {{count}}",
+      "installedWithCount": "已安裝 · {{count}}",
+      "selectSkill": "選擇一個目錄技能以查看細節。",
+      "installSkill": "安裝技能",
+      "cannotInstall": "無法安裝此技能 — 內容不是有效的 Agent Skills Markdown。",
+      "preparing": "準備中…",
+      "installInOrg": "在此公司中安裝技能",
+      "updateFromCatalog": "從目錄更新",
+      "installedOpenLibrary": "已安裝 · 在資料庫中開啟",
+      "updateAvailable": "有可用的更新",
+      "updateAvailableTooltip": "自此技能安裝後,目錄的內容雜湊已變更。",
+      "requires": "依賴：",
+      "roles": "適用角色：",
+      "tags": "標籤：",
+      "selectFile": "選擇一個檔案以檢視內容。",
+      "backToStore": "返回商店",
+      "notFound": "找不到目錄中的技能。",
+      "files": "檔案"
+    },
+    "metadata": {
+      "key": "鍵值",
+      "hash": "雜湊",
+      "copiedHash": "已複製雜湊",
+      "copyHash": "複製內容雜湊"
+    },
+    "installPreview": {
+      "update": "更新",
+      "replace": "取代",
+      "install": "安裝",
+      "trust": "信任等級",
+      "compatibility": "相容性",
+      "compatible": "相容",
+      "requires": "依賴",
+      "none": "無",
+      "roles": "適用角色",
+      "any": "任何",
+      "provenance": "出處",
+      "files": "檔案（{{count}}）",
+      "conflict": "已安裝一個鍵值為 {{key}} 的技能（來源：{{source}}）。安裝將會{{action}}。",
+      "overwriteCatalog": "覆寫目錄內容",
+      "replaceExisting": "取代現有的技能",
+      "advanced": "進階",
+      "slugOverride": "覆寫 Slug",
+      "forceReplace": "強制取代同鍵值的現有技能",
+      "cancel": "取消"
+    },
+    "agents": {
+      "addToAgent": "加入代理",
+      "version": "版本",
+      "latest": "最新",
+      "noAgentsSupportSkills": "此公司目前沒有支援技能的代理。",
+      "noAgents": "目前沒有任何代理。",
+      "required": " · 必要",
+      "skillsNotSupported": " · 不支援技能",
+      "paused": "已暫停"
+    },
+    "skillList": {
+      "noSkillsForSource": "沒有安裝 {{source}} 的技能。",
+      "clearFilter": "清除篩選",
+      "noMatch": "沒有符合此篩選條件的技能。"
+    },
+    "versionDiff": {
+      "title": "差異 · 技能檔案",
+      "old": "舊版",
+      "initial": "初始版本",
+      "new": "新版",
+      "selectToCompare": "選擇一個版本以進行比較。",
+      "sameVersion": "兩端是同一個版本。"
+    },
+    "location": {
+      "label": "位置",
+      "copied": "已複製",
+      "copyPath": "複製路徑",
+      "move": "移動"
+    },
+    "tags": {
+      "label": "標籤",
+      "removeTag": "移除標籤 {{tag}}",
+      "empty": "尚未新增標籤。",
+      "placeholder": "新增標籤…"
+    },
+    "sidebar": {
+      "agents": "代理",
+      "noAgentsAttached": "尚未連結任何代理。",
+      "andMore": "以及其他 {{count}} 個",
+      "source": "來源",
+      "updates": "更新",
+      "pinnedRevisionAria": "已釘選的來源版本",
+      "pinnedRevision": "已釘選的來源版本",
+      "untracked": "未追蹤",
+      "checkForUpdates": "檢查更新",
+      "installUpdate": "安裝更新{{pin}}",
+      "upToDate": "已是最新版本。",
+      "settings": "設定"
+    },
+    "settings": {
+      "title": "技能設定",
+      "description": "管理 {{name}} 的分類與分享設定。",
+      "categoriesLabel": "類別",
+      "categoriesPlaceholder": "工程、審查、記憶",
+      "categoriesHint": "請以逗號分隔多個類別,留空以清除所有類別。",
+      "sharingLabel": "分享設定",
+      "sharingCompany": "公司 — 僅在公司內部可見",
+      "sharingPrivate": "私人 — 僅在我的資料庫中可見",
+      "publicLinkComing": "公開連結分享功能將於日後推出。",
+      "reset": "重設",
+      "saving": "儲存中…",
+      "saveSettings": "儲存設定",
+      "dangerZone": "危險區",
+      "removeSkill": "從公司資料庫中移除此技能。",
+      "detachFirst": "移除前請先將此技能從所有代理上卸載。",
+      "removing": "移除中…",
+      "remove": "移除"
+    },
+    "skillPane": {
+      "openInStudio": "在編輯室中開啟",
+      "removing": "移除中…",
+      "remove": "移除",
+      "stopEditing": "停止編輯",
+      "edit": "編輯",
+      "source": "來源",
+      "copiedPath": "已複製路徑",
+      "copySourcePath": "複製來源路徑",
+      "pin": "釘選版本",
+      "untracked": "未追蹤",
+      "tracking": "追蹤中",
+      "checkForUpdates": "檢查更新",
+      "installUpdate": "安裝更新{{pin}}",
+      "upToDate": "已是最新版本",
+      "key": "鍵值",
+      "mode": "模式",
+      "editable": "可編輯",
+      "readOnly": "唯讀",
+      "trust": "信任等級",
+      "locallyModified": "本機已修改",
+      "locallyModifiedTooltip": "您在安裝後已編輯過此技能,從目錄更新將會覆寫您的變更。",
+      "usedBy": "使用對象",
+      "noAgentsAttached": "尚未連結任何代理",
+      "selectFile": "選擇一個檔案以檢視內容。"
+    },
+    "selectCompany": "請選擇一間公司以管理技能。",
+    "dialog": {
+      "removeSkill": "移除技能",
+      "removeSkillDescription": "將此技能從公司資料庫中移除。若仍有代理使用,需先卸載才能移除。",
+      "aboutToRemove": "即將移除 {{name}}。",
+      "aboutToRemoveThis": "即將移除此技能。",
+      "currentlyUsedBy": "目前的使用代理：",
+      "detachFirst": "請先將此技能從所有代理卸載後才能移除。",
+      "close": "關閉",
+      "cancel": "取消",
+      "removing": "移除中…",
+      "addSource": "新增技能來源",
+      "addSourceDescription": "請先在本欄位貼上本機路徑、GitHub URL 或 `skills.sh` 指令。",
+      "browseSkillsSh": "瀏覽 skills.sh",
+      "findCommands": "尋找安裝指令後貼回此處。",
+      "searchGithub": "搜尋 GitHub",
+      "lookForRepos": "尋找含有 `SKILL.md` 的儲存庫,再將儲存庫 URL 貼到這裡。"
+    },
+    "import": {
+      "title": "匯入技能",
+      "description": "貼上本機路徑、GitHub URL 或 `skills.sh` 指令,即可將技能匯入此公司。",
+      "placeholder": "貼上路徑、GitHub URL 或 skills.sh 指令",
+      "import": "匯入",
+      "browseSkillsSh": "瀏覽 skills.sh",
+      "findCommands": "尋找安裝指令後貼回此處。",
+      "searchGithub": "搜尋 GitHub",
+      "lookForRepos": "尋找含有 `SKILL.md` 的儲存庫,再將儲存庫 URL 貼到這裡。"
     }
   },
   "adapterManager": {
