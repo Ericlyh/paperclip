@@ -46,6 +46,7 @@ import {
   type SearchableSelectOption,
 } from "@/components/SearchableSelect";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
+import { useTranslation } from "../i18n";
 import { useCompany } from "../context/CompanyContext";
 import { useOptionalToastActions } from "../context/ToastContext";
 import { classifySkillDenial } from "@/lib/skill-policy-denial";
@@ -273,6 +274,7 @@ export function SkillStudio() {
   const [searchParams] = useSearchParams();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const companyId = selectedCompanyId ?? "";
   const isCreateMode = location.pathname.replace(/\/+$/, "").endsWith("/skills/studio/new");
@@ -304,22 +306,22 @@ export function SkillStudio() {
     setBreadcrumbs(
       isCreateMode
         ? [
-            { label: "Skills", href: "/skills" },
-            { label: "Studio", href: "/skills/studio" },
-            { label: "New skill" },
+            { label: t("companySkills.breadcrumb"), href: "/skills" },
+            { label: t("skillStudio.studio"), href: "/skills/studio" },
+            { label: t("skillStudio.New_skill") },
           ]
         : skill
         ? [
-            { label: "Skills", href: "/skills" },
-            { label: "Studio", href: "/skills/studio" },
+            { label: t("companySkills.breadcrumb"), href: "/skills" },
+            { label: t("skillStudio.studio"), href: "/skills/studio" },
             { label: skill.name },
           ]
         : [
-            { label: "Skills", href: "/skills" },
-            { label: "Studio" },
+            { label: t("companySkills.breadcrumb"), href: "/skills" },
+            { label: t("skillStudio.studio") },
           ],
     );
-  }, [isCreateMode, setBreadcrumbs, skill]);
+  }, [isCreateMode, setBreadcrumbs, skill, t]);
 
   // Record a per-browser visit whenever a skill successfully opens, powering the
   // landing's "Recently visited" section (PAP-13150).
@@ -515,7 +517,7 @@ function StudioNewSkillPanel({
     <div className="mx-auto flex w-full max-w-4xl flex-col gap-6 px-4 py-6">
       <div className="space-y-1">
         <h1 className="text-lg font-semibold text-foreground">
-          {draft.forkedFromSkillId ? "Fork skill" : "Create a new skill"}
+          {draft.forkedFromSkillId ? t("skillStudio.Fork_skill") : t("skillStudio.Create_a_new_skill")}
         </h1>
         <p className="text-sm text-muted-foreground">
           Create an editable company skill and open it directly in Studio.

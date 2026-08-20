@@ -2059,7 +2059,8 @@
     "engineering_review_memory": "engineering, review, memory",
     "onboarding_happy_path": "onboarding/happy-path",
     "references_examples": "references/examples",
-    "setIsMobile_window_innerWidth": "setIsMobile(window.innerWidth"
+    "setIsMobile_window_innerWidth": "setIsMobile(window.innerWidth",
+    "studio": "Studio"
   },
   "skills": {
     "category": {
