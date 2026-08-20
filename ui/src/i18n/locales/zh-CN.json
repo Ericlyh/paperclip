@@ -452,15 +452,15 @@
     }
   },
   "dashboard": {
-    "activeIncidents": "{count} 个进行中的预算事件",
-    "activeIncidents_plural": "{count} 个进行中的预算事件",
-    "agentsPaused": "{count} 个代理已暂停",
+    "activeIncidents": "{{count}} 个进行中的预算事件",
+    "activeIncidents_plural": "{{count}} 个进行中的预算事件",
+    "agentsPaused": "{{count}} 个代理已暂停",
     "awaitingBoardReview": "等待董事会审核",
-    "blocked": "{count} 个受阻",
-    "budgetOverridesAwaiting": "{count} 个预算覆写等待董事会审核",
-    "budgetPercent": "{budget} 预算的 {percent}%",
+    "blocked": "{{count}} 个受阻",
+    "budgetOverridesAwaiting": "{{count}} 个预算覆写等待董事会审核",
+    "budgetPercent": "{{budget}} 预算的 {{percent}}%",
     "createAgentHere": "立即创建",
-    "errors": "{count} 个错误",
+    "errors": "{{count}} 个错误",
     "getStarted": "开始使用",
     "last14Days": "最近 14 天",
     "metricAgents": "已激活代理",
@@ -469,14 +469,14 @@
     "metricTasks": "进行中任务",
     "noAgentsAlert": "您目前没有任何代理。",
     "noTasksYet": "尚无任务。",
-    "open": "{count} 个待处理",
-    "paused": "{count} 个已暂停",
-    "pendingBudgetApprovals": "{count} 个预算待审核",
-    "projectsPaused": "{count} 个项目已暂停",
+    "open": "{{count}} 个待处理",
+    "paused": "{{count}} 个已暂停",
+    "pendingBudgetApprovals": "{{count}} 个预算待审核",
+    "projectsPaused": "{{count}} 个项目已暂停",
     "recentActivity": "最近活动",
     "recentTasks": "最近任务",
     "runActivity": "运行活动",
-    "running": "{count} 个运行中",
+    "running": "{{count}} 个运行中",
     "selectCompany": "请创建或选择一家公司以查看仪表板。",
     "successRate": "成功率",
     "tasksByPriority": "依优先级",
@@ -916,7 +916,7 @@
       "dismissShort": "关闭",
       "markAllAsRead": "全部标记为已读",
       "markAsRead": "标记为已读",
-      "newIssueIn": "在 {group} 中添加问题"
+      "newIssueIn": "在 {{group}} 中添加问题"
     },
     "approvalStatus": {
       "all": "所有审核状态",
@@ -945,7 +945,8 @@
       "cancel": "取消",
       "markAllAsReadConfirm": "确定要全部标记为已读吗？",
       "markAllAsReadPending": "标记中…",
-      "markAllAsReadDescription": "这会将 {count, plural, one {# 个未读项目} other {# 个未读项目}} 标记为已读。"
+      "markAllAsReadDescription_one": "This will mark {{count}} unread item as read.",
+      "markAllAsReadDescription_other": "This will mark {{count}} unread items as read."
     },
     "empty": {
       "archived": "已封存",
@@ -993,8 +994,10 @@
       "sort": "排序"
     },
     "subtree": {
-      "liveBelowTitle": "{count, plural, other {下方有 # 个子任务正在运行}}",
-      "liveBelow": "{count, plural, other {下方有 # 个运行中}}"
+      "liveBelowTitle_one": "{{count}} sub-task running below",
+      "liveBelowTitle_other": "{{count}} sub-tasks running below",
+      "liveBelow_one": "{{count}} live below",
+      "liveBelow_other": "{{count}} live below"
     },
     "assignee": {
       "unassigned": "未指派"
@@ -1092,10 +1095,10 @@
     "Classic_Task_Interface_description": "Restores the previous task detail page: the page-level header with inline description editing, the plain comment thread, and the fixed Properties sidebar. Chat-only features — streaming activity folding, inline plan and question cards, the three-mode composer — are unavailable in the classic view.",
     "Classic_Task_Interface_footnote": "Switching takes effect immediately. No task data is affected.",
     "Conference_Room_Chat_description": "Adds a Conference Room — one chat where you and your whole team work together — plus the live activity feed and the redesigned onboarding. Also restyles task threads as chat bubbles. Turn off anytime to restore the classic UI.",
-    "currentWindow": "Current window: last {hours} {hours, plural, one {hour} other {hours}}.",
+    "currentWindow": "Current window: last {{hours}} hours.",
     "Decisions_description": "Show the Decisions item in the main sidebar — the attention home that surfaces the tasks awaiting your input — while the surface is still being evaluated.",
     "Enable": "Enable",
-    "Enable_And_Create": "Enable and create {count}",
+    "Enable_And_Create": "Enable and create {{count}}",
     "Enable_Environments_title": "Enable Environments",
     "Enable_External_Objects_title": "Enable External Objects",
     "Enable_Isolated_Workspaces_title": "Enable Isolated Workspaces",
@@ -1110,12 +1113,10 @@
     "optInBlurb": "Opt into features that are still being evaluated before they become default behavior.",
     "Preview": "Preview",
     "recoveryCandidatesEmpty": "No recovery tasks would be created right now. Auto-recovery can still run for future liveness incidents in this window.",
-    "recoveryLookbackSkipped": "{count, plural, one {# current finding is} other {# current findings are}} outside the configured lookback and will not be touched.",
-    "recoveryMatchCount": "{count, plural, one {# recovery task} other {# recovery tasks}} match the last {lookbackHours} hours.",
     "recoveryTarget": "Recovery target:",
     "Run_Now": "Run now",
     "Run_Tasks_In_This_Worktree_description": "This is an isolated git-worktree preview instance. Turn this on to let the scheduler execute runs here. Only tasks created after enabling will run automatically — copied/pre-existing tasks stay parked. Toggling off and on resets the cutoff.",
-    "runningTasksCreatedAfter": "Running tasks created after {timestamp}.",
+    "runningTasksCreatedAfter": "Running tasks created after {{timestamp}}.",
     "Save_Hours": "Save hours",
     "Server_Info_Debug_View_description": "Show a \"Server\" section in the account drawer with the current server restart time and running commit.",
     "Simplified_English_Interactions_description": "Instruct agents to write user interactions (plan confirmations, questions, suggested tasks, checkbox prompts) in ASD-STE100 Simplified Technical English, with brief context on what information the decision needs and what happens for each choice.",
@@ -1127,7 +1128,11 @@
     "Decisions": "Decisions",
     "Summaries": "Summaries",
     "Toggle_classic_task_interface_experimental_setting": "Toggle classic task interface experimental setting",
-    "Toggle_managed_sandbox_only_experimental_setting": "Toggle managed sandbox only experimental setting"
+    "Toggle_managed_sandbox_only_experimental_setting": "Toggle managed sandbox only experimental setting",
+    "recoveryLookbackSkipped_one": "{{count}} current finding is outside the configured lookback and will not be touched.",
+    "recoveryLookbackSkipped_other": "{{count}} current findings are outside the configured lookback and will not be touched.",
+    "recoveryMatchCount_one": "{{count}} recovery task matches the last {{lookbackHours}} hours.",
+    "recoveryMatchCount_other": "{{count}} recovery tasks match the last {{lookbackHours}} hours."
   },
   "inviteLanding": {
     "sessionFallback": "此帐号",
@@ -3440,11 +3445,11 @@
       "daily": "每日",
       "weekly": "每周",
       "monthly": "每月",
-      "days": "{count} 天",
+      "days": "{{count}} 天",
       "week": "1 周",
-      "weeks": "{count} 周",
+      "weeks": "{{count}} 周",
       "month": "1 个月",
-      "months": "{count} 个月"
+      "months": "{{count}} 个月"
     },
     "feedbackSharing": {
       "title": "AI 反馈分享",
@@ -3455,7 +3460,7 @@
       "allowDescription": "自动分享被投票的 AI 输出。",
       "deny": "不允许",
       "denyDescription": "仅将被投票的 AI 输出保留在本地。",
-      "retest": "若要在本地开发环境重新测试首次使用提示,请从此 instance 的 {row} JSON 列中移除 {key} 键,或将其设置回 {prompt}。未设置和 {prompt} 都表示尚未选择预设。"
+      "retest": "若要在本地开发环境重新测试首次使用提示,请从此 instance 的 {{row}} JSON 列中移除 {{key}} 键,或将其设置回 {{prompt}}。未设置和 {{prompt}} 都表示尚未选择预设。"
     },
     "signOut": {
       "title": "注销",
@@ -3469,7 +3474,7 @@
     "permissionDenied": "您没有管理公司成员的权限。",
     "loadFailed": "加载公司成员失败。",
     "title": "公司成员",
-    "subtitle": "管理可在 {companyName} 工作的成员。成员预设可在公司范围内协作。",
+    "subtitle": "管理可在 {{companyName}} 工作的成员。成员预设可在公司范围内协作。",
     "coreScopeNote": "Core 将此页面聚焦于成员、邀请核准和安全移除成员。",
     "instanceAdminNote": "此帐号可透过 instance 管理员权限在此管理访问,但目前未持有有效的公司成员资格。",
     "sections": {
@@ -3480,12 +3485,12 @@
       "pendingJoins": {
         "title": "待处理的人员加入",
         "description": "在成为正式公司成员之前审核待处理的加入请求。",
-        "pending": "{count} 个待处理",
+        "pending": "{{count}} 个待处理",
         "unknownRequester": "未知的请求者",
         "noEmail": "没有可用的电子邮件",
-        "inviteWithRole": "{joinType} 加入邀请 • 预设角色 {role}",
+        "inviteWithRole": "{{joinType}} 加入邀请 • 预设角色 {{role}}",
         "inviteUnavailable": "邀请中继数据不可用",
-        "submitted": "提交于 {date}",
+        "submitted": "提交于 {{date}}",
         "approve": "核准人员",
         "reject": "拒绝人员"
       },
@@ -3515,12 +3520,12 @@
       "joinRequestRejectFailed": "拒绝加入请求失败",
       "memberRemoved": "成员已移除",
       "memberRemovalFailed": "移除成员失败",
-      "reassignedTasks": "已清理 {count} 个指派任务。",
-      "reassignedTasksPlural": "已清理 {count} 个指派任务。"
+      "reassignedTasks": "已清理 {{count}} 个指派任务。",
+      "reassignedTasksPlural": "已清理 {{count}} 个指派任务。"
     },
     "editDialog": {
       "title": "编辑成员",
-      "description": "更新 {name} 的公司角色和成员状态。",
+      "description": "更新 {{name}} 的公司角色和成员状态。",
       "companyRole": "公司角色",
       "membershipStatus": "成员状态",
       "cancel": "取消",
@@ -3529,16 +3534,16 @@
     },
     "removeDialog": {
       "title": "移除成员",
-      "description": "封存 {name} 并在被隐藏前移转进行中的指派项目。",
+      "description": "封存 {{name}} 并在被隐藏前移转进行中的指派项目。",
       "checking": "正在检查指派任务...",
-      "openAssignedTasks": "{count} 个打开的指派任务",
-      "openAssignedTasksPlural": "{count} 个打开的指派任务",
+      "openAssignedTasks": "{{count}} 个打开的指派任务",
+      "openAssignedTasksPlural": "{{count}} 个打开的指派任务",
       "taskReassignment": "任务重新指派",
       "leaveUnassigned": "保持未指派",
       "humansGroup": "人员",
       "agentsGroup": "代理",
-      "moreTasks": "其他 {count} 个任务",
-      "moreTasksPlural": "其他 {count} 个任务",
+      "moreTasks": "其他 {{count}} 个任务",
+      "moreTasksPlural": "其他 {{count}} 个任务",
       "cancel": "取消",
       "remove": "移除成员",
       "removing": "移除中..."
@@ -3550,7 +3555,7 @@
       "loading": "正在检查高级权限扩充功能...",
       "unavailableTitle": "高级权限不可用",
       "unavailableBody": "Core Paperclip 会继续强制运行公司边界和任何现有的限制性政策数据,但编辑高级权限需要安装扩充功能。",
-      "pluginError": "插件扩充功能不可用:{message}",
+      "pluginError": "插件扩充功能不可用:{{message}}",
       "openMembers": "打开成员",
       "openInvites": "打开邀请",
       "legacyBreadcrumb": "访问"
@@ -3635,7 +3640,7 @@
     "audiences": {
       "agent": "代理",
       "humanOrAgent": "人员或代理",
-      "humanOrAgentWithRole": "人员或代理 · {role}",
+      "humanOrAgentWithRole": "人员或代理 · {{role}}",
       "human": "人员"
     },
     "toasts": {
@@ -3654,7 +3659,7 @@
   "pluginPage": {
     "selectCompany": "选择公司以查看此页面。",
     "loading": "加载中...",
-    "duplicateRoute": "多个插件声明了路由 {routePath}。请在冲突解决之前使用 plugin-id 路由。",
+    "duplicateRoute": "多个插件声明了路由 {{routePath}}。请在冲突解决之前使用 plugin-id 路由。",
     "back": "返回",
     "plugins": "插件",
     "noDescription": "未提供说明。"
@@ -3687,15 +3692,15 @@
       "brandColorAuto": "自动",
       "brandColorClear": "清除",
       "attachmentSizeLimit": "附件大小上限",
-      "attachmentSizeHint": "接受范围:1-{max} MiB。",
+      "attachmentSizeHint": "接受范围:1-{{max}} MiB。",
       "attachmentSizeMiB": "MiB",
-      "attachmentSizeInvalid": "请输入 1 到 {max} 之间的整数。",
+      "attachmentSizeInvalid": "请输入 1 到 {{max}} 之间的整数。",
       "requireApproval": "新进人员需经 board 核准",
       "requireApprovalHint": "新代理的招募在 board 核准前保持待处理。",
       "export": "导出",
       "import": "导入",
       "dangerZoneDescription": "封存此公司以从侧边栏隐藏。此操作会持久化到数据库。",
-      "archiveConfirm": "确定要封存公司「{name}」吗?它将从侧边栏隐藏。",
+      "archiveConfirm": "确定要封存公司「{{name}}」吗?它将从侧边栏隐藏。",
       "archiving": "封存中...",
       "alreadyArchived": "已封存",
       "archiveCompany": "封存公司",
@@ -3706,7 +3711,7 @@
     "saved": "已保存",
     "saveFailed": "保存失败",
     "governance": {
-      "description": "控制每种 thread 交互类型可由谁解决。{defaultPolicy} 是新交互请求的解决者政策;{cap} 是请求可达成的上限 — 将其设为 {boardOnly} 以随时要求 board。无论这些设置如何,工具核准确认一律仅限 board。",
+      "description": "控制每种 thread 交互类型可由谁解决。{{defaultPolicy}} 是新交互请求的解决者政策;{{cap}} 是请求可达成的上限 — 将其设为 {{boardOnly}} 以随时要求 board。无论这些设置如何,工具核准确认一律仅限 board。",
       "defaultPolicyLabel": "预设政策",
       "capLabel": "上限",
       "kindLabel": "类型",
@@ -4377,8 +4382,6 @@
     },
     "progress": {
       "doneOf": "{{done}}/{{total}} 已完成",
-      "inProgress": "{count, plural, other {# 个进行中}}",
-      "blocked": "{count, plural, other {# 个封锁中}}",
       "tokens": "{{value}} 权杖",
       "ariaLabel": "子议题完成进度",
       "nextUp": "下一步",
@@ -4387,7 +4390,11 @@
         "noActive": "没有进行中的子议题",
         "allDone": "所有子议题皆已完成",
         "noActionable": "无可行动的子议题"
-      }
+      },
+      "inProgress_one": "{{count}} in progress",
+      "inProgress_other": "{{count}} in progress",
+      "blocked_one": "{{count}} blocked",
+      "blocked_other": "{{count}} blocked"
     },
     "board": {
       "comfortable": "使用宽松卡片",
@@ -4395,9 +4402,10 @@
       "expandCold": "展开冷清状态",
       "collapseCold": "收合冷清状态",
       "cardsPerColumn": "每栏卡片数",
-      "perColumn": "{count, plural, other {每栏 # 张}}",
       "resetDensity": "重设看板密度",
-      "columnLimitReached": "部分看板字段最多显示 {{limit}} 个议题。请调整筛选或搜索以查看其余项目。"
+      "columnLimitReached": "部分看板字段最多显示 {{limit}} 个议题。请调整筛选或搜索以查看其余项目。",
+      "perColumn_one": "{{count}} per column",
+      "perColumn_other": "{{count}} per column"
     },
     "columnPicker": {
       "title": "选择要显示的议题字段"
@@ -6683,10 +6691,10 @@
     "tableCapabilities": "Capabilities",
     "tableSource": "Source",
     "reconnect": "Reconnect",
-    "disconnected": "{app} is disconnected",
-    "addedAutomatically": "added automatically · {date}",
-    "showingXOfY": "Showing 80 of {count} allowed tools.",
-    "allowsXOfY": "Allows {count} of {total} known tools.",
+    "disconnected": "{{app}} is disconnected",
+    "addedAutomatically": "added automatically · {{date}}",
+    "showingXOfY": "Showing 80 of {{count}} allowed tools.",
+    "allowsXOfY": "Allows {{count}} of {{total}} known tools.",
     "newToolsNeedReview": "New tools need review",
     "chooseWhichToAllow": "Choose which ones this profile should allow.",
     "review": "Review",
@@ -6705,7 +6713,7 @@
     "alsoCopyAssignments": "Also copy assignments?",
     "removeAssignmentTitle": "Remove assignment",
     "removeCompanyDefaultBody": "Removing the company default changes access for every agent that relies on it.",
-    "removeScopedBody": "Remove this profile from {label}.",
+    "removeScopedBody": "Remove this profile from {{label}}.",
     "name": "Name",
     "description": "Description",
     "identifier": "Identifier",
@@ -6735,17 +6743,157 @@
     "project": "Project",
     "routine": "Routine",
     "scopedAssignment": "Scoped assignment",
-    "addedByRuleAll": "added by rule: all {app}",
-    "addedByRuleRiskLevel": "added by rule: {riskLevel} tools",
+    "addedByRuleAll": "added by rule: all {{app}}",
+    "addedByRuleRiskLevel": "added by rule: {{riskLevel}} tools",
     "addedDirectly": "added directly",
     "capabilityDestructive": "Destructive",
     "capabilityWrite": "Write",
     "capabilityRead": "Read",
-    "appsTwoApps": "{a} and {b}",
-    "appsAndMore": "{first} and {count} more apps",
+    "appsTwoApps": "{{a}} and {{b}}",
+    "appsAndMore": "{{first}} and {{count}} more apps",
     "appGeneric": "An app",
-    "addedSinceReview_one": "{app} added {count} new tool since your last review",
-    "addedSinceReview_other": "{app} added {count} new tools since your last review",
+    "addedSinceReview_one": "{{app}} added {{count}} new tool since your last review",
+    "addedSinceReview_other": "{{app}} added {{count}} new tools since your last review",
     "assign": "Assign"
+  },
+  "profileWizard": {
+    "loadingDraft": "Loading draft…",
+    "allowsCount": "Allows {{allowed}} of {{total}} tools",
+    "saveFinishLater": "Save & finish later",
+    "back": "Back",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "saveProfile": "Save profile",
+    "toastSaveFailedTitle": "Could not save",
+    "toastSaveProfileFailedTitle": "Could not save profile",
+    "toastProfileSaved": "Profile saved",
+    "toastDraftSaved": "Draft saved",
+    "toastDraftSavedBody": "Pick it back up from the profiles list.",
+    "step": {
+      "name": "Name",
+      "chooseTools": "Choose tools",
+      "assign": "Assign"
+    },
+    "stepName": {
+      "startFrom": "Start from",
+      "whichProfile": "Which profile?",
+      "noCopyProfile": "You don't have another profile to copy yet.",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. Everyday work",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "What is this profile for?",
+      "advanced": "Advanced",
+      "identifier": "Identifier",
+      "identifierHint": "Used in exports and the API. Auto-filled from the name."
+    },
+    "stepAssign": {
+      "companyDefault": "Make this the company default",
+      "companyDefaultHint": "Every agent without its own profile uses this one.",
+      "replacesDefault": "Replaces \"{{name}}\".",
+      "assignToAgents": "Assign to agents",
+      "agentOverlapHint": "If an agent has several profiles, it can use anything any of them allows.",
+      "moreTargets": "More targets",
+      "moreTargetsHint": "Assign this profile to a whole project or a scheduled routine instead of (or as well as) individual agents.",
+      "projects": "Projects",
+      "routines": "Routines",
+      "contextCompanyDefault": "company default",
+      "contextAlreadyHas": "already has: {{bits}}",
+      "contextNoProfiles": "no profiles yet"
+    }
+  },
+  "gatewaysTab": {
+    "title": "Named MCP gateways",
+    "description": "Stable endpoints for external clients that use the same profiles, rules, and audit trail as agent tool access.",
+    "createGateway": "Create gateway",
+    "emptyState": "No named gateways yet. Create one here, then issue a token for the client that will connect to it.",
+    "loading": {
+      "gateways": "Loading gateways..."
+    },
+    "create": {
+      "nameLabel": "Gateway name",
+      "namePlaceholder": "Engineering laptops",
+      "profileLabel": "Access profile",
+      "profilePlaceholder": "Choose a profile",
+      "profileLoading": "Loading profiles...",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Who this endpoint is for and when it should be rotated.",
+      "profileMissing": "Create an access profile before adding a gateway.",
+      "createButton": "Create gateway",
+      "creatingButton": "Creating..."
+    },
+    "card": {
+      "copyEndpoint": "Copy endpoint",
+      "endpointLabel": "Gateway endpoint",
+      "issueToken": "Issue token",
+      "owner": "Owner",
+      "scope": "Scope",
+      "allowedTools": "Allowed tools",
+      "lastActivity": "Last activity",
+      "neverUsed": "Never used",
+      "ownerAgent": "Agent {{id}}",
+      "ownerBoardUser": "Board user {{id}}",
+      "ownerBoard": "Board",
+      "scopeProject": "Project {{name}}",
+      "scopeAgent": "Agent {{name}}",
+      "scopeRaw": "{{type}} {{id}}",
+      "scopeIssue": "Issue {{id}}",
+      "scopeCompany": "Company",
+      "profileMissing": "Profile {{id}}",
+      "allowedToolsVia": "{{summary}} via {{name}}"
+    },
+    "issueToken": {
+      "nameLabel": "Token name",
+      "namePlaceholder": "Dotta's MacBook",
+      "clientLabel": "Client label",
+      "clientPlaceholder": "Cursor on work laptop",
+      "ownerNoteLabel": "Owner note",
+      "ownerNotePlaceholder": "Who owns this token and why it exists",
+      "expiresLabel": "Expires",
+      "issueButton": "Issue token",
+      "issuingButton": "Issuing..."
+    },
+    "newToken": {
+      "heading": "New token for {{name}}",
+      "copyToken": "Copy token",
+      "bearerLabel": "Gateway bearer token"
+    },
+    "tokens": {
+      "heading": "Tokens",
+      "empty": "No tokens issued.",
+      "revoked": "revoked",
+      "expires": "expires",
+      "noExpiry": "no expiry",
+      "revokeAction": "Revoke",
+      "revokeAria": "Revoke {{name}}",
+      "confirmRevokePrompt": "Revoke this token now?"
+    },
+    "snippets": {
+      "heading": "Client snippets",
+      "empty": "No snippets available.",
+      "copy": "Copy",
+      "snippetLabel": "{{label}} snippet"
+    },
+    "allowedTools": {
+      "unavailable": "Profile unavailable",
+      "noAllowed": "No tools allowed",
+      "allowed_one": "{{count}} tool allowed",
+      "allowed_other": "{{count}} tools allowed"
+    },
+    "toast": {
+      "gatewayCreated": "Gateway created",
+      "gatewayNotCreated": "Gateway was not created",
+      "tokenIssued": "Token issued",
+      "tokenIssuedBody": "{{name}} was created. Copy it now; it will not be shown again.",
+      "tokenNotIssued": "Token was not issued",
+      "tokenRevoked": "Token revoked",
+      "tokenNotRevoked": "Token was not revoked",
+      "copiedToClipboard": "Copied to clipboard",
+      "copyFailed": "Copy failed",
+      "copyFailedUnavailable": "Clipboard access is unavailable.",
+      "pickProfile": "Pick a profile",
+      "pickProfileBody": "A gateway needs an access profile before it can be created.",
+      "pickTokenActions": "Pick token actions",
+      "pickTokenActionsBody": "Gateway tokens need at least one allowed MCP action."
+    }
   }
 }

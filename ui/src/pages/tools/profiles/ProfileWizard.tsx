@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "react-i18next";
 import { Check, ChevronDown, Loader2 } from "lucide-react";
 import type { ToolProfileWithDetails } from "@paperclipai/shared";
 import { useNavigate } from "@/lib/router";
@@ -37,12 +38,6 @@ function slugifyProfileKey(name: string): string {
     .slice(0, 160);
 }
 
-const STEP_LABELS: Array<{ step: WizardStep; label: string }> = [
-  { step: 1, label: "Name" },
-  { step: 2, label: "Choose tools" },
-  { step: 3, label: "Assign" },
-];
-
 export function ProfileWizard({
   companyId,
   profileId,
@@ -54,6 +49,7 @@ export function ProfileWizard({
   initialTemplate?: TemplateKey;
   initialStep?: WizardStep;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { pushToast } = useToast();
@@ -178,7 +174,7 @@ export function ProfileWizard({
       invalidate();
     },
     onError: (error: unknown) =>
-      pushToast({ title: "Could not save", body: String((error as Error)?.message ?? error), tone: "error" }),
+      pushToast({ title: t("profileWizard.toastSaveFailedTitle"), body: String((error as Error)?.message ?? error), tone: "error" }),
   });
 
   const finish = useMutation({
@@ -199,12 +195,12 @@ export function ProfileWizard({
       return toolsApi.updateProfile(draftId, { status: "active" });
     },
     onSuccess: (profile) => {
-      pushToast({ title: "Profile saved", tone: "success" });
+      pushToast({ title: t("profileWizard.toastProfileSaved"), tone: "success" });
       invalidate();
       navigate(`/apps/advanced/profiles/${profile.id}${selectedAgentIds.size === 0 && !companyDefault ? "?created=1" : ""}`);
     },
     onError: (error: unknown) =>
-      pushToast({ title: "Could not save profile", body: String((error as Error)?.message ?? error), tone: "error" }),
+      pushToast({ title: t("profileWizard.toastSaveProfileFailedTitle"), body: String((error as Error)?.message ?? error), tone: "error" }),
   });
 
   const saveAndExit = () => {
@@ -213,7 +209,7 @@ export function ProfileWizard({
       { goToStep: step, completedStep: completed },
       {
         onSuccess: () => {
-          pushToast({ title: "Draft saved", body: "Pick it back up from the profiles list.", tone: "success" });
+          pushToast({ title: t("profileWizard.toastDraftSaved"), body: t("profileWizard.toastDraftSavedBody"), tone: "success" });
           navigate("/apps/advanced/profiles");
         },
       },
@@ -223,7 +219,7 @@ export function ProfileWizard({
   const busy = saveDraft.isPending || finish.isPending;
   const step1Valid = name.trim().length > 0 && (template !== "copy" || Boolean(copyFromId));
 
-  if (profileId && profiles.isLoading) return <LoadingState label="Loading draft…" />;
+  if (profileId && profiles.isLoading) return <LoadingState label={t("profileWizard.loadingDraft")} />;
 
   return (
     <div className="mx-auto flex w-full max-w-3xl flex-col gap-6 pb-24">
@@ -286,8 +282,10 @@ export function ProfileWizard({
           <div className="flex items-center gap-3 text-sm text-muted-foreground">
             {step >= 2 ? (
               <span>
-                Allows <span className="font-medium text-foreground">{live.allowed}</span> of {live.total}{" "}
-                tools
+                {t("profileWizard.allowsCount", {
+                  allowed: live.allowed,
+                  total: live.total,
+                })}
               </span>
             ) : null}
             {draftId ? (
@@ -297,7 +295,7 @@ export function ProfileWizard({
                 disabled={busy}
                 className="font-medium text-primary hover:underline disabled:opacity-50"
               >
-                Save &amp; finish later
+                {t("profileWizard.saveFinishLater")}
               </button>
             ) : null}
           </div>
@@ -305,11 +303,11 @@ export function ProfileWizard({
           <div className="flex items-center gap-2">
             {step > 1 ? (
               <Button variant="outline" disabled={busy} onClick={() => setStep((s) => (s - 1) as WizardStep)}>
-                Back
+                {t("profileWizard.back")}
               </Button>
             ) : (
               <Button variant="ghost" disabled={busy} onClick={() => navigate("/apps/advanced/profiles")}>
-                Cancel
+                {t("profileWizard.cancel")}
               </Button>
             )}
 
@@ -321,7 +319,7 @@ export function ProfileWizard({
                 }
               >
                 {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
-                Continue
+                {t("profileWizard.continue")}
               </Button>
             ) : null}
 
@@ -331,14 +329,14 @@ export function ProfileWizard({
                 onClick={() => saveDraft.mutate({ goToStep: 3, completedStep: 2 })}
               >
                 {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
-                Continue
+                {t("profileWizard.continue")}
               </Button>
             ) : null}
 
             {step === 3 ? (
               <Button disabled={busy} onClick={() => finish.mutate()}>
                 {busy ? <Loader2 className="mr-1.5 h-4 w-4 animate-spin" /> : null}
-                Save profile
+                {t("profileWizard.saveProfile")}
               </Button>
             ) : null}
           </div>
@@ -399,9 +397,15 @@ async function reconcileBindings(
 }
 
 function Stepper({ current }: { current: WizardStep }) {
+  const { t } = useTranslation();
+  const stepLabels: Array<{ step: WizardStep; labelKey: string }> = [
+    { step: 1, labelKey: "profileWizard.step.name" },
+    { step: 2, labelKey: "profileWizard.step.chooseTools" },
+    { step: 3, labelKey: "profileWizard.step.assign" },
+  ];
   return (
     <ol className="flex items-center gap-2 text-sm">
-      {STEP_LABELS.map(({ step, label }, idx) => {
+      {stepLabels.map(({ step, labelKey }, idx) => {
         const done = current > step;
         const active = current === step;
         return (
@@ -417,9 +421,9 @@ function Stepper({ current }: { current: WizardStep }) {
               {done ? <Check className="h-3.5 w-3.5" /> : step}
             </span>
             <span className={cn("font-medium", active ? "text-foreground" : "text-muted-foreground")}>
-              {label}
+              {t(labelKey)}
             </span>
-            {idx < STEP_LABELS.length - 1 ? <span className="mx-1 text-muted-foreground">→</span> : null}
+            {idx < stepLabels.length - 1 ? <span className="mx-1 text-muted-foreground">→</span> : null}
           </li>
         );
       })}
@@ -452,26 +456,27 @@ export function StepName({
   profileKey: string;
   onProfileKey: (v: string) => void;
 }) {
+  const { t } = useTranslation();
   const [advancedOpen, setAdvancedOpen] = useState(false);
   return (
     <div className="space-y-6">
       <div className="space-y-2">
-        <h3 className="text-sm font-medium text-foreground">Start from</h3>
+        <h3 className="text-sm font-medium text-foreground">{t("profileWizard.stepName.startFrom")}</h3>
         <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
-          {TEMPLATES.map((t) => (
+          {TEMPLATES.map((tpl) => (
             <button
-              key={t.key}
+              key={tpl.key}
               type="button"
-              onClick={() => onTemplate(t.key)}
+              onClick={() => onTemplate(tpl.key)}
               className={cn(
                 "flex flex-col items-start gap-1 rounded-md border px-4 py-3 text-left transition-colors",
-                template === t.key
+                template === tpl.key
                   ? "border-primary bg-primary/5 ring-1 ring-primary"
                   : "border-border hover:border-primary/40 hover:bg-accent/40",
               )}
             >
-              <span className="text-sm font-medium text-foreground">{t.title}</span>
-              <span className="text-xs text-muted-foreground">{t.description}</span>
+              <span className="text-sm font-medium text-foreground">{tpl.title}</span>
+              <span className="text-xs text-muted-foreground">{tpl.description}</span>
             </button>
           ))}
         </div>
@@ -479,9 +484,9 @@ export function StepName({
 
       {template === "copy" ? (
         <div className="space-y-2">
-          <h3 className="text-sm font-medium text-foreground">Which profile?</h3>
+          <h3 className="text-sm font-medium text-foreground">{t("profileWizard.stepName.whichProfile")}</h3>
           {copyOptions.length === 0 ? (
-            <p className="text-sm text-muted-foreground">You don't have another profile to copy yet.</p>
+            <p className="text-sm text-muted-foreground">{t("profileWizard.stepName.noCopyProfile")}</p>
           ) : (
             <div className="space-y-1.5">
               {copyOptions.map((p) => (
@@ -505,21 +510,21 @@ export function StepName({
 
       <div className="space-y-3">
         <div className="space-y-1.5">
-          <Label htmlFor="profile-name">Name</Label>
+          <Label htmlFor="profile-name">{t("profileWizard.stepName.nameLabel")}</Label>
           <Input
             id="profile-name"
             value={name}
             onChange={(e) => onName(e.target.value)}
-            placeholder="e.g. Everyday work"
+            placeholder={t("profileWizard.stepName.namePlaceholder")}
           />
         </div>
         <div className="space-y-1.5">
-          <Label htmlFor="profile-description">Description (optional)</Label>
+          <Label htmlFor="profile-description">{t("profileWizard.stepName.descriptionLabel")}</Label>
           <Textarea
             id="profile-description"
             value={description}
             onChange={(e) => onDescription(e.target.value)}
-            placeholder="What is this profile for?"
+            placeholder={t("profileWizard.stepName.descriptionPlaceholder")}
             rows={2}
           />
         </div>
@@ -528,11 +533,11 @@ export function StepName({
       <Collapsible open={advancedOpen} onOpenChange={setAdvancedOpen}>
         <CollapsibleTrigger className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground">
           <ChevronDown className={cn("h-4 w-4 transition-transform", advancedOpen && "rotate-180")} />
-          Advanced
+          {t("profileWizard.stepName.advanced")}
         </CollapsibleTrigger>
         <CollapsibleContent className="pt-2">
           <div className="space-y-1.5">
-            <Label htmlFor="profile-key">Identifier</Label>
+            <Label htmlFor="profile-key">{t("profileWizard.stepName.identifier")}</Label>
             <Input
               id="profile-key"
               value={profileKey}
@@ -540,7 +545,7 @@ export function StepName({
               className="font-mono text-xs"
             />
             <p className="text-xs text-muted-foreground">
-              Used in exports and the API. Auto-filled from the name.
+              {t("profileWizard.stepName.identifierHint")}
             </p>
           </div>
         </CollapsibleContent>
@@ -581,6 +586,7 @@ export function StepAssign({
   companyDefault: boolean;
   onCompanyDefault: (v: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const [moreOpen, setMoreOpen] = useState(false);
   // Per-agent overlap context from already-loaded bindings — no extra fetch.
   const contextByAgent = useMemo(() => {
@@ -609,16 +615,16 @@ export function StepAssign({
           onChange={(e) => onCompanyDefault(e.target.checked)}
         />
         <span className="flex flex-col gap-0.5">
-          <span className="text-sm font-medium text-foreground">Make this the company default</span>
+          <span className="text-sm font-medium text-foreground">{t("profileWizard.stepAssign.companyDefault")}</span>
           <span className="text-xs text-muted-foreground">
-            Every agent without its own profile uses this one.
-            {defaultProfileName ? ` Replaces “${defaultProfileName}”.` : ""}
+            {t("profileWizard.stepAssign.companyDefaultHint")}
+            {defaultProfileName ? ` ${t("profileWizard.stepAssign.replacesDefault", { name: defaultProfileName })}` : ""}
           </span>
         </span>
       </label>
 
       <div className="space-y-2">
-        <h3 className="text-sm font-medium text-foreground">Assign to agents</h3>
+        <h3 className="text-sm font-medium text-foreground">{t("profileWizard.stepAssign.assignToAgents")}</h3>
         <AgentMultiSelect
           agents={agents}
           selectedAgentIds={selectedAgentIds}
@@ -630,34 +636,35 @@ export function StepAssign({
           getDescription={(agent) => {
             const context = contextByAgent.get(agent.id) ?? [];
             const bits = [...context];
-            if (defaultProfileName) bits.push("company default");
-            return bits.length > 0 ? `already has: ${bits.join(" · ")}` : "no profiles yet";
+            if (defaultProfileName) bits.push(t("profileWizard.stepAssign.contextCompanyDefault"));
+            return bits.length > 0
+              ? t("profileWizard.stepAssign.contextAlreadyHas", { bits: bits.join(" · ") })
+              : t("profileWizard.stepAssign.contextNoProfiles");
           }}
         />
         <p className="text-xs text-muted-foreground">
-          If an agent has several profiles, it can use anything any of them allows.
+          {t("profileWizard.stepAssign.agentOverlapHint")}
         </p>
       </div>
 
       {(projects.length > 0 || routines.length > 0) && onToggleProject && onToggleRoutine ? (
         <Collapsible open={moreOpen} onOpenChange={setMoreOpen} className="rounded-lg border border-border">
           <CollapsibleTrigger className="flex w-full items-center justify-between px-4 py-3 text-left">
-            <span className="text-sm font-medium text-foreground">More targets</span>
+            <span className="text-sm font-medium text-foreground">{t("profileWizard.stepAssign.moreTargets")}</span>
             <ChevronDown className={cn("h-4 w-4 text-muted-foreground transition-transform", moreOpen && "rotate-180")} />
           </CollapsibleTrigger>
           <CollapsibleContent className="space-y-4 border-t border-border px-4 py-3">
             <p className="text-xs text-muted-foreground">
-              Assign this profile to a whole project or a scheduled routine instead of (or as well as)
-              individual agents.
+              {t("profileWizard.stepAssign.moreTargetsHint")}
             </p>
             <TargetChecklist
-              label="Projects"
+              label={t("profileWizard.stepAssign.projects")}
               options={projects}
               selected={selectedProjectIds ?? new Set()}
               onToggle={onToggleProject}
             />
             <TargetChecklist
-              label="Routines"
+              label={t("profileWizard.stepAssign.routines")}
               options={routines}
               selected={selectedRoutineIds ?? new Set()}
               onToggle={onToggleRoutine}

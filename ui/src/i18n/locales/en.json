@@ -1319,7 +1319,7 @@
     "permissionDenied": "You do not have permission to manage company members.",
     "loadFailed": "Failed to load company members.",
     "title": "Company Members",
-    "subtitle": "Manage the people who can work in {companyName}. Members can collaborate across the company by default.",
+    "subtitle": "Manage the people who can work in {{companyName}}. Members can collaborate across the company by default.",
     "coreScopeNote": "Core keeps this page focused on membership, invite approvals, and safe member removal.",
     "instanceAdminNote": "This account can manage access here through instance-admin privileges, but it does not currently hold an active company membership.",
     "sections": {
@@ -1330,12 +1330,12 @@
       "pendingJoins": {
         "title": "Pending human joins",
         "description": "Review pending join requests before they become active company members.",
-        "pending": "{count} pending",
+        "pending": "{{count}} pending",
         "unknownRequester": "Unknown human requester",
         "noEmail": "No email available",
-        "inviteWithRole": "{joinType} join invite • default role {role}",
+        "inviteWithRole": "{{joinType}} join invite • default role {{role}}",
         "inviteUnavailable": "Invite metadata unavailable",
-        "submitted": "Submitted {date}",
+        "submitted": "Submitted {{date}}",
         "approve": "Approve human",
         "reject": "Reject human"
       },
@@ -1365,12 +1365,12 @@
       "joinRequestRejectFailed": "Failed to reject join request",
       "memberRemoved": "Member removed",
       "memberRemovalFailed": "Failed to remove member",
-      "reassignedTasks": "{count} assigned task cleaned up.",
-      "reassignedTasksPlural": "{count} assigned tasks cleaned up."
+      "reassignedTasks": "{{count}} assigned task cleaned up.",
+      "reassignedTasksPlural": "{{count}} assigned tasks cleaned up."
     },
     "editDialog": {
       "title": "Edit member",
-      "description": "Update company role and membership status for {name}.",
+      "description": "Update company role and membership status for {{name}}.",
       "companyRole": "Company role",
       "membershipStatus": "Membership status",
       "cancel": "Cancel",
@@ -1379,16 +1379,16 @@
     },
     "removeDialog": {
       "title": "Remove member",
-      "description": "Archive {name} and move active assignments before hiding this user from assignment fields.",
+      "description": "Archive {{name}} and move active assignments before hiding this user from assignment fields.",
       "checking": "Checking assigned tasks...",
-      "openAssignedTasks": "{count} open assigned task",
-      "openAssignedTasksPlural": "{count} open assigned tasks",
+      "openAssignedTasks": "{{count}} open assigned task",
+      "openAssignedTasksPlural": "{{count}} open assigned tasks",
       "taskReassignment": "Task reassignment",
       "leaveUnassigned": "Leave unassigned",
       "humansGroup": "Humans",
       "agentsGroup": "Agents",
-      "moreTasks": "{count} more task",
-      "moreTasksPlural": "{count} more tasks",
+      "moreTasks": "{{count}} more task",
+      "moreTasksPlural": "{{count}} more tasks",
       "cancel": "Cancel",
       "remove": "Remove member",
       "removing": "Removing..."
@@ -1400,7 +1400,7 @@
       "loading": "Checking for advanced permission extensions...",
       "unavailableTitle": "Advanced permissions unavailable",
       "unavailableBody": "Core Paperclip keeps enforcing company boundaries and any existing restrictive policy data, but editing advanced permissions requires an installed extension.",
-      "pluginError": "Plugin extensions unavailable: {message}",
+      "pluginError": "Plugin extensions unavailable: {{message}}",
       "openMembers": "Open Members",
       "openInvites": "Open Invites",
       "legacyBreadcrumb": "Access"
@@ -1485,7 +1485,7 @@
     "audiences": {
       "agent": "Agent",
       "humanOrAgent": "Human or agent",
-      "humanOrAgentWithRole": "Human or agent · {role}",
+      "humanOrAgentWithRole": "Human or agent · {{role}}",
       "human": "Human"
     },
     "toasts": {
@@ -1529,15 +1529,15 @@
       "brandColorAuto": "Auto",
       "brandColorClear": "Clear",
       "attachmentSizeLimit": "Attachment size limit",
-      "attachmentSizeHint": "Accepted range: 1-{max} MiB.",
+      "attachmentSizeHint": "Accepted range: 1-{{max}} MiB.",
       "attachmentSizeMiB": "MiB",
-      "attachmentSizeInvalid": "Enter a whole number from 1 to {max}.",
+      "attachmentSizeInvalid": "Enter a whole number from 1 to {{max}}.",
       "requireApproval": "Require board approval for new hires",
       "requireApprovalHint": "New agent hires stay pending until approved by board.",
       "export": "Export",
       "import": "Import",
       "dangerZoneDescription": "Archive this company to hide it from the sidebar. This persists in the database.",
-      "archiveConfirm": "Archive company \"{name}\"? It will be hidden from the sidebar.",
+      "archiveConfirm": "Archive company \"{{name}}\"? It will be hidden from the sidebar.",
       "archiving": "Archiving...",
       "alreadyArchived": "Already archived",
       "archiveCompany": "Archive company",
@@ -1548,7 +1548,7 @@
     "saved": "Saved",
     "saveFailed": "Failed to save",
     "governance": {
-      "description": "Control who may resolve each kind of thread interaction. {defaultPolicy} is the resolver policy new interactions request; {cap} is the maximum a request may reach — set it to {boardOnly} to always require the board. Tool-approval confirmations always stay board-only regardless of these settings.",
+      "description": "Control who may resolve each kind of thread interaction. {{defaultPolicy}} is the resolver policy new interactions request; {{cap}} is the maximum a request may reach — set it to {{boardOnly}} to always require the board. Tool-approval confirmations always stay board-only regardless of these settings.",
       "defaultPolicyLabel": "Default policy",
       "capLabel": "Cap",
       "kindLabel": "Kind",
@@ -2015,15 +2015,15 @@
     "ask": "Ask"
   },
   "dashboard": {
-    "activeIncidents": "{count} active budget incident",
-    "activeIncidents_plural": "{count} active budget incidents",
-    "agentsPaused": "{count} agents paused",
+    "activeIncidents": "{{count}} active budget incident",
+    "activeIncidents_plural": "{{count}} active budget incidents",
+    "agentsPaused": "{{count}} agents paused",
     "awaitingBoardReview": "Awaiting board review",
-    "blocked": "{count} blocked",
-    "budgetOverridesAwaiting": "{count} budget overrides awaiting board review",
-    "budgetPercent": "{percent}% of {budget} budget",
+    "blocked": "{{count}} blocked",
+    "budgetOverridesAwaiting": "{{count}} budget overrides awaiting board review",
+    "budgetPercent": "{{percent}}% of {{budget}} budget",
     "createAgentHere": "Create one here",
-    "errors": "{count} errors",
+    "errors": "{{count}} errors",
     "getStarted": "Get Started",
     "last14Days": "Last 14 days",
     "metricAgents": "Agents Enabled",
@@ -2032,14 +2032,14 @@
     "metricTasks": "Tasks In Progress",
     "noAgentsAlert": "You have no agents.",
     "noTasksYet": "No tasks yet.",
-    "open": "{count} open",
-    "paused": "{count} paused",
-    "pendingBudgetApprovals": "{count} pending budget approvals",
-    "projectsPaused": "{count} projects paused",
+    "open": "{{count}} open",
+    "paused": "{{count}} paused",
+    "pendingBudgetApprovals": "{{count}} pending budget approvals",
+    "projectsPaused": "{{count}} projects paused",
     "recentActivity": "Recent Activity",
     "recentTasks": "Recent Tasks",
     "runActivity": "Run Activity",
-    "running": "{count} running",
+    "running": "{{count}} running",
     "selectCompany": "Create or select a company to view the dashboard.",
     "successRate": "Success Rate",
     "tasksByPriority": "Tasks by Priority",
@@ -2697,7 +2697,7 @@
       "dismissShort": "Dismiss",
       "markAllAsRead": "Mark all as read",
       "markAsRead": "Mark as read",
-      "newIssueIn": "New issue in {group}"
+      "newIssueIn": "New issue in {{group}}"
     },
     "approvalStatus": {
       "all": "All approval statuses",
@@ -2726,7 +2726,8 @@
       "cancel": "Cancel",
       "markAllAsReadConfirm": "Mark all as read?",
       "markAllAsReadPending": "Marking…",
-      "markAllAsReadDescription": "This will mark {count, plural, one {# unread item} other {# unread items}} as read."
+      "markAllAsReadDescription_one": "This will mark {{count}} unread item as read.",
+      "markAllAsReadDescription_other": "This will mark {{count}} unread items as read."
     },
     "empty": {
       "archived": "Archived",
@@ -2774,8 +2775,10 @@
       "sort": "Sort"
     },
     "subtree": {
-      "liveBelowTitle": "{count, plural, one {# sub-task running below} other {# sub-tasks running below}}",
-      "liveBelow": "{count, plural, one {# live below} other {# live below}}"
+      "liveBelowTitle_one": "{{count}} sub-task running below",
+      "liveBelowTitle_other": "{{count}} sub-tasks running below",
+      "liveBelow_one": "{{count}} live below",
+      "liveBelow_other": "{{count}} live below"
     },
     "assignee": {
       "unassigned": "Unassigned"
@@ -2873,10 +2876,10 @@
     "Classic_Task_Interface_description": "Restores the previous task detail page: the page-level header with inline description editing, the plain comment thread, and the fixed Properties sidebar. Chat-only features — streaming activity folding, inline plan and question cards, the three-mode composer — are unavailable in the classic view.",
     "Classic_Task_Interface_footnote": "Switching takes effect immediately. No task data is affected.",
     "Conference_Room_Chat_description": "Adds a Conference Room — one chat where you and your whole team work together — plus the live activity feed and the redesigned onboarding. Also restyles task threads as chat bubbles. Turn off anytime to restore the classic UI.",
-    "currentWindow": "Current window: last {hours} {hours, plural, one {hour} other {hours}}.",
+    "currentWindow": "Current window: last {{hours}} hours.",
     "Decisions_description": "Show the Decisions item in the main sidebar — the attention home that surfaces the tasks awaiting your input — while the surface is still being evaluated.",
     "Enable": "Enable",
-    "Enable_And_Create": "Enable and create {count}",
+    "Enable_And_Create": "Enable and create {{count}}",
     "Enable_Environments_title": "Enable Environments",
     "Enable_External_Objects_title": "Enable External Objects",
     "Enable_Isolated_Workspaces_title": "Enable Isolated Workspaces",
@@ -2891,12 +2894,10 @@
     "optInBlurb": "Opt into features that are still being evaluated before they become default behavior.",
     "Preview": "Preview",
     "recoveryCandidatesEmpty": "No recovery tasks would be created right now. Auto-recovery can still run for future liveness incidents in this window.",
-    "recoveryLookbackSkipped": "{count, plural, one {# current finding is} other {# current findings are}} outside the configured lookback and will not be touched.",
-    "recoveryMatchCount": "{count, plural, one {# recovery task} other {# recovery tasks}} match the last {lookbackHours} hours.",
     "recoveryTarget": "Recovery target:",
     "Run_Now": "Run now",
     "Run_Tasks_In_This_Worktree_description": "This is an isolated git-worktree preview instance. Turn this on to let the scheduler execute runs here. Only tasks created after enabling will run automatically — copied/pre-existing tasks stay parked. Toggling off and on resets the cutoff.",
-    "runningTasksCreatedAfter": "Running tasks created after {timestamp}.",
+    "runningTasksCreatedAfter": "Running tasks created after {{timestamp}}.",
     "Save_Hours": "Save hours",
     "Server_Info_Debug_View_description": "Show a \"Server\" section in the account drawer with the current server restart time and running commit.",
     "Simplified_English_Interactions_description": "Instruct agents to write user interactions (plan confirmations, questions, suggested tasks, checkbox prompts) in ASD-STE100 Simplified Technical English, with brief context on what information the decision needs and what happens for each choice.",
@@ -2908,7 +2909,11 @@
     "Decisions": "Decisions",
     "Summaries": "Summaries",
     "Toggle_classic_task_interface_experimental_setting": "Toggle classic task interface experimental setting",
-    "Toggle_managed_sandbox_only_experimental_setting": "Toggle managed sandbox only experimental setting"
+    "Toggle_managed_sandbox_only_experimental_setting": "Toggle managed sandbox only experimental setting",
+    "recoveryLookbackSkipped_one": "{{count}} current finding is outside the configured lookback and will not be touched.",
+    "recoveryLookbackSkipped_other": "{{count}} current findings are outside the configured lookback and will not be touched.",
+    "recoveryMatchCount_one": "{{count}} recovery task matches the last {{lookbackHours}} hours.",
+    "recoveryMatchCount_other": "{{count}} recovery tasks match the last {{lookbackHours}} hours."
   },
   "instanceGeneralSettings": {
     "title": "General",
@@ -2950,11 +2955,11 @@
       "daily": "Daily",
       "weekly": "Weekly",
       "monthly": "Monthly",
-      "days": "{count} days",
+      "days": "{{count}} days",
       "week": "1 week",
-      "weeks": "{count} weeks",
+      "weeks": "{{count}} weeks",
       "month": "1 month",
-      "months": "{count} months"
+      "months": "{{count}} months"
     },
     "feedbackSharing": {
       "title": "AI feedback sharing",
@@ -2965,7 +2970,7 @@
       "allowDescription": "Share voted AI outputs automatically.",
       "deny": "Don't allow",
       "denyDescription": "Keep voted AI outputs local only.",
-      "retest": "To retest the first-use prompt in local dev, remove the {key} key from the {row} JSON row for this instance, or set it back to {prompt}. Unset and {prompt} both mean no default has been chosen yet."
+      "retest": "To retest the first-use prompt in local dev, remove the {{key}} key from the {{row}} JSON row for this instance, or set it back to {{prompt}}. Unset and {{prompt}} both mean no default has been chosen yet."
     },
     "signOut": {
       "title": "Sign out",
@@ -3720,8 +3725,6 @@
     },
     "progress": {
       "doneOf": "{{done}}/{{total}} done",
-      "inProgress": "{count, plural, one {# in progress} other {# in progress}}",
-      "blocked": "{count, plural, one {# blocked} other {# blocked}}",
       "tokens": "{{value}} tokens",
       "ariaLabel": "Sub-issues completion progress",
       "nextUp": "Next up",
@@ -3730,7 +3733,11 @@
         "noActive": "No active sub-issues",
         "allDone": "All sub-issues done",
         "noActionable": "No actionable sub-issues"
-      }
+      },
+      "inProgress_one": "{{count}} in progress",
+      "inProgress_other": "{{count}} in progress",
+      "blocked_one": "{{count}} blocked",
+      "blocked_other": "{{count}} blocked"
     },
     "board": {
       "comfortable": "Use comfortable cards",
@@ -3738,9 +3745,10 @@
       "expandCold": "Expand cold lanes",
       "collapseCold": "Collapse cold lanes",
       "cardsPerColumn": "Cards per column",
-      "perColumn": "{count, plural, other {# per column}}",
       "resetDensity": "Reset board density",
-      "columnLimitReached": "Some board columns are showing up to {{limit}} issues. Refine filters or search to reveal the rest."
+      "columnLimitReached": "Some board columns are showing up to {{limit}} issues. Refine filters or search to reveal the rest.",
+      "perColumn_one": "{{count}} per column",
+      "perColumn_other": "{{count}} per column"
     },
     "columnPicker": {
       "title": "Choose which issue columns stay visible"
@@ -4319,7 +4327,7 @@
   "pluginPage": {
     "selectCompany": "Select a company to view this page.",
     "loading": "Loading…",
-    "duplicateRoute": "Multiple plugins declare the route {routePath}. Use the plugin-id route until the conflict is resolved.",
+    "duplicateRoute": "Multiple plugins declare the route {{routePath}}. Use the plugin-id route until the conflict is resolved.",
     "back": "Back",
     "plugins": "Plugins",
     "noDescription": "No description provided."
@@ -6683,10 +6691,10 @@
     "tableCapabilities": "Capabilities",
     "tableSource": "Source",
     "reconnect": "Reconnect",
-    "disconnected": "{app} is disconnected",
-    "addedAutomatically": "added automatically · {date}",
-    "showingXOfY": "Showing 80 of {count} allowed tools.",
-    "allowsXOfY": "Allows {count} of {total} known tools.",
+    "disconnected": "{{app}} is disconnected",
+    "addedAutomatically": "added automatically · {{date}}",
+    "showingXOfY": "Showing 80 of {{count}} allowed tools.",
+    "allowsXOfY": "Allows {{count}} of {{total}} known tools.",
     "newToolsNeedReview": "New tools need review",
     "chooseWhichToAllow": "Choose which ones this profile should allow.",
     "review": "Review",
@@ -6705,7 +6713,7 @@
     "alsoCopyAssignments": "Also copy assignments?",
     "removeAssignmentTitle": "Remove assignment",
     "removeCompanyDefaultBody": "Removing the company default changes access for every agent that relies on it.",
-    "removeScopedBody": "Remove this profile from {label}.",
+    "removeScopedBody": "Remove this profile from {{label}}.",
     "name": "Name",
     "description": "Description",
     "identifier": "Identifier",
@@ -6735,17 +6743,157 @@
     "project": "Project",
     "routine": "Routine",
     "scopedAssignment": "Scoped assignment",
-    "addedByRuleAll": "added by rule: all {app}",
-    "addedByRuleRiskLevel": "added by rule: {riskLevel} tools",
+    "addedByRuleAll": "added by rule: all {{app}}",
+    "addedByRuleRiskLevel": "added by rule: {{riskLevel}} tools",
     "addedDirectly": "added directly",
     "capabilityDestructive": "Destructive",
     "capabilityWrite": "Write",
     "capabilityRead": "Read",
-    "appsTwoApps": "{a} and {b}",
-    "appsAndMore": "{first} and {count} more apps",
+    "appsTwoApps": "{{a}} and {{b}}",
+    "appsAndMore": "{{first}} and {{count}} more apps",
     "appGeneric": "An app",
-    "addedSinceReview_one": "{app} added {count} new tool since your last review",
-    "addedSinceReview_other": "{app} added {count} new tools since your last review",
+    "addedSinceReview_one": "{{app}} added {{count}} new tool since your last review",
+    "addedSinceReview_other": "{{app}} added {{count}} new tools since your last review",
     "assign": "Assign"
+  },
+  "profileWizard": {
+    "loadingDraft": "Loading draft…",
+    "allowsCount": "Allows {{allowed}} of {{total}} tools",
+    "saveFinishLater": "Save & finish later",
+    "back": "Back",
+    "cancel": "Cancel",
+    "continue": "Continue",
+    "saveProfile": "Save profile",
+    "toastSaveFailedTitle": "Could not save",
+    "toastSaveProfileFailedTitle": "Could not save profile",
+    "toastProfileSaved": "Profile saved",
+    "toastDraftSaved": "Draft saved",
+    "toastDraftSavedBody": "Pick it back up from the profiles list.",
+    "step": {
+      "name": "Name",
+      "chooseTools": "Choose tools",
+      "assign": "Assign"
+    },
+    "stepName": {
+      "startFrom": "Start from",
+      "whichProfile": "Which profile?",
+      "noCopyProfile": "You don't have another profile to copy yet.",
+      "nameLabel": "Name",
+      "namePlaceholder": "e.g. Everyday work",
+      "descriptionLabel": "Description (optional)",
+      "descriptionPlaceholder": "What is this profile for?",
+      "advanced": "Advanced",
+      "identifier": "Identifier",
+      "identifierHint": "Used in exports and the API. Auto-filled from the name."
+    },
+    "stepAssign": {
+      "companyDefault": "Make this the company default",
+      "companyDefaultHint": "Every agent without its own profile uses this one.",
+      "replacesDefault": "Replaces \"{{name}}\".",
+      "assignToAgents": "Assign to agents",
+      "agentOverlapHint": "If an agent has several profiles, it can use anything any of them allows.",
+      "moreTargets": "More targets",
+      "moreTargetsHint": "Assign this profile to a whole project or a scheduled routine instead of (or as well as) individual agents.",
+      "projects": "Projects",
+      "routines": "Routines",
+      "contextCompanyDefault": "company default",
+      "contextAlreadyHas": "already has: {{bits}}",
+      "contextNoProfiles": "no profiles yet"
+    }
+  },
+  "gatewaysTab": {
+    "title": "Named MCP gateways",
+    "description": "Stable endpoints for external clients that use the same profiles, rules, and audit trail as agent tool access.",
+    "createGateway": "Create gateway",
+    "emptyState": "No named gateways yet. Create one here, then issue a token for the client that will connect to it.",
+    "loading": {
+      "gateways": "Loading gateways..."
+    },
+    "create": {
+      "nameLabel": "Gateway name",
+      "namePlaceholder": "Engineering laptops",
+      "profileLabel": "Access profile",
+      "profilePlaceholder": "Choose a profile",
+      "profileLoading": "Loading profiles...",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Who this endpoint is for and when it should be rotated.",
+      "profileMissing": "Create an access profile before adding a gateway.",
+      "createButton": "Create gateway",
+      "creatingButton": "Creating..."
+    },
+    "card": {
+      "copyEndpoint": "Copy endpoint",
+      "endpointLabel": "Gateway endpoint",
+      "issueToken": "Issue token",
+      "owner": "Owner",
+      "scope": "Scope",
+      "allowedTools": "Allowed tools",
+      "lastActivity": "Last activity",
+      "neverUsed": "Never used",
+      "ownerAgent": "Agent {{id}}",
+      "ownerBoardUser": "Board user {{id}}",
+      "ownerBoard": "Board",
+      "scopeProject": "Project {{name}}",
+      "scopeAgent": "Agent {{name}}",
+      "scopeRaw": "{{type}} {{id}}",
+      "scopeIssue": "Issue {{id}}",
+      "scopeCompany": "Company",
+      "profileMissing": "Profile {{id}}",
+      "allowedToolsVia": "{{summary}} via {{name}}"
+    },
+    "issueToken": {
+      "nameLabel": "Token name",
+      "namePlaceholder": "Dotta's MacBook",
+      "clientLabel": "Client label",
+      "clientPlaceholder": "Cursor on work laptop",
+      "ownerNoteLabel": "Owner note",
+      "ownerNotePlaceholder": "Who owns this token and why it exists",
+      "expiresLabel": "Expires",
+      "issueButton": "Issue token",
+      "issuingButton": "Issuing..."
+    },
+    "newToken": {
+      "heading": "New token for {{name}}",
+      "copyToken": "Copy token",
+      "bearerLabel": "Gateway bearer token"
+    },
+    "tokens": {
+      "heading": "Tokens",
+      "empty": "No tokens issued.",
+      "revoked": "revoked",
+      "expires": "expires",
+      "noExpiry": "no expiry",
+      "revokeAction": "Revoke",
+      "revokeAria": "Revoke {{name}}",
+      "confirmRevokePrompt": "Revoke this token now?"
+    },
+    "snippets": {
+      "heading": "Client snippets",
+      "empty": "No snippets available.",
+      "copy": "Copy",
+      "snippetLabel": "{{label}} snippet"
+    },
+    "allowedTools": {
+      "unavailable": "Profile unavailable",
+      "noAllowed": "No tools allowed",
+      "allowed_one": "{{count}} tool allowed",
+      "allowed_other": "{{count}} tools allowed"
+    },
+    "toast": {
+      "gatewayCreated": "Gateway created",
+      "gatewayNotCreated": "Gateway was not created",
+      "tokenIssued": "Token issued",
+      "tokenIssuedBody": "{{name}} was created. Copy it now; it will not be shown again.",
+      "tokenNotIssued": "Token was not issued",
+      "tokenRevoked": "Token revoked",
+      "tokenNotRevoked": "Token was not revoked",
+      "copiedToClipboard": "Copied to clipboard",
+      "copyFailed": "Copy failed",
+      "copyFailedUnavailable": "Clipboard access is unavailable.",
+      "pickProfile": "Pick a profile",
+      "pickProfileBody": "A gateway needs an access profile before it can be created.",
+      "pickTokenActions": "Pick token actions",
+      "pickTokenActionsBody": "Gateway tokens need at least one allowed MCP action."
+    }
   }
 }

@@ -452,15 +452,15 @@
     }
   },
   "dashboard": {
-    "activeIncidents": "{count} 個進行中的預算事件",
-    "activeIncidents_plural": "{count} 個進行中的預算事件",
-    "agentsPaused": "{count} 個代理已暫停",
+    "activeIncidents": "{{count}} 個進行中的預算事件",
+    "activeIncidents_plural": "{{count}} 個進行中的預算事件",
+    "agentsPaused": "{{count}} 個代理已暫停",
     "awaitingBoardReview": "等待董事會審核",
-    "blocked": "{count} 個受阻",
-    "budgetOverridesAwaiting": "{count} 個預算覆寫等待董事會審核",
-    "budgetPercent": "{budget} 預算的 {percent}%",
+    "blocked": "{{count}} 個受阻",
+    "budgetOverridesAwaiting": "{{count}} 個預算覆寫等待董事會審核",
+    "budgetPercent": "{{budget}} 預算的 {{percent}}%",
     "createAgentHere": "立即建立",
-    "errors": "{count} 個錯誤",
+    "errors": "{{count}} 個錯誤",
     "getStarted": "開始使用",
     "last14Days": "最近 14 天",
     "metricAgents": "已啟用代理",
@@ -469,14 +469,14 @@
     "metricTasks": "進行中任務",
     "noAgentsAlert": "您目前沒有任何代理。",
     "noTasksYet": "尚無任務。",
-    "open": "{count} 個待處理",
-    "paused": "{count} 個已暫停",
-    "pendingBudgetApprovals": "{count} 個預算待審核",
-    "projectsPaused": "{count} 個專案已暫停",
+    "open": "{{count}} 個待處理",
+    "paused": "{{count}} 個已暫停",
+    "pendingBudgetApprovals": "{{count}} 個預算待審核",
+    "projectsPaused": "{{count}} 個專案已暫停",
     "recentActivity": "最近活動",
     "recentTasks": "最近任務",
     "runActivity": "執行活動",
-    "running": "{count} 個執行中",
+    "running": "{{count}} 個執行中",
     "selectCompany": "請建立或選擇一家公司以查看儀表板。",
     "successRate": "成功率",
     "tasksByPriority": "依優先順序",
@@ -916,7 +916,7 @@
       "dismissShort": "關閉",
       "markAllAsRead": "全部標記為已讀",
       "markAsRead": "標記為已讀",
-      "newIssueIn": "在 {group} 中新增問題"
+      "newIssueIn": "在 {{group}} 中新增問題"
     },
     "approvalStatus": {
       "all": "所有審核狀態",
@@ -945,7 +945,8 @@
       "cancel": "取消",
       "markAllAsReadConfirm": "確定要全部標記為已讀嗎？",
       "markAllAsReadPending": "標記中…",
-      "markAllAsReadDescription": "這會將 {count, plural, one {# 個未讀項目} other {# 個未讀項目}} 標記為已讀。"
+      "markAllAsReadDescription_one": "這會將 {{count}} 個未讀項目標示為已讀。",
+      "markAllAsReadDescription_other": "這會將 {{count}} 個未讀項目標示為已讀。"
     },
     "empty": {
       "archived": "已封存",
@@ -993,8 +994,10 @@
       "sort": "排序"
     },
     "subtree": {
-      "liveBelowTitle": "{count, plural, other {下方有 # 個子任務正在執行}}",
-      "liveBelow": "{count, plural, other {下方有 # 個執行中}}"
+      "liveBelowTitle_one": "下方有 {{count}} 個子任務執行中",
+      "liveBelowTitle_other": "下方有 {{count}} 個子任務執行中",
+      "liveBelow_one": "下方 {{count}} 個執行中",
+      "liveBelow_other": "下方 {{count}} 個執行中"
     },
     "assignee": {
       "unassigned": "未指派"
@@ -1092,10 +1095,10 @@
     "Classic_Task_Interface_description": "還原先前的任務詳細頁面:頁面層級的標題、內嵌描述編輯、純評論串,以及固定的屬性側邊欄。僅限聊天的功能 — 串流活動�疊、內嵌計畫與問題卡片、三模式編輯器 — 在經典檢視中無法使用。",
     "Classic_Task_Interface_footnote": "切換會立即生效,不會影響任何任務資料。",
     "Conference_Room_Chat_description": "新增會議室 — 一個讓你與整個團隊一起工作的聊天 — 以及即時活動動態消息和重新設計的引導流程。同時將任務串重新樣式為聊天气泡。可隨時關閉以恢復經典介面。",
-    "currentWindow": "目前視窗:最近 {hours} {hours, plural, one {小時} other {小時}}。",
+    "currentWindow": "目前視窗:最近 {{hours}} 小時。",
     "Decisions_description": "在主要側邊欄顯示「決策」項目 — 等待你輸入的任務所在的注意力主頁 — 該介面仍在評估中。",
     "Enable": "啟用",
-    "Enable_And_Create": "啟用並建立 {count} 個",
+    "Enable_And_Create": "啟用並建立 {{count}} 個",
     "Enable_Environments_title": "啟用環境",
     "Enable_External_Objects_title": "啟用外部物件",
     "Enable_Isolated_Workspaces_title": "啟用隔離工作區",
@@ -1110,12 +1113,10 @@
     "optInBlurb": "選擇加入仍在評估中的功能,這些功能在成為預設行為前需要測試。",
     "Preview": "預覽",
     "recoveryCandidatesEmpty": "目前不會建立任何復原任務。自動復原仍可在未來此視窗內的活躍度事件中執行。",
-    "recoveryLookbackSkipped": "{count, plural, other {# 個目前發現位於}}設定的回溯範圍之外,將不會被處理。",
-    "recoveryMatchCount": "{count, plural, other {# 個復原任務}}符合最近 {lookbackHours} 小時的條件。",
     "recoveryTarget": "復原目標:",
     "Run_Now": "立即執行",
     "Run_Tasks_In_This_Worktree_description": "這是隔離的 git-worktree 預覽執行個體。啟用以便排程器在此執行。僅有啟用後建立的任務會自動執行 — 複製或預先存在的任務會保持停滯。切換關閉再開啟會重設截止時間。",
-    "runningTasksCreatedAfter": "正在執行 {timestamp} 之後建立的任務。",
+    "runningTasksCreatedAfter": "正在執行 {{timestamp}} 之後建立的任務。",
     "Save_Hours": "儲存時數",
     "Server_Info_Debug_View_description": "在帳號抽屜中顯示「伺服器」區段,內含目前伺服器重新啟動時間與執行中的 commit。",
     "Simplified_English_Interactions_description": "指示 Agent 使用 ASD-STE100 簡化技術英文撰寫使用者互動(計畫確認、問題、建議任務、核取方塊提示),並簡要說明每個決策所需資訊及各選擇的後果。",
@@ -1127,7 +1128,11 @@
     "Decisions": "決策",
     "Summaries": "摘要",
     "Toggle_classic_task_interface_experimental_setting": "切換經典任務介面實驗性設定",
-    "Toggle_managed_sandbox_only_experimental_setting": "切換僅限託管沙箱實驗性設定"
+    "Toggle_managed_sandbox_only_experimental_setting": "切換僅限託管沙箱實驗性設定",
+    "recoveryLookbackSkipped_one": "有 {{count}} 個目前發現位於設定的回溯範圍之外,將不會被處理。",
+    "recoveryLookbackSkipped_other": "有 {{count}} 個目前發現位於設定的回溯範圍之外,將不會被處理。",
+    "recoveryMatchCount_one": "有 {{count}} 個復原任務符合最近 {{lookbackHours}} 小時的條件。",
+    "recoveryMatchCount_other": "有 {{count}} 個復原任務符合最近 {{lookbackHours}} 小時的條件。"
   },
   "inviteLanding": {
     "sessionFallback": "此帳號",
@@ -3440,11 +3445,11 @@
       "daily": "每日",
       "weekly": "每週",
       "monthly": "每月",
-      "days": "{count} 天",
+      "days": "{{count}} 天",
       "week": "1 週",
-      "weeks": "{count} 週",
+      "weeks": "{{count}} 週",
       "month": "1 個月",
-      "months": "{count} 個月"
+      "months": "{{count}} 個月"
     },
     "feedbackSharing": {
       "title": "AI 反饋分享",
@@ -3455,7 +3460,7 @@
       "allowDescription": "自動分享被投票的 AI 輸出。",
       "deny": "不允許",
       "denyDescription": "僅將被投票的 AI 輸出保留在本地。",
-      "retest": "若要在本地開發環境重新測試首次使用提示,請從此 instance 的 {row} JSON 列中移除 {key} 鍵,或將其設定回 {prompt}。未設定和 {prompt} 都表示尚未選擇預設。"
+      "retest": "若要在本地開發環境重新測試首次使用提示,請從此 instance 的 {{row}} JSON 列中移除 {{key}} 鍵,或將其設定回 {{prompt}}。未設定和 {{prompt}} 都表示尚未選擇預設。"
     },
     "signOut": {
       "title": "登出",
@@ -3469,7 +3474,7 @@
     "permissionDenied": "您沒有管理公司成員的權限。",
     "loadFailed": "載入公司成員失敗。",
     "title": "公司成員",
-    "subtitle": "管理可在 {companyName} 工作的成員。成員預設可在公司範圍內協作。",
+    "subtitle": "管理可在 {{companyName}} 工作的成員。成員預設可在公司範圍內協作。",
     "coreScopeNote": "Core 將此頁面聚焦於成員、邀請核准和安全移除成員。",
     "instanceAdminNote": "此帳號可透過 instance 管理員權限在此管理存取,但目前未持有有效的公司成員資格。",
     "sections": {
@@ -3480,12 +3485,12 @@
       "pendingJoins": {
         "title": "待處理的人員加入",
         "description": "在成為正式公司成員之前審核待處理的加入請求。",
-        "pending": "{count} 個待處理",
+        "pending": "{{count}} 個待處理",
         "unknownRequester": "未知的請求者",
         "noEmail": "沒有可用的電子郵件",
-        "inviteWithRole": "{joinType} 加入邀請 • 預設角色 {role}",
+        "inviteWithRole": "{{joinType}} 加入邀請 • 預設角色 {{role}}",
         "inviteUnavailable": "邀請中繼資料不可用",
-        "submitted": "提交於 {date}",
+        "submitted": "提交於 {{date}}",
         "approve": "核准人員",
         "reject": "拒絕人員"
       },
@@ -3515,12 +3520,12 @@
       "joinRequestRejectFailed": "拒絕加入請求失敗",
       "memberRemoved": "成員已移除",
       "memberRemovalFailed": "移除成員失敗",
-      "reassignedTasks": "已清理 {count} 個指派任務。",
-      "reassignedTasksPlural": "已清理 {count} 個指派任務。"
+      "reassignedTasks": "已清理 {{count}} 個指派任務。",
+      "reassignedTasksPlural": "已清理 {{count}} 個指派任務。"
     },
     "editDialog": {
       "title": "編輯成員",
-      "description": "更新 {name} 的公司角色和成員狀態。",
+      "description": "更新 {{name}} 的公司角色和成員狀態。",
       "companyRole": "公司角色",
       "membershipStatus": "成員狀態",
       "cancel": "取消",
@@ -3529,16 +3534,16 @@
     },
     "removeDialog": {
       "title": "移除成員",
-      "description": "封存 {name} 並在被隱藏前移轉進行中的指派項目。",
+      "description": "封存 {{name}} 並在被隱藏前移轉進行中的指派項目。",
       "checking": "正在檢查指派任務...",
-      "openAssignedTasks": "{count} 個開啟的指派任務",
-      "openAssignedTasksPlural": "{count} 個開啟的指派任務",
+      "openAssignedTasks": "{{count}} 個開啟的指派任務",
+      "openAssignedTasksPlural": "{{count}} 個開啟的指派任務",
       "taskReassignment": "任務重新指派",
       "leaveUnassigned": "保持未指派",
       "humansGroup": "人員",
       "agentsGroup": "代理",
-      "moreTasks": "其他 {count} 個任務",
-      "moreTasksPlural": "其他 {count} 個任務",
+      "moreTasks": "其他 {{count}} 個任務",
+      "moreTasksPlural": "其他 {{count}} 個任務",
       "cancel": "取消",
       "remove": "移除成員",
       "removing": "移除中..."
@@ -3550,7 +3555,7 @@
       "loading": "正在檢查進階權限擴充功能...",
       "unavailableTitle": "進階權限不可用",
       "unavailableBody": "Core Paperclip 會繼續強制執行公司邊界和任何現有的限制性政策資料,但編輯進階權限需要安裝擴充功能。",
-      "pluginError": "外掛擴充功能不可用:{message}",
+      "pluginError": "外掛擴充功能不可用:{{message}}",
       "openMembers": "開啟成員",
       "openInvites": "開啟邀請",
       "legacyBreadcrumb": "存取"
@@ -3635,7 +3640,7 @@
     "audiences": {
       "agent": "代理",
       "humanOrAgent": "人員或代理",
-      "humanOrAgentWithRole": "人員或代理 · {role}",
+      "humanOrAgentWithRole": "人員或代理 · {{role}}",
       "human": "人員"
     },
     "toasts": {
@@ -3654,7 +3659,7 @@
   "pluginPage": {
     "selectCompany": "選擇公司以檢視此頁面。",
     "loading": "載入中...",
-    "duplicateRoute": "多個外掛宣告了路由 {routePath}。請在衝突解決之前使用 plugin-id 路由。",
+    "duplicateRoute": "多個外掛宣告了路由 {{routePath}}。請在衝突解決之前使用 plugin-id 路由。",
     "back": "返回",
     "plugins": "外掛",
     "noDescription": "未提供說明。"
@@ -3687,15 +3692,15 @@
       "brandColorAuto": "自動",
       "brandColorClear": "清除",
       "attachmentSizeLimit": "附件大小上限",
-      "attachmentSizeHint": "接受範圍:1-{max} MiB。",
+      "attachmentSizeHint": "接受範圍:1-{{max}} MiB。",
       "attachmentSizeMiB": "MiB",
-      "attachmentSizeInvalid": "請輸入 1 到 {max} 之間的整數。",
+      "attachmentSizeInvalid": "請輸入 1 到 {{max}} 之間的整數。",
       "requireApproval": "新進人員需經 board 核准",
       "requireApprovalHint": "新代理的招募在 board 核准前保持待處理。",
       "export": "匯出",
       "import": "匯入",
       "dangerZoneDescription": "封存此公司以從側邊欄隱藏。此操作會持久化到資料庫。",
-      "archiveConfirm": "確定要封存公司「{name}」嗎?它將從側邊欄隱藏。",
+      "archiveConfirm": "確定要封存公司「{{name}}」嗎?它將從側邊欄隱藏。",
       "archiving": "封存中...",
       "alreadyArchived": "已封存",
       "archiveCompany": "封存公司",
@@ -3706,7 +3711,7 @@
     "saved": "已儲存",
     "saveFailed": "儲存失敗",
     "governance": {
-      "description": "控制每種 thread 互動類型可由誰解決。{defaultPolicy} 是新互動請求的解決者政策;{cap} 是請求可達成的上限 — 將其設為 {boardOnly} 以隨時要求 board。無論這些設定如何,工具核准確認一律僅限 board。",
+      "description": "控制每種 thread 互動類型可由誰解決。{{defaultPolicy}} 是新互動請求的解決者政策;{{cap}} 是請求可達成的上限 — 將其設為 {{boardOnly}} 以隨時要求 board。無論這些設定如何,工具核准確認一律僅限 board。",
       "defaultPolicyLabel": "預設政策",
       "capLabel": "上限",
       "kindLabel": "類型",
@@ -4377,8 +4382,6 @@
     },
     "progress": {
       "doneOf": "{{done}}/{{total}} 已完成",
-      "inProgress": "{count, plural, other {# 個進行中}}",
-      "blocked": "{count, plural, other {# 個封鎖中}}",
       "tokens": "{{value}} 權杖",
       "ariaLabel": "子議題完成進度",
       "nextUp": "下一步",
@@ -4387,7 +4390,11 @@
         "noActive": "沒有進行中的子議題",
         "allDone": "所有子議題皆已完成",
         "noActionable": "無可行動的子議題"
-      }
+      },
+      "inProgress_one": "{{count}} 個進行中",
+      "inProgress_other": "{{count}} 個進行中",
+      "blocked_one": "{{count}} 個受阻",
+      "blocked_other": "{{count}} 個受阻"
     },
     "board": {
       "comfortable": "使用寬鬆卡片",
@@ -4395,9 +4402,10 @@
       "expandCold": "展開冷清狀態",
       "collapseCold": "收合冷清狀態",
       "cardsPerColumn": "每欄卡片數",
-      "perColumn": "{count, plural, other {每欄 # 張}}",
       "resetDensity": "重設看板密度",
-      "columnLimitReached": "部分看板欄位最多顯示 {{limit}} 個議題。請調整篩選或搜尋以查看其餘項目。"
+      "columnLimitReached": "部分看板欄位最多顯示 {{limit}} 個議題。請調整篩選或搜尋以查看其餘項目。",
+      "perColumn_one": "每欄 {{count}} 個",
+      "perColumn_other": "每欄 {{count}} 個"
     },
     "columnPicker": {
       "title": "選擇要顯示的議題欄位"
@@ -6683,10 +6691,10 @@
     "tableCapabilities": "權限",
     "tableSource": "來源",
     "reconnect": "重新連線",
-    "disconnected": "{app} 已中斷連線",
-    "addedAutomatically": "自動加入 · {date}",
-    "showingXOfY": "顯示 80 / {count} 個允許的工具。",
-    "allowsXOfY": "已允許 {count} / {total} 個已知工具。",
+    "disconnected": "{{app}} 已中斷連線",
+    "addedAutomatically": "自動加入 · {{date}}",
+    "showingXOfY": "顯示 80 / {{count}} 個允許的工具。",
+    "allowsXOfY": "已允許 {{count}} / {{total}} 個已知工具。",
     "newToolsNeedReview": "新工具需要審查",
     "chooseWhichToAllow": "請選擇此設定檔應允許的工具。",
     "review": "審查",
@@ -6705,7 +6713,7 @@
     "alsoCopyAssignments": "同時複製指派?",
     "removeAssignmentTitle": "移除指派",
     "removeCompanyDefaultBody": "移除公司預設會影響所有依�此預設的代理人。",
-    "removeScopedBody": "從 {label} 移除此設定檔。",
+    "removeScopedBody": "從 {{label}} 移除此設定檔。",
     "name": "名稱",
     "description": "說明",
     "identifier": "識別碼",
@@ -6735,17 +6743,157 @@
     "project": "專案",
     "routine": "排程",
     "scopedAssignment": "範圍指派",
-    "addedByRuleAll": "依規則加入:全部 {app}",
-    "addedByRuleRiskLevel": "依規則加入:{riskLevel} 工具",
+    "addedByRuleAll": "依規則加入:全部 {{app}}",
+    "addedByRuleRiskLevel": "依規則加入:{{riskLevel}} 工具",
     "addedDirectly": "直接加入",
     "capabilityDestructive": "破壞性",
     "capabilityWrite": "寫入",
     "capabilityRead": "讀取",
-    "appsTwoApps": "{a} 與 {b}",
-    "appsAndMore": "{first} 及其他 {count} 個應用程式",
+    "appsTwoApps": "{{a}} 與 {{b}}",
+    "appsAndMore": "{{first}} 及其他 {{count}} 個應用程式",
     "appGeneric": "某個應用程式",
-    "addedSinceReview_one": "{app} 自上次審查後新增了 {count} 個工具",
-    "addedSinceReview_other": "{app} 自上次審查後新增了 {count} 個工具",
+    "addedSinceReview_one": "{{app}} 自上次審查後新增了 {{count}} 個工具",
+    "addedSinceReview_other": "{{app}} 自上次審查後新增了 {{count}} 個工具",
     "assign": "指派"
+  },
+  "profileWizard": {
+    "loadingDraft": "正在載入草稿…",
+    "allowsCount": "允許 {{allowed}} / {{total}} 項工具",
+    "saveFinishLater": "儲存並稍後繼續",
+    "back": "上一步",
+    "cancel": "取消",
+    "continue": "繼續",
+    "saveProfile": "儲存設定檔",
+    "toastSaveFailedTitle": "無法儲存",
+    "toastSaveProfileFailedTitle": "無法儲存設定檔",
+    "toastProfileSaved": "設定檔已儲存",
+    "toastDraftSaved": "草稿已儲存",
+    "toastDraftSavedBody": "可從設定檔列表繼續編輯。",
+    "step": {
+      "name": "命名",
+      "chooseTools": "選擇工具",
+      "assign": "指派"
+    },
+    "stepName": {
+      "startFrom": "從這裡開始",
+      "whichProfile": "要複製哪個設定檔？",
+      "noCopyProfile": "目前沒有其他可複製的設定檔。",
+      "nameLabel": "名稱",
+      "namePlaceholder": "例如：日常工作",
+      "descriptionLabel": "說明（選填）",
+      "descriptionPlaceholder": "這個設定檔的用途是什麼？",
+      "advanced": "進階",
+      "identifier": "識別碼",
+      "identifierHint": "用於匯出與 API。會自動以名稱填入。"
+    },
+    "stepAssign": {
+      "companyDefault": "設為公司預設設定檔",
+      "companyDefaultHint": "凡是沒有專屬設定檔的代理程式都會使用此設定檔。",
+      "replacesDefault": "將取代「{{name}}」。",
+      "assignToAgents": "指派給代理程式",
+      "agentOverlapHint": "若代理程式擁有多個設定檔，則可使用任何一個設定檔所開放的功能。",
+      "moreTargets": "更多指派目標",
+      "moreTargetsHint": "可將此設定檔指派給整個專案或排程任務,代替（也可同時搭配）逐一指派給代理程式。",
+      "projects": "專案",
+      "routines": "排程任務",
+      "contextCompanyDefault": "公司預設",
+      "contextAlreadyHas": "已套用:{{bits}}",
+      "contextNoProfiles": "尚未指派設定檔"
+    }
+  },
+  "gatewaysTab": {
+    "title": "具名 MCP 閘道",
+    "description": "提供外部用戶端使用的穩定端點，沿用與代理程式工具存取相同的存取設定、規則與稽核軌跡。",
+    "createGateway": "建立閘道",
+    "emptyState": "尚未建立任何具名閘道。請先在此建立閘道，再為將連線的用戶端核發權杖。",
+    "loading": {
+      "gateways": "正在載入閘道…"
+    },
+    "create": {
+      "nameLabel": "閘道名稱",
+      "namePlaceholder": "工程師筆電",
+      "profileLabel": "存取設定檔",
+      "profilePlaceholder": "請選擇設定檔",
+      "profileLoading": "正在載入設定檔…",
+      "descriptionLabel": "說明",
+      "descriptionPlaceholder": "說明此端點的使用對象與輪換時機。",
+      "profileMissing": "請先建立存取設定檔，再新增閘道。",
+      "createButton": "建立閘道",
+      "creatingButton": "建立中…"
+    },
+    "card": {
+      "copyEndpoint": "複製端點",
+      "endpointLabel": "閘道端點",
+      "issueToken": "核發權杖",
+      "owner": "擁有者",
+      "scope": "範圍",
+      "allowedTools": "允許的工具",
+      "lastActivity": "最近活動",
+      "neverUsed": "從未使用",
+      "ownerAgent": "代理程式 {{id}}",
+      "ownerBoardUser": "董事會成員 {{id}}",
+      "ownerBoard": "董事會",
+      "scopeProject": "專案 {{name}}",
+      "scopeAgent": "代理程式 {{name}}",
+      "scopeRaw": "{{type}} {{id}}",
+      "scopeIssue": "議題 {{id}}",
+      "scopeCompany": "公司",
+      "profileMissing": "設定檔 {{id}}",
+      "allowedToolsVia": "{{summary}}（透過 {{name}}）"
+    },
+    "issueToken": {
+      "nameLabel": "權杖名稱",
+      "namePlaceholder": "Dotta 的 MacBook",
+      "clientLabel": "用戶端標籤",
+      "clientPlaceholder": "公司筆電上的 Cursor",
+      "ownerNoteLabel": "擁有者備註",
+      "ownerNotePlaceholder": "說明此權杖的擁有者與用途",
+      "expiresLabel": "到期日",
+      "issueButton": "核發權杖",
+      "issuingButton": "核發中…"
+    },
+    "newToken": {
+      "heading": "{{name}} 的新權杖",
+      "copyToken": "複製權杖",
+      "bearerLabel": "閘道 Bearer 權杖"
+    },
+    "tokens": {
+      "heading": "權杖",
+      "empty": "尚未核發任何權杖。",
+      "revoked": "已撤銷",
+      "expires": "到期",
+      "noExpiry": "無到期日",
+      "revokeAction": "撤銷",
+      "revokeAria": "撤銷 {{name}}",
+      "confirmRevokePrompt": "確定要立即撤銷此權杖嗎？"
+    },
+    "snippets": {
+      "heading": "用戶端程式碼片段",
+      "empty": "沒有可用的程式碼片段。",
+      "copy": "複製",
+      "snippetLabel": "{{label}} 程式碼片段"
+    },
+    "allowedTools": {
+      "unavailable": "設定檔無法使用",
+      "noAllowed": "未允許任何工具",
+      "allowed_one": "已啟用 {{count}} 個工具",
+      "allowed_other": "已啟用 {{count}} 個工具"
+    },
+    "toast": {
+      "gatewayCreated": "已建立閘道",
+      "gatewayNotCreated": "閘道建立失敗",
+      "tokenIssued": "已核發權杖",
+      "tokenIssuedBody": "已建立 {{name}}。請立即複製，之後將無法再次顯示。",
+      "tokenNotIssued": "權杖核發失敗",
+      "tokenRevoked": "已撤銷權杖",
+      "tokenNotRevoked": "權杖撤銷失敗",
+      "copiedToClipboard": "已複製到剪貼簿",
+      "copyFailed": "複製失敗",
+      "copyFailedUnavailable": "無法存取剪貼簿。",
+      "pickProfile": "請選擇設定檔",
+      "pickProfileBody": "建立閘道前需要先指定存取設定檔。",
+      "pickTokenActions": "請選擇權杖動作",
+      "pickTokenActionsBody": "閘道權杖至少需要一項允許的 MCP 動作。"
+    }
   }
 }
