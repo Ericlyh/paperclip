@@ -11,6 +11,7 @@ import { heartbeatsApi } from "../api/heartbeats";
 import { accessApi } from "../api/access";
 import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
+import { useTranslation } from "../i18n";
 import { useToastActions } from "../context/ToastContext";
 import { useTranslation } from "../i18n";
 import { buildMarkdownMentionOptions } from "../lib/company-members";
@@ -370,8 +371,8 @@ export function Routines() {
   const folderSelection = normalizeFolderSelection(searchParams.get("folder"));
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Routines" }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: t("sidebar.routines") }]);
+  }, [setBreadcrumbs, t]);
 
   useEffect(() => {
     setRoutineViewState(getRoutineViewState(routineViewStateKey));
@@ -810,7 +811,7 @@ export function Routines() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
         <div className="space-y-1">
           <h1 className="text-2xl font-semibold tracking-tight">
-            Routines
+            {t("sidebar.routines")}
           </h1>
           <p className="text-sm text-muted-foreground">
             Recurring work definitions that materialize into auditable execution tasks.

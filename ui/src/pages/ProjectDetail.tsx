@@ -14,6 +14,7 @@ import { usePanel } from "../context/PanelContext";
 import { useCompany } from "../context/CompanyContext";
 import { useToastActions } from "../context/ToastContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
+import { useTranslation } from "../i18n";
 import { queryKeys } from "../lib/queryKeys";
 import { ProjectProperties, type ProjectConfigFieldKey, type ProjectFieldSaveState } from "../components/ProjectProperties";
 import { InlineEditor } from "../components/InlineEditor";
@@ -372,6 +373,7 @@ export function ProjectDetail() {
   const { companies, selectedCompanyId, setSelectedCompanyId } = useCompany();
   const { closePanel } = usePanel();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const { pushToast } = useToastActions();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -525,10 +527,10 @@ export function ProjectDetail() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Projects", href: "/projects" },
+      { label: t("sidebar.projects"), href: "/projects" },
       { label: project?.name ?? routeProjectRef ?? "Project" },
     ]);
-  }, [setBreadcrumbs, project, routeProjectRef]);
+  }, [setBreadcrumbs, project, routeProjectRef, t]);
 
   useEffect(() => {
     if (!project) return;

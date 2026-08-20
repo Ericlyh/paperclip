@@ -6,6 +6,7 @@ import { ApiError } from "@/api/client";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
+import { useTranslation } from "../i18n";
 import { Card } from "@/components/ui/card";
 import { useCompany } from "@/context/CompanyContext";
 import { useToast } from "@/context/ToastContext";
@@ -14,6 +15,7 @@ import { queryKeys } from "@/lib/queryKeys";
 export function InstanceAccess() {
   const { companies } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const { pushToast } = useToast();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
@@ -22,11 +24,11 @@ export function InstanceAccess() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Settings", href: "/company/settings" },
-      { label: "Instance settings", href: "/company/settings/instance/general" },
-      { label: "Access" },
+      { label: t("sidebar.settings"), href: "/company/settings" },
+      { label: t("instanceExperimentalSettings.Instance_settings"), href: "/company/settings/instance/general" },
+      { label: t("access.legacyBreadcrumb") },
     ]);
-  }, [setBreadcrumbs]);
+  }, [setBreadcrumbs, t]);
 
   const usersQuery = useQuery({
     queryKey: queryKeys.access.adminUsers(search),
@@ -104,7 +106,7 @@ export function InstanceAccess() {
       <div className="space-y-3">
         <div className="flex items-center gap-2">
           <Shield className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-lg font-semibold">Instance Access</h1>
+          <h1 className="text-lg font-semibold">{t("instanceExperimentalSettings.Instance_settings")}</h1>
         </div>
         <p className="max-w-3xl text-sm text-muted-foreground">
           Search users, manage instance-admin status, and control which companies they can access.

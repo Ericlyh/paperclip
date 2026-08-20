@@ -11,6 +11,7 @@ import type {
 import { instanceSettingsApi } from "@/api/instanceSettings";
 import { getWorktreeInstanceId, isWorktreeRuntime } from "../lib/worktree-branding";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
+import { useTranslation } from "../i18n";
 import { queryKeys } from "../lib/queryKeys";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { Badge } from "@/components/ui/badge";
@@ -220,6 +221,7 @@ function RecoveryPreviewDialog({
 
 export function InstanceExperimentalSettings() {
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [actionError, setActionError] = useState<string | null>(null);
   const [lookbackHoursDraft, setLookbackHoursDraft] = useState("24");
@@ -233,11 +235,11 @@ export function InstanceExperimentalSettings() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Settings", href: "/company/settings" },
-      { label: "Instance settings", href: "/company/settings/instance/general" },
-      { label: "Experimental" },
+      { label: t("sidebar.settings"), href: "/company/settings" },
+      { label: t("instanceExperimentalSettings.Instance_settings"), href: "/company/settings/instance/general" },
+      { label: t("instanceExperimentalSettings.Experimental") },
     ]);
-  }, [setBreadcrumbs]);
+  }, [setBreadcrumbs, t]);
 
   const experimentalQuery = useQuery({
     queryKey: queryKeys.instance.experimentalSettings,
@@ -431,7 +433,7 @@ export function InstanceExperimentalSettings() {
       <div className="space-y-2">
         <div className="flex items-center gap-2">
           <FlaskConical className="h-5 w-5 text-muted-foreground" />
-          <h1 className="text-lg font-semibold">Experimental</h1>
+          <h1 className="text-lg font-semibold">{t("instanceExperimentalSettings.Experimental")}</h1>
         </div>
         <p className="text-sm text-muted-foreground">
           Opt into features that are still being evaluated before they become default behavior.

@@ -18,6 +18,7 @@ import {
   type WorkspaceRuntimeControlRequest,
 } from "../components/WorkspaceRuntimeControls";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
+import { useTranslation } from "../i18n";
 import { useCompany } from "../context/CompanyContext";
 import { queryKeys } from "../lib/queryKeys";
 import { projectRouteRef, projectWorkspaceUrl } from "../lib/utils";
@@ -252,6 +253,7 @@ export function ProjectWorkspaceDetail() {
   }>();
   const { companies, selectedCompanyId, setSelectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const location = useLocation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
@@ -322,12 +324,12 @@ export function ProjectWorkspaceDetail() {
   useEffect(() => {
     if (!project) return;
     setBreadcrumbs([
-      { label: "Projects", href: "/projects" },
+      { label: t("sidebar.projects"), href: "/projects" },
       { label: project.name, href: `/projects/${canonicalProjectRef}` },
-      { label: "Workspaces", href: `/projects/${canonicalProjectRef}/workspaces` },
+      { label: t("sidebar.workspaces"), href: `/projects/${canonicalProjectRef}/workspaces` },
       { label: workspace?.name ?? routeWorkspaceId },
     ]);
-  }, [setBreadcrumbs, project, canonicalProjectRef, workspace?.name, routeWorkspaceId]);
+  }, [setBreadcrumbs, project, canonicalProjectRef, workspace?.name, routeWorkspaceId, t]);
 
   useEffect(() => {
     if (!project) return;

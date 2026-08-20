@@ -36,6 +36,7 @@ import {
 } from "../components/WorkspaceRuntimeControls";
 import { WorkspaceServiceControlBar } from "../components/WorkspaceServiceControlBar";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
+import { useTranslation } from "../i18n";
 import { useCompany } from "../context/CompanyContext";
 import { useToastActions } from "../context/ToastContext";
 import { collectLiveIssueIds } from "../lib/liveIssueIds";
@@ -773,6 +774,7 @@ export function ExecutionWorkspaceDetail() {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const { selectedCompanyId, setSelectedCompanyId } = useCompany();
   const [form, setForm] = useState<WorkspaceFormState | null>(null);
   const [closeDialogOpen, setCloseDialogOpen] = useState(false);
@@ -896,13 +898,13 @@ export function ExecutionWorkspaceDetail() {
   useEffect(() => {
     if (!workspace) return;
     const crumbs = [
-      { label: "Projects", href: "/projects" },
+      { label: t("sidebar.projects"), href: "/projects" },
       ...(project ? [{ label: project.name, href: `/projects/${projectRef}` }] : []),
-      ...(project ? [{ label: "Workspaces", href: `/projects/${projectRef}/workspaces` }] : []),
+      ...(project ? [{ label: t("sidebar.workspaces"), href: `/projects/${projectRef}/workspaces` }] : []),
       { label: workspace.name },
     ];
     setBreadcrumbs(crumbs);
-  }, [setBreadcrumbs, workspace, project, projectRef]);
+  }, [setBreadcrumbs, workspace, project, projectRef, t]);
 
   const updateWorkspace = useMutation({
     mutationFn: (patch: Record<string, unknown>) => executionWorkspacesApi.update(workspace!.id, patch),

@@ -871,7 +871,8 @@
     "Toggle_task_watchdogs_experimental_setti": "Toggle task watchdogs experimental setting",
     "Toggle_worktree_run_execution_setting": "Toggle worktree run execution setting",
     "Turning_Cases_off_hides_the_tab_and_bloc": "Turning Cases off hides the tab and blocks the case API; existing case data is kept.",
-    "Turning_this_off_instantly_restores_the_": "Turning this off instantly restores the classic task page. No task data is affected."
+    "Turning_this_off_instantly_restores_the_": "Turning this off instantly restores the classic task page. No task data is affected.",
+    "Experimental": "實驗性"
   },
   "inviteLanding": {
     "A_company_admin": "公司管理員",
