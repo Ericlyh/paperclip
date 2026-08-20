@@ -3354,7 +3354,17 @@
       "saveFailed": "儲存互動治理失敗",
       "defaultPolicyBold": "預設政策",
       "capBold": "上限",
-      "boardOnlyBold": "僅限 board"
+      "boardOnlyBold": "僅限 board",
+      "anyoneBold": "任何人",
+      "anyoneDefaultLabel": "任何人(預設)",
+      "noCapLabel": "無上限",
+      "defaultPolicyEffectNotCreator": "新卡片會排除建立它的代理人,由其他人回應。",
+      "defaultPolicyEffectHumanOnly": "新卡片會等待 board 上的人員,代理人會被拒絕。",
+      "capEffectNoCap": "請求可保留其所要求的任何對象範圍。",
+      "capEffectNotCreator": "即使是請求「任何人」的卡片,也會被縮限為排除其建立者。",
+      "capEffectHumanOnly": "此類型的每張卡片,無論請求為何,都會等待真人回應。",
+      "ariaDefaultPolicy": "此類型的預設解決對象",
+      "ariaCap": "此類型的解決上限"
     },
     "interactionKindLabels": {
       "suggest_tasks": "建議任務",

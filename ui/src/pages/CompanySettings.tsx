@@ -402,9 +402,59 @@ export function CompanySettings() {
           governanceMutation.isError
             ? governanceMutation.error instanceof Error
               ? governanceMutation.error.message
-              : "Failed to save interaction governance"
+              : t("companySettings.governance.saveFailed")
             : null
         }
+        labels={{
+          sectionTitle: t("companySettings.sections.interactionGovernance"),
+          description: {
+            anyone: t("companySettings.governance.anyoneBold"),
+            defaultPolicy: t("companySettings.governance.defaultPolicyBold"),
+            cap: t("companySettings.governance.capBold"),
+            humanOnly: t("companySettings.governance.boardOnlyBold"),
+          },
+          columnKind: t("companySettings.governance.kindLabel"),
+          columnDefaultPolicy: t("companySettings.governance.defaultPolicyLabel"),
+          columnCap: t("companySettings.governance.capLabel"),
+          mobileDefaultPolicy: t("companySettings.governance.defaultPolicyLabel"),
+          mobileCap: t("companySettings.governance.capLabel"),
+          kindLabels: {
+            suggest_tasks: t("companySettings.interactionKindLabels.suggest_tasks"),
+            ask_user_questions: t("companySettings.interactionKindLabels.ask_user_questions"),
+            request_confirmation: t("companySettings.interactionKindLabels.request_confirmation"),
+            request_checkbox_confirmation: t("companySettings.interactionKindLabels.request_checkbox_confirmation"),
+            request_item_verdicts: t("companySettings.interactionKindLabels.request_item_verdicts"),
+          },
+          unsetLabels: {
+            defaultPolicy: t("companySettings.governance.anyoneDefaultLabel"),
+            cap: t("companySettings.governance.noCapLabel"),
+          },
+          unsetEffects: {
+            defaultPolicy: t("companySettings.governance.description", {
+              defaultPolicy: t("companySettings.governance.defaultPolicyBold"),
+              cap: t("companySettings.governance.capBold"),
+              boardOnly: t("companySettings.governance.boardOnlyBold"),
+            }),
+            cap: t("companySettings.governance.capEffectNoCap"),
+          },
+          defaultPolicyEffects: {
+            anyone: t("companySettings.governance.description", {
+              defaultPolicy: t("companySettings.governance.defaultPolicyBold"),
+              cap: t("companySettings.governance.capBold"),
+              boardOnly: t("companySettings.governance.boardOnlyBold"),
+            }),
+            not_creator: t("companySettings.governance.defaultPolicyEffectNotCreator"),
+            human_only: t("companySettings.governance.defaultPolicyEffectHumanOnly"),
+          },
+          capEffects: {
+            anyone: t("companySettings.governance.capEffectNoCap"),
+            not_creator: t("companySettings.governance.capEffectNotCreator"),
+            human_only: t("companySettings.governance.capEffectHumanOnly"),
+          },
+          defaultPolicyAria: t("companySettings.governance.ariaDefaultPolicy"),
+          capAria: t("companySettings.governance.ariaCap"),
+          saveFailed: t("companySettings.governance.saveFailed"),
+        }}
       />
 
       {/* Import / Export */}

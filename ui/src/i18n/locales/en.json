@@ -3354,7 +3354,17 @@
       "saveFailed": "Failed to save interaction governance",
       "defaultPolicyBold": "Default policy",
       "capBold": "Cap",
-      "boardOnlyBold": "Board only"
+      "boardOnlyBold": "Board only",
+      "anyoneBold": "Anyone",
+      "anyoneDefaultLabel": "Anyone (default)",
+      "noCapLabel": "No cap",
+      "defaultPolicyEffectNotCreator": "New cards exclude the agent that created them, so the answer comes from someone else.",
+      "defaultPolicyEffectHumanOnly": "New cards wait for a person on the board. Agents are turned away.",
+      "capEffectNoCap": "A request keeps whatever audience it asks for.",
+      "capEffectNotCreator": "Even a card that asks for Anyone is narrowed to exclude its creator.",
+      "capEffectHumanOnly": "Every card of this kind waits for a person, whatever it asked for.",
+      "ariaDefaultPolicy": "Default resolver audience for",
+      "ariaCap": "Resolver cap for"
     },
     "interactionKindLabels": {
       "suggest_tasks": "Suggested tasks",
