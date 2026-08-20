@@ -3,6 +3,7 @@ import { pickTextColorForPillBg } from "@/lib/color-contrast";
 import { Link, useLocation, useNavigate, useNavigationType, useParams } from "@/lib/router";
 import { useInfiniteQuery, useQuery, useMutation, useQueryClient, type InfiniteData, type QueryClient } from "@tanstack/react-query";
 import { usePublishSharedQueryData, useSharedPollingQuery } from "@/hooks/useSharedPolling";
+import { useTranslation } from "../i18n";
 import { ApiError } from "../api/client";
 import { issuesApi } from "../api/issues";
 import { approvalsApi } from "../api/approvals";
@@ -801,6 +802,15 @@ interface InboxMobileToolbarProps {
   onCopy: () => void;
   onProperties: () => void;
   onHide: () => void;
+  labels: {
+    backToInbox: string;
+    archiveFromInbox: string;
+    moreActions: string;
+    moreTaskActions: string;
+    copyTaskAsMarkdown: string;
+    openFile: string;
+    properties: string;
+  };
 }
 
 function InboxMobileToolbar({
@@ -812,6 +822,7 @@ function InboxMobileToolbar({
   onCopy,
   onProperties,
   onHide,
+  labels,
 }: InboxMobileToolbarProps) {
   const navigate = useNavigate();
   const [menuOpen, setMenuOpen] = useState(false);
@@ -831,7 +842,7 @@ function InboxMobileToolbar({
             navigate(backHref);
           }
         }}
-        aria-label="Back to inbox"
+        aria-label={labels.backToInbox}
       >
         <ArrowLeft className="h-5 w-5" />
       </Button>
@@ -851,7 +862,7 @@ function InboxMobileToolbar({
 
         <Popover open={menuOpen} onOpenChange={setMenuOpen}>
           <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon-sm" aria-label="More actions">
+            <Button variant="ghost" size="icon-sm" aria-label={labels.moreActions}>
               <MoreVertical className="h-5 w-5" />
             </Button>
           </PopoverTrigger>
@@ -1366,6 +1377,7 @@ function IssueDetailActivityTab({
   handoffFocusSignal = 0,
   externalReferences,
 }: IssueDetailActivityTabProps) {
+  const { t } = useTranslation();
   const { data: activity, isLoading: activityLoading } = useQuery({
     queryKey: queryKeys.issues.activity(issueId),
     queryFn: () => activityApi.forIssue(issueId),
@@ -1477,7 +1489,7 @@ function IssueDetailActivityTab({
     <>
       {shouldShowCostSummary && (
         <div className="mb-3 px-3 py-2 rounded-lg border border-border">
-          <div className="text-sm font-medium text-muted-foreground mb-1">Cost Summary</div>
+          <div className="text-sm font-medium text-muted-foreground mb-1">{t("issueDetail.action.costSummary")}</div>
           {!issueCostSummary.hasCost && !issueCostSummary.hasTokens && !hasIssueTreeCost ? (
             <div className="text-xs text-muted-foreground">No cost data yet.</div>
           ) : (
@@ -1617,6 +1629,7 @@ function IssueDetailActivityTab({
 }
 
 export function IssueDetail() {
+  const { t } = useTranslation();
   const { issueId } = useParams<{ issueId: string }>();
   const { selectedCompanyId } = useCompany();
   // Classic Task Interface (flag: enableClassicTaskInterface): with the flag
@@ -3306,7 +3319,7 @@ export function IssueDetail() {
 
   useEffect(() => {
     setBreadcrumbs([
-      sourceBreadcrumb,
+      { ...sourceBreadcrumb, label: t("issueDetail.breadcrumb.tasks", { defaultValue: sourceBreadcrumb.label }) },
       {
         // The status glyph (leading) already conveys in-progress/live state;
         // no redundant 🔵 emoji prefix on the title.
@@ -3737,6 +3750,15 @@ export function IssueDetail() {
         onCopy={() => inboxToolbarCallbacksRef.current.onCopy()}
         onProperties={() => inboxToolbarCallbacksRef.current.onProperties()}
         onHide={() => inboxToolbarCallbacksRef.current.onHide()}
+        labels={{
+          backToInbox: t("issueDetail.action.backToInbox"),
+          archiveFromInbox: t("issueDetail.action.archiveFromInbox"),
+          moreActions: t("issueDetail.action.moreActions"),
+          moreTaskActions: t("issueDetail.action.moreTaskActions"),
+          copyTaskAsMarkdown: t("issueDetail.action.copyTaskAsMarkdown"),
+          openFile: t("issueDetail.action.openFile"),
+          properties: t("issueDetail.section.properties"),
+        }}
       />,
     );
 
@@ -4250,7 +4272,7 @@ export function IssueDetail() {
         {uploadAttachment.isPending || importMarkdownDocument.isPending ? "Uploading..." : (
           <>
             <span className="hidden sm:inline">Upload attachment</span>
-            <span className="sm:hidden">Upload</span>
+            <span className="sm:hidden">{t("issueDetail.action.uploadAttachment")}</span>
           </>
         )}
       </Button>
@@ -4439,7 +4461,7 @@ export function IssueDetail() {
                 variant="ghost"
                 size="icon-xs"
                 onClick={copyIssueToClipboard}
-                title="Copy task as markdown"
+                title={t("issueDetail.action.copyTaskAsMarkdown")}
               >
                 {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
               </Button>
@@ -4447,7 +4469,7 @@ export function IssueDetail() {
                 variant="ghost"
                 size="icon-xs"
                 onClick={() => setMobilePropsOpen(true)}
-                title="Properties"
+                title={t("issueDetail.section.properties")}
               >
                 <SlidersHorizontal className="h-4 w-4" />
               </Button>
@@ -4463,8 +4485,8 @@ export function IssueDetail() {
                   if (!archivePending && issue?.id) archiveFromInbox.mutate(issue.id);
                 }}
                 disabled={archivePending}
-                title="Archive from inbox"
-                aria-label="Archive from inbox"
+                title={t("issueDetail.action.archiveFromInbox")}
+                aria-label={t("issueDetail.action.archiveFromInbox")}
               >
                 <Archive className="h-4 w-4" />
               </Button>
@@ -4474,8 +4496,8 @@ export function IssueDetail() {
                 variant="ghost"
                 size="icon-xs"
                 onClick={() => setFileViewerPromptOpen(true)}
-                title="Open file... (g f)"
-                aria-label="Open file in this issue"
+                title={t("issueDetail.action.openFileShortcut")}
+                aria-label={t("issueDetail.action.openFileInThisIssue")}
               >
                 <FileCode2 className="h-4 w-4" />
               </Button>
@@ -4484,7 +4506,7 @@ export function IssueDetail() {
               variant="ghost"
               size="icon-xs"
               onClick={copyIssueToClipboard}
-              title="Copy task as markdown"
+              title={t("issueDetail.action.copyTaskAsMarkdown")}
             >
               {copied ? <Check className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
             </Button>
@@ -4503,7 +4525,7 @@ export function IssueDetail() {
                 }
                 setPanelVisible(true);
               }}
-              title="Show properties"
+              title={t("issueDetail.action.showProperties")}
             >
               <SlidersHorizontal className="h-4 w-4" />
             </Button>
@@ -4514,8 +4536,8 @@ export function IssueDetail() {
                   variant="ghost"
                   size="icon-xs"
                   className="shrink-0"
-                  aria-label="More task actions"
-                  title="More task actions"
+                  aria-label={t("issueDetail.action.moreTaskActions")}
+                  title={t("issueDetail.action.moreTaskActions")}
                   onKeyDown={(event) => {
                     if (event.key === "Enter" || event.key === " ") {
                       event.preventDefault();
@@ -4538,7 +4560,7 @@ export function IssueDetail() {
                   }}
                 >
                   <PauseCircle className="h-3 w-3" />
-                  Pause work...
+                  {t("issueDetail.action.pauseWork")}...
                 </button>
               ) : null}
               {canResumeLeafWork ? (
@@ -4552,7 +4574,7 @@ export function IssueDetail() {
                   }}
                 >
                   <PlayCircle className="h-3 w-3" />
-                  Resume work
+                  {t("issueDetail.action.resumeWork")}
                 </button>
               ) : null}
               {canShowSubtreeControls ? (
@@ -4567,7 +4589,7 @@ export function IssueDetail() {
                     }}
                   >
                     <PauseCircle className="h-3 w-3" />
-                    Pause subtree...
+                    {t("issueDetail.action.pauseSubtree")}...
                   </button>
                   {canResumeSubtree ? (
                     <button
@@ -4580,7 +4602,7 @@ export function IssueDetail() {
                       }}
                     >
                       <PlayCircle className="h-3 w-3" />
-                      Resume subtree
+                      {t("issueDetail.action.resumeSubtree")}
                     </button>
                   ) : null}
                   <button
@@ -4593,7 +4615,7 @@ export function IssueDetail() {
                     }}
                   >
                     <XCircle className="h-3 w-3" />
-                    Cancel subtree...
+                    {t("issueDetail.action.cancelSubtree")}...
                   </button>
                   {canRestoreSubtree ? (
                     <button
@@ -4607,7 +4629,7 @@ export function IssueDetail() {
                       }}
                     >
                       <Repeat className="h-3 w-3" />
-                      Restore subtree...
+                      {t("issueDetail.action.restoreSubtree")}...
                     </button>
                   ) : null}
                 </>
@@ -4826,7 +4848,7 @@ export function IssueDetail() {
       {taskChatShellEnabled ? null : showRichSubIssuesSection ? (
         <div className="space-y-3">
           <div className="flex items-center justify-between gap-2">
-            <h3 className="text-sm font-medium text-muted-foreground">Sub-tasks</h3>
+            <h3 className="text-sm font-medium text-muted-foreground">{t("issueDetail.section.subTasks")}</h3>
           </div>
           <IssuesList
             issues={childIssues}
@@ -4973,7 +4995,7 @@ export function IssueDetail() {
         return (
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2">
-              <h3 className="text-sm font-medium text-muted-foreground">Artifacts</h3>
+              <h3 className="text-sm font-medium text-muted-foreground">{t("issueDetail.section.artifacts")}</h3>
             </div>
             <div className="flex flex-wrap gap-2">
               {workProductsWithFileRefs.map(({ product, fileRef }) => (
@@ -5001,19 +5023,19 @@ export function IssueDetail() {
         <TabsList variant="line" className={cn("w-full justify-start gap-1", shellSectionClass)}>
           <TabsTrigger value="chat" className="gap-1.5">
             <MessageSquare className="h-3.5 w-3.5" />
-            Chat
+            {t("issueDetail.tab.chat")}
           </TabsTrigger>
           <TabsTrigger value="activity" className="gap-1.5">
             <ActivityIcon className="h-3.5 w-3.5" />
-            Activity
+            {t("issueDetail.tab.activity")}
           </TabsTrigger>
           <TabsTrigger value="related-work" className="gap-1.5">
             <ListTree className="h-3.5 w-3.5" />
-            Related work
+            {t("issueDetail.tab.relatedWork")}
           </TabsTrigger>
           <TabsTrigger value="workspace" className="gap-1.5">
             <FolderKanban className="h-3.5 w-3.5" />
-            Workspace
+            {t("issueDetail.tab.workspace")}
           </TabsTrigger>
           {issuePluginTabItems.map((item) => (
             <TabsTrigger key={item.value} value={item.value}>
@@ -5382,7 +5404,7 @@ export function IssueDetail() {
       <Sheet open={mobilePropsOpen} onOpenChange={setMobilePropsOpen}>
         <SheetContent side="bottom" className="max-h-(--sz-85dvh) pb-(--sz-safe-bottom)">
           <SheetHeader>
-            <SheetTitle className="text-sm">Properties</SheetTitle>
+            <SheetTitle className="text-sm">{t("issueDetail.section.properties")}</SheetTitle>
           </SheetHeader>
           <ScrollArea className="flex-1 overflow-y-auto">
             <div className="px-4 pb-4">

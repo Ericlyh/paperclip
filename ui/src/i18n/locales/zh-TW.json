@@ -1238,6 +1238,20 @@
       "unableToTriggerMonitor": "目前無法觸發監控",
       "unableToUpdateApproval": "無法更新審核",
       "unknownError": "未知錯誤"
+    },
+    "breadcrumb": {
+      "tasks": "任務"
+    },
+    "section": {
+      "subTasks": "子任務",
+      "artifacts": "成品",
+      "properties": "屬性"
+    },
+    "tab": {
+      "chat": "對話",
+      "activity": "活動",
+      "relatedWork": "相關工作",
+      "workspace": "工作區"
     }
   },
   "languageToggle": {

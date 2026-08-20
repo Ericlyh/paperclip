@@ -1238,6 +1238,20 @@
       "unableToTriggerMonitor": "Unable to trigger the monitor right now",
       "unableToUpdateApproval": "Unable to update approval",
       "unknownError": "Unknown error"
+    },
+    "breadcrumb": {
+      "tasks": "Tasks"
+    },
+    "section": {
+      "subTasks": "Sub-tasks",
+      "artifacts": "Artifacts",
+      "properties": "Properties"
+    },
+    "tab": {
+      "chat": "Chat",
+      "activity": "Activity",
+      "relatedWork": "Related work",
+      "workspace": "Workspace"
     }
   },
   "languageToggle": {
