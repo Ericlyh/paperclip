@@ -2524,5 +2524,332 @@
   "issues": {
     "title": "Issues",
     "selectCompany": "Select a company to view issues."
+  },
+  "instanceGeneralSettings": {
+    "title": "General",
+    "subtitle": "Configure instance-wide preferences including log display, keyboard shortcuts, backup retention, and data sharing.",
+    "loading": "Loading general settings...",
+    "errors": {
+      "load": "Failed to load general settings.",
+      "update": "Failed to update general settings.",
+      "signOut": "Failed to sign out."
+    },
+    "deploymentAndAuth": {
+      "title": "Deployment and auth",
+      "localTrustedMode": "Local trusted mode is optimized for a local operator. Browser requests run as local board context and no sign-in is required.",
+      "authPublicMode": "Authenticated public mode requires sign-in for board access and is intended for public URLs.",
+      "authPrivateMode": "Authenticated private mode requires sign-in and is intended for LAN, VPN, or other private-network deployments.",
+      "authReadiness": "Auth readiness",
+      "authReady": "Ready",
+      "authNotReady": "Not ready",
+      "bootstrapStatus": "Bootstrap status",
+      "bootstrapSetupRequired": "Setup required",
+      "bootstrapReady": "Ready",
+      "bootstrapInvite": "Bootstrap invite",
+      "bootstrapInviteActive": "Active",
+      "bootstrapInviteNone": "None"
+    },
+    "censorUsername": {
+      "title": "Censor username in logs",
+      "description": "Hide the username segment in home-directory paths and similar operator-visible log output. Standalone username mentions outside of paths are not yet masked in the live transcript view. This is off by default.",
+      "toggleAriaLabel": "Toggle username log censoring"
+    },
+    "keyboardShortcuts": {
+      "title": "Keyboard shortcuts",
+      "description": "Enable app keyboard shortcuts, including inbox navigation and global shortcuts like creating tasks or toggling panels. This is off by default.",
+      "toggleAriaLabel": "Toggle keyboard shortcuts"
+    },
+    "backupRetention": {
+      "title": "Backup retention",
+      "description": "Configure how long automatic database backups are retained. Backups run roughly every hour and are compressed with gzip. Within the daily window all backups are kept; beyond that, one backup per week and one per month are preserved.",
+      "daily": "Daily",
+      "weekly": "Weekly",
+      "monthly": "Monthly",
+      "days": "{count} days",
+      "week": "1 week",
+      "weeks": "{count} weeks",
+      "month": "1 month",
+      "months": "{count} months"
+    },
+    "feedbackSharing": {
+      "title": "AI feedback sharing",
+      "description": "Control whether thumbs up and thumbs down votes can send the voted AI output to Paperclip Labs. Votes are always saved locally.",
+      "tosLink": "Read our terms of service",
+      "noDefault": "No default is saved yet. The next thumbs up or thumbs down choice will ask once and then save the answer here.",
+      "allow": "Always allow",
+      "allowDescription": "Share voted AI outputs automatically.",
+      "deny": "Don't allow",
+      "denyDescription": "Keep voted AI outputs local only.",
+      "retest": "To retest the first-use prompt in local dev, remove the {key} key from the {row} JSON row for this instance, or set it back to {prompt}. Unset and {prompt} both mean no default has been chosen yet."
+    },
+    "signOut": {
+      "title": "Sign out",
+      "description": "Sign out of this Paperclip instance. You will be redirected to the login page.",
+      "inProgress": "Signing out..."
+    }
+  },
+  "companyAccess": {
+    "selectCompany": "Select a company to manage access.",
+    "loading": "Loading company access…",
+    "permissionDenied": "You do not have permission to manage company members.",
+    "loadFailed": "Failed to load company members.",
+    "title": "Company Members",
+    "subtitle": "Manage the people who can work in {companyName}. Members can collaborate across the company by default.",
+    "coreScopeNote": "Core keeps this page focused on membership, invite approvals, and safe member removal.",
+    "instanceAdminNote": "This account can manage access here through instance-admin privileges, but it does not currently hold an active company membership.",
+    "sections": {
+      "humans": {
+        "title": "Humans",
+        "description": "Manage human company memberships and status here."
+      },
+      "pendingJoins": {
+        "title": "Pending human joins",
+        "description": "Review pending join requests before they become active company members.",
+        "pending": "{count} pending",
+        "unknownRequester": "Unknown human requester",
+        "noEmail": "No email available",
+        "inviteWithRole": "{joinType} join invite • default role {role}",
+        "inviteUnavailable": "Invite metadata unavailable",
+        "submitted": "Submitted {date}",
+        "approve": "Approve human",
+        "reject": "Reject human"
+      },
+      "table": {
+        "userAccount": "User account",
+        "role": "Role",
+        "status": "Status",
+        "action": "Action",
+        "empty": "No user memberships found for this company yet.",
+        "unset": "Unset",
+        "edit": "Edit",
+        "remove": "Remove"
+      },
+      "status": {
+        "active": "Active",
+        "pending": "Pending",
+        "suspended": "Suspended"
+      }
+    },
+    "toasts": {
+      "memberUpdated": "Member updated",
+      "memberUpdateFailed": "Failed to update member",
+      "memberUpdateUnknownError": "Unknown error",
+      "joinRequestApproved": "Join request approved",
+      "joinRequestApproveFailed": "Failed to approve join request",
+      "joinRequestRejected": "Join request rejected",
+      "joinRequestRejectFailed": "Failed to reject join request",
+      "memberRemoved": "Member removed",
+      "memberRemovalFailed": "Failed to remove member",
+      "reassignedTasks": "{count} assigned task cleaned up.",
+      "reassignedTasksPlural": "{count} assigned tasks cleaned up."
+    },
+    "editDialog": {
+      "title": "Edit member",
+      "description": "Update company role and membership status for {name}.",
+      "companyRole": "Company role",
+      "membershipStatus": "Membership status",
+      "cancel": "Cancel",
+      "save": "Save member",
+      "saving": "Saving…"
+    },
+    "removeDialog": {
+      "title": "Remove member",
+      "description": "Archive {name} and move active assignments before hiding this user from assignment fields.",
+      "checking": "Checking assigned tasks...",
+      "openAssignedTasks": "{count} open assigned task",
+      "openAssignedTasksPlural": "{count} open assigned tasks",
+      "taskReassignment": "Task reassignment",
+      "leaveUnassigned": "Leave unassigned",
+      "humansGroup": "Humans",
+      "agentsGroup": "Agents",
+      "moreTasks": "{count} more task",
+      "moreTasksPlural": "{count} more tasks",
+      "cancel": "Cancel",
+      "remove": "Remove member",
+      "removing": "Removing..."
+    },
+    "fallbackName": "this member",
+    "advancedPermissions": {
+      "title": "Advanced Permissions",
+      "subtitle": "Advanced access, scoped assignment, and explicit grant controls are provided by installed company settings extensions.",
+      "loading": "Checking for advanced permission extensions...",
+      "unavailableTitle": "Advanced permissions unavailable",
+      "unavailableBody": "Core Paperclip keeps enforcing company boundaries and any existing restrictive policy data, but editing advanced permissions requires an installed extension.",
+      "pluginError": "Plugin extensions unavailable: {message}",
+      "openMembers": "Open Members",
+      "openInvites": "Open Invites",
+      "legacyBreadcrumb": "Access"
+    },
+    "breadcrumb": "Members"
+  },
+  "companyInvites": {
+    "breadcrumb": "Invites",
+    "selectCompany": "Select a company to manage invites.",
+    "loading": "Loading invites…",
+    "permissionDenied": "You do not have permission to manage company invites.",
+    "loadFailed": "Failed to load invites.",
+    "title": "Company Invites",
+    "subtitle": "Invite people to request access to this company. New invite links are copied to your clipboard when they are generated.",
+    "invitePerson": {
+      "title": "Invite a person",
+      "description": "Generate a human invite link and choose the default access it should request.",
+      "chooseRole": "Choose a role",
+      "singleUse": "Each invite link is single-use. Human invitees get the selected role immediately after sign-in; agent invites still create a join request for approval.",
+      "create": "Create invite",
+      "creating": "Creating…",
+      "historyNote": "Invite history below keeps the audit trail.",
+      "defaultBadge": "Default",
+      "latestInvite": {
+        "title": "Latest invite link",
+        "urlDescription": "This URL includes the current Paperclip domain returned by the server.",
+        "urlAriaLabel": "Latest invite URL",
+        "urlSrLabel": "Latest invite URL",
+        "copied": "Copied",
+        "copy": "Copy link",
+        "open": "Open invite"
+      }
+    },
+    "roleOptions": {
+      "viewer": {
+        "label": "Viewer",
+        "description": "Can view company work and follow along.",
+        "gets": "View-only company membership."
+      },
+      "operator": {
+        "label": "Operator",
+        "description": "Recommended for people who need to help run work without managing access.",
+        "gets": "Can assign tasks."
+      },
+      "admin": {
+        "label": "Admin",
+        "description": "Recommended for operators who need to invite people, create agents, and approve joins.",
+        "gets": "Can create agents, invite users, assign tasks, and approve join requests."
+      },
+      "owner": {
+        "label": "Owner",
+        "description": "Full company access, including membership management.",
+        "gets": "Everything in Admin, plus managing members."
+      }
+    },
+    "history": {
+      "title": "Invite history",
+      "description": "Review invite status, audience, inviter, and any linked join request.",
+      "openRequestQueue": "Open join request queue",
+      "empty": "No invites have been created for this company yet.",
+      "columns": {
+        "state": "State",
+        "for": "For",
+        "invitedBy": "Invited by",
+        "created": "Created",
+        "joinRequest": "Join request",
+        "action": "Action"
+      },
+      "unknownInviter": "Unknown inviter",
+      "reviewRequest": "Review request",
+      "revoke": "Revoke",
+      "inactive": "Inactive",
+      "loadMore": "View more",
+      "loadingMore": "Loading more…"
+    },
+    "states": {
+      "active": "Active",
+      "accepted": "Accepted",
+      "expired": "Expired",
+      "revoked": "Revoked"
+    },
+    "audiences": {
+      "agent": "Agent",
+      "humanOrAgent": "Human or agent",
+      "humanOrAgentWithRole": "Human or agent · {role}",
+      "human": "Human"
+    },
+    "toasts": {
+      "clipboardUnavailable": "Clipboard unavailable",
+      "clipboardInviteUrl": "The invite URL is selected. Copy it manually from the field.",
+      "clipboardInviteCreated": "Copy the invite URL manually from the field below.",
+      "inviteCreated": "Invite created",
+      "inviteCreatedCopied": "Invite ready below and copied to clipboard.",
+      "inviteCreatedPlain": "Invite ready below.",
+      "inviteCreateFailed": "Failed to create invite",
+      "inviteRevoked": "Invite revoked",
+      "inviteRevokeFailed": "Failed to revoke invite",
+      "unknownError": "Unknown error"
+    }
+  },
+  "pluginPage": {
+    "selectCompany": "Select a company to view this page.",
+    "loading": "Loading…",
+    "duplicateRoute": "Multiple plugins declare the route {routePath}. Use the plugin-id route until the conflict is resolved.",
+    "back": "Back",
+    "plugins": "Plugins"
+  },
+  "companySettings": {
+    "noCompany": "No company selected. Select a company from the switcher above.",
+    "title": "Company Settings",
+    "sections": {
+      "general": "General",
+      "appearance": "Appearance",
+      "hiring": "Hiring",
+      "interactionGovernance": "Interaction governance",
+      "companyPackages": "Company Packages",
+      "dangerZone": "Danger Zone"
+    },
+    "fields": {
+      "companyName": "Company name",
+      "companyNameHint": "The display name for your company.",
+      "description": "Description",
+      "descriptionHint": "Optional description shown in the company profile.",
+      "descriptionPlaceholder": "Optional company description",
+      "logo": "Logo",
+      "logoHint": "Upload a PNG, JPEG, WEBP, GIF, or SVG logo image.",
+      "logoRemoving": "Removing...",
+      "logoRemove": "Remove logo",
+      "logoFailed": "Logo upload failed",
+      "logoUploading": "Uploading logo...",
+      "brandColor": "Brand color",
+      "brandColorHint": "Sets the hue for the company icon. Leave empty for auto-generated color.",
+      "brandColorAuto": "Auto",
+      "brandColorClear": "Clear",
+      "attachmentSizeLimit": "Attachment size limit",
+      "attachmentSizeHint": "Accepted range: 1-{max} MiB.",
+      "attachmentSizeMiB": "MiB",
+      "attachmentSizeInvalid": "Enter a whole number from 1 to {max}.",
+      "requireApproval": "Require board approval for new hires",
+      "requireApprovalHint": "New agent hires stay pending until approved by board.",
+      "export": "Export",
+      "import": "Import",
+      "dangerZoneDescription": "Archive this company to hide it from the sidebar. This persists in the database.",
+      "archiveConfirm": "Archive company \"{name}\"? It will be hidden from the sidebar.",
+      "archiving": "Archiving...",
+      "alreadyArchived": "Already archived",
+      "archiveCompany": "Archive company",
+      "archiveFailed": "Failed to archive company"
+    },
+    "save": "Save changes",
+    "saving": "Saving...",
+    "saved": "Saved",
+    "saveFailed": "Failed to save",
+    "governance": {
+      "description": "Control who may resolve each kind of thread interaction. {defaultPolicy} is the resolver policy new interactions request; {cap} is the maximum a request may reach — set it to {boardOnly} to always require the board. Tool-approval confirmations always stay board-only regardless of these settings.",
+      "defaultPolicyLabel": "Default policy",
+      "capLabel": "Cap",
+      "kindLabel": "Kind",
+      "saveFailed": "Failed to save interaction governance",
+      "defaultPolicyBold": "Default policy",
+      "capBold": "Cap",
+      "boardOnlyBold": "Board only"
+    },
+    "interactionKindLabels": {
+      "suggest_tasks": "Suggested tasks",
+      "ask_user_questions": "Ask user questions",
+      "request_confirmation": "Confirmations",
+      "request_checkbox_confirmation": "Checkbox confirmations",
+      "request_item_verdicts": "Item verdicts"
+    },
+    "governancePolicyOptions": {
+      "companyDefault": "Company default",
+      "boardOnly": "Board only",
+      "boardOrAgents": "Board or agents"
+    }
   }
 }

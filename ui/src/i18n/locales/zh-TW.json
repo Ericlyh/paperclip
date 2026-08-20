@@ -2524,5 +2524,332 @@
   "issues": {
     "title": "任務",
     "selectCompany": "選擇公司以查看任務。"
+  },
+  "instanceGeneralSettings": {
+    "title": "一般",
+    "subtitle": "設定整個 instance 的偏好，包括 log 顯示、鍵盤快捷鍵、備份保留和資料分享。",
+    "loading": "正在載入一般設定...",
+    "errors": {
+      "load": "載入一般設定失敗。",
+      "update": "更新一般設定失敗。",
+      "signOut": "登出失敗。"
+    },
+    "deploymentAndAuth": {
+      "title": "部署與驗證",
+      "localTrustedMode": "本地信任模式為本地操作員優化。瀏覽器請求以本地 board 身份執行,不需要登入。",
+      "authPublicMode": "公開驗證模式需要登入才能存取 board,適用於公開 URL。",
+      "authPrivateMode": "私有驗證模式需要登入,適用於 LAN、VPN 或其他私有網路部署。",
+      "authReadiness": "驗證就緒狀態",
+      "authReady": "就緒",
+      "authNotReady": "未就緒",
+      "bootstrapStatus": "Bootstrap 狀態",
+      "bootstrapSetupRequired": "需要設定",
+      "bootstrapReady": "就緒",
+      "bootstrapInvite": "Bootstrap 邀請",
+      "bootstrapInviteActive": "啟用中",
+      "bootstrapInviteNone": "無"
+    },
+    "censorUsername": {
+      "title": "在 log 中隱藏使用者名稱",
+      "description": "在主目錄路徑及類似操作員可見的 log 輸出中隱藏使用者名稱段落。路徑之外的獨立使用者名稱提及在即時 transcript 檢視中尚未遮罩。預設為關閉。",
+      "toggleAriaLabel": "切換使用者名稱 log 遮罩"
+    },
+    "keyboardShortcuts": {
+      "title": "鍵盤快捷鍵",
+      "description": "啟用應用程式鍵盤快捷鍵,包括 inbox 導覽和建立任務、切換面板等全域快捷鍵。預設為關閉。",
+      "toggleAriaLabel": "切換鍵盤快捷鍵"
+    },
+    "backupRetention": {
+      "title": "備份保留",
+      "description": "設定自動資料庫備份的保留時間。備份大約每小時執行一次,並使用 gzip 壓縮。在每日範圍內保留所有備份;超出後,每週備份保留一份、每月備份保留一份。",
+      "daily": "每日",
+      "weekly": "每週",
+      "monthly": "每月",
+      "days": "{count} 天",
+      "week": "1 週",
+      "weeks": "{count} 週",
+      "month": "1 個月",
+      "months": "{count} 個月"
+    },
+    "feedbackSharing": {
+      "title": "AI 反饋分享",
+      "description": "控制按讚和倒讚時是否將被投票的 AI 輸出傳送給 Paperclip Labs。投票一律會儲存在本地。",
+      "tosLink": "閱讀我們的服務條款",
+      "noDefault": "尚未儲存預設。下次按讚或倒讚時會詢問一次,並將回答儲存於此。",
+      "allow": "總是允許",
+      "allowDescription": "自動分享被投票的 AI 輸出。",
+      "deny": "不允許",
+      "denyDescription": "僅將被投票的 AI 輸出保留在本地。",
+      "retest": "若要在本地開發環境重新測試首次使用提示,請從此 instance 的 {row} JSON 列中移除 {key} 鍵,或將其設定回 {prompt}。未設定和 {prompt} 都表示尚未選擇預設。"
+    },
+    "signOut": {
+      "title": "登出",
+      "description": "登出此 Paperclip instance。您將被重新導向至登入頁面。",
+      "inProgress": "正在登出..."
+    }
+  },
+  "companyAccess": {
+    "selectCompany": "選擇公司以管理存取。",
+    "loading": "正在載入公司存取...",
+    "permissionDenied": "您沒有管理公司成員的權限。",
+    "loadFailed": "載入公司成員失敗。",
+    "title": "公司成員",
+    "subtitle": "管理可在 {companyName} 工作的成員。成員預設可在公司範圍內協作。",
+    "coreScopeNote": "Core 將此頁面聚焦於成員、邀請核准和安全移除成員。",
+    "instanceAdminNote": "此帳號可透過 instance 管理員權限在此管理存取,但目前未持有有效的公司成員資格。",
+    "sections": {
+      "humans": {
+        "title": "人員",
+        "description": "在此管理人員的公司成員資格和狀態。"
+      },
+      "pendingJoins": {
+        "title": "待處理的人員加入",
+        "description": "在成為正式公司成員之前審核待處理的加入請求。",
+        "pending": "{count} 個待處理",
+        "unknownRequester": "未知的請求者",
+        "noEmail": "沒有可用的電子郵件",
+        "inviteWithRole": "{joinType} 加入邀請 • 預設角色 {role}",
+        "inviteUnavailable": "邀請中繼資料不可用",
+        "submitted": "提交於 {date}",
+        "approve": "核准人員",
+        "reject": "拒絕人員"
+      },
+      "table": {
+        "userAccount": "使用者帳號",
+        "role": "角色",
+        "status": "狀態",
+        "action": "動作",
+        "empty": "此公司目前沒有使用者成員關係。",
+        "unset": "未設定",
+        "edit": "編輯",
+        "remove": "移除"
+      },
+      "status": {
+        "active": "啟用中",
+        "pending": "待處理",
+        "suspended": "已停用"
+      }
+    },
+    "toasts": {
+      "memberUpdated": "成員已更新",
+      "memberUpdateFailed": "更新成員失敗",
+      "memberUpdateUnknownError": "未知錯誤",
+      "joinRequestApproved": "加入請求已核准",
+      "joinRequestApproveFailed": "核准加入請求失敗",
+      "joinRequestRejected": "加入請求已拒絕",
+      "joinRequestRejectFailed": "拒絕加入請求失敗",
+      "memberRemoved": "成員已移除",
+      "memberRemovalFailed": "移除成員失敗",
+      "reassignedTasks": "已清理 {count} 個指派任務。",
+      "reassignedTasksPlural": "已清理 {count} 個指派任務。"
+    },
+    "editDialog": {
+      "title": "編輯成員",
+      "description": "更新 {name} 的公司角色和成員狀態。",
+      "companyRole": "公司角色",
+      "membershipStatus": "成員狀態",
+      "cancel": "取消",
+      "save": "儲存成員",
+      "saving": "儲存中..."
+    },
+    "removeDialog": {
+      "title": "移除成員",
+      "description": "封存 {name} 並在被隱藏前移轉進行中的指派項目。",
+      "checking": "正在檢查指派任務...",
+      "openAssignedTasks": "{count} 個開啟的指派任務",
+      "openAssignedTasksPlural": "{count} 個開啟的指派任務",
+      "taskReassignment": "任務重新指派",
+      "leaveUnassigned": "保持未指派",
+      "humansGroup": "人員",
+      "agentsGroup": "代理",
+      "moreTasks": "其他 {count} 個任務",
+      "moreTasksPlural": "其他 {count} 個任務",
+      "cancel": "取消",
+      "remove": "移除成員",
+      "removing": "移除中..."
+    },
+    "fallbackName": "此成員",
+    "advancedPermissions": {
+      "title": "進階權限",
+      "subtitle": "進階存取、範圍指派和明確授權控制由已安裝的公司設定擴充功能提供。",
+      "loading": "正在檢查進階權限擴充功能...",
+      "unavailableTitle": "進階權限不可用",
+      "unavailableBody": "Core Paperclip 會繼續強制執行公司邊界和任何現有的限制性政策資料,但編輯進階權限需要安裝擴充功能。",
+      "pluginError": "外掛擴充功能不可用:{message}",
+      "openMembers": "開啟成員",
+      "openInvites": "開啟邀請",
+      "legacyBreadcrumb": "存取"
+    },
+    "breadcrumb": "成員"
+  },
+  "companyInvites": {
+    "breadcrumb": "邀請",
+    "selectCompany": "選擇公司以管理邀請。",
+    "loading": "正在載入邀請...",
+    "permissionDenied": "您沒有管理公司邀請的權限。",
+    "loadFailed": "載入邀請失敗。",
+    "title": "公司邀請",
+    "subtitle": "邀請人們申請存取此公司。新的邀請連結會在生成時複製到您的剪貼簿。",
+    "invitePerson": {
+      "title": "邀請人員",
+      "description": "產生人員邀請連結,並選擇其應請求的預設存取權限。",
+      "chooseRole": "選擇角色",
+      "singleUse": "每個邀請連結僅供單次使用。登入後,人員邀請將立即獲得所選角色;代理邀請仍會建立加入請求以供審核。",
+      "create": "建立邀請",
+      "creating": "建立中...",
+      "historyNote": "下方的邀請歷史會保留稽核記錄。",
+      "defaultBadge": "預設",
+      "latestInvite": {
+        "title": "最新邀請連結",
+        "urlDescription": "此 URL 包含伺服器回傳的目前 Paperclip 網域。",
+        "urlAriaLabel": "最新邀請 URL",
+        "urlSrLabel": "最新邀請 URL",
+        "copied": "已複製",
+        "copy": "複製連結",
+        "open": "開啟邀請"
+      }
+    },
+    "roleOptions": {
+      "viewer": {
+        "label": "檢視者",
+        "description": "可檢視公司工作並追蹤進度。",
+        "gets": "僅供檢視的公司成員資格。"
+      },
+      "operator": {
+        "label": "操作員",
+        "description": "適合需要協助執行工作但無需管理存取的人員。",
+        "gets": "可指派任務。"
+      },
+      "admin": {
+        "label": "管理員",
+        "description": "適合需要邀請人員、建立代理和核准加入的操作員。",
+        "gets": "可建立代理、邀請使用者、指派任務,以及核准加入請求。"
+      },
+      "owner": {
+        "label": "擁有者",
+        "description": "完整的公司存取權限,包括成員管理。",
+        "gets": "管理員的所有權限,加上成員管理。"
+      }
+    },
+    "history": {
+      "title": "邀請歷史",
+      "description": "檢視邀請狀態、對象、邀請者以及任何相關的加入請求。",
+      "openRequestQueue": "開啟加入請求佇列",
+      "empty": "此公司目前尚未建立任何邀請。",
+      "columns": {
+        "state": "狀態",
+        "for": "對象",
+        "invitedBy": "邀請者",
+        "created": "建立時間",
+        "joinRequest": "加入請求",
+        "action": "動作"
+      },
+      "unknownInviter": "未知邀請者",
+      "reviewRequest": "審核請求",
+      "revoke": "撤銷",
+      "inactive": "未啟用",
+      "loadMore": "查看更多",
+      "loadingMore": "正在載入更多..."
+    },
+    "states": {
+      "active": "啟用中",
+      "accepted": "已接受",
+      "expired": "已過期",
+      "revoked": "已撤銷"
+    },
+    "audiences": {
+      "agent": "代理",
+      "humanOrAgent": "人員或代理",
+      "humanOrAgentWithRole": "人員或代理 · {role}",
+      "human": "人員"
+    },
+    "toasts": {
+      "clipboardUnavailable": "剪貼簿無法使用",
+      "clipboardInviteUrl": "已選取邀請 URL,請從欄位中手動複製。",
+      "clipboardInviteCreated": "請從下方欄位手動複製邀請 URL。",
+      "inviteCreated": "邀請已建立",
+      "inviteCreatedCopied": "邀請已於下方就緒並已複製到剪貼簿。",
+      "inviteCreatedPlain": "邀請已於下方就緒。",
+      "inviteCreateFailed": "建立邀請失敗",
+      "inviteRevoked": "邀請已撤銷",
+      "inviteRevokeFailed": "撤銷邀請失敗",
+      "unknownError": "未知錯誤"
+    }
+  },
+  "pluginPage": {
+    "selectCompany": "選擇公司以檢視此頁面。",
+    "loading": "載入中...",
+    "duplicateRoute": "多個外掛宣告了路由 {routePath}。請在衝突解決之前使用 plugin-id 路由。",
+    "back": "返回",
+    "plugins": "外掛"
+  },
+  "companySettings": {
+    "noCompany": "未選擇公司。請從上方切換器選擇公司。",
+    "title": "公司設定",
+    "sections": {
+      "general": "一般",
+      "appearance": "外觀",
+      "hiring": "招募",
+      "interactionGovernance": "互動治理",
+      "companyPackages": "公司套件",
+      "dangerZone": "危險區"
+    },
+    "fields": {
+      "companyName": "公司名稱",
+      "companyNameHint": "您的公司顯示名稱。",
+      "description": "描述",
+      "descriptionHint": "在公司檔案中顯示的選填描述。",
+      "descriptionPlaceholder": "選填的公司描述",
+      "logo": "標誌",
+      "logoHint": "上傳 PNG、JPEG、WEBP、GIF 或 SVG 標誌圖片。",
+      "logoRemoving": "移除中...",
+      "logoRemove": "移除標誌",
+      "logoFailed": "標誌上傳失敗",
+      "logoUploading": "上傳標誌中...",
+      "brandColor": "品牌顏色",
+      "brandColorHint": "設定公司圖示的色調。留空則自動產生顏色。",
+      "brandColorAuto": "自動",
+      "brandColorClear": "清除",
+      "attachmentSizeLimit": "附件大小上限",
+      "attachmentSizeHint": "接受範圍:1-{max} MiB。",
+      "attachmentSizeMiB": "MiB",
+      "attachmentSizeInvalid": "請輸入 1 到 {max} 之間的整數。",
+      "requireApproval": "新進人員需經 board 核准",
+      "requireApprovalHint": "新代理的招募在 board 核准前保持待處理。",
+      "export": "匯出",
+      "import": "匯入",
+      "dangerZoneDescription": "封存此公司以從側邊欄隱藏。此操作會持久化到資料庫。",
+      "archiveConfirm": "確定要封存公司「{name}」嗎?它將從側邊欄隱藏。",
+      "archiving": "封存中...",
+      "alreadyArchived": "已封存",
+      "archiveCompany": "封存公司",
+      "archiveFailed": "封存公司失敗"
+    },
+    "save": "儲存變更",
+    "saving": "儲存中...",
+    "saved": "已儲存",
+    "saveFailed": "儲存失敗",
+    "governance": {
+      "description": "控制每種 thread 互動類型可由誰解決。{defaultPolicy} 是新互動請求的解決者政策;{cap} 是請求可達成的上限 — 將其設為 {boardOnly} 以隨時要求 board。無論這些設定如何,工具核准確認一律僅限 board。",
+      "defaultPolicyLabel": "預設政策",
+      "capLabel": "上限",
+      "kindLabel": "類型",
+      "saveFailed": "儲存互動治理失敗",
+      "defaultPolicyBold": "預設政策",
+      "capBold": "上限",
+      "boardOnlyBold": "僅限 board"
+    },
+    "interactionKindLabels": {
+      "suggest_tasks": "建議任務",
+      "ask_user_questions": "詢問使用者問題",
+      "request_confirmation": "確認",
+      "request_checkbox_confirmation": "勾選確認",
+      "request_item_verdicts": "項目裁決"
+    },
+    "governancePolicyOptions": {
+      "companyDefault": "公司預設",
+      "boardOnly": "僅限 board",
+      "boardOrAgents": "Board 或代理"
+    }
   }
 }
