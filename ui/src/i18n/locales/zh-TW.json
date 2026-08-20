@@ -2878,5 +2878,36 @@
   },
   "pluginManager": {
     "title": "外掛管理"
+  },
+  "workspaces": {
+    "title": "工作區",
+    "breadcrumb": "工作區",
+    "summaryTitle": "工作區摘要",
+    "summaryDescription": "摘要器會追蹤跨專案的工作區活動、即時服務與後續待辦。",
+    "noActivity": "目前尚無工作區活動。",
+    "workspaceCount": "{{count}} 個工作區",
+    "workspaceCount_other": "{{count}} 個工作區",
+    "showingOfTotal": "正在顯示 {{total}} 個工作區中的 {{shown}} 個。",
+    "loadMore": "載入更多",
+    "loading": "載入中..."
+  },
+  "org": {
+    "breadcrumb": "組織圖",
+    "selectCompany": "請選擇公司以檢視組織圖。",
+    "noAgents": "組織中尚無代理。建立代理以建構組織圖。"
+  },
+  "timeline": {
+    "title": "工作時間軸",
+    "selectCompany": "請選擇公司以檢視其工作時間軸。",
+    "range": "範圍",
+    "today": "今日",
+    "days7": "7 天",
+    "days30": "30 天",
+    "startDateAria": "時間軸起始日期",
+    "endDateAria": "時間軸結束日期",
+    "zoomControlsAria": "時間軸縮放控制",
+    "zoomOut": "縮小",
+    "zoomIn": "放大",
+    "resetZoom": "重設縮放"
   }
 }

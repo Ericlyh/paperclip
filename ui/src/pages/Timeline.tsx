@@ -13,6 +13,7 @@ import { workTimelineApi, type WorkTimelineParams } from "@/api/workTimeline";
 import { queryKeys } from "@/lib/queryKeys";
 import { useCompany } from "@/context/CompanyContext";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
+import { useTranslation } from "@/i18n";
 import { EmptyState } from "@/components/EmptyState";
 import { PageSkeleton } from "@/components/PageSkeleton";
 import { RequestCollapsedSidebar } from "@/components/RequestCollapsedSidebar";
@@ -305,6 +306,7 @@ function TimelineSummaryStats({
 export function Timeline() {
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const [zoom, setZoom] = useState<ZoomLevel>("day");
   const [zoomScale, setZoomScale] = useState<number | undefined>(undefined);
   const zoomTouched = useRef(false);
@@ -313,8 +315,8 @@ export function Timeline() {
   const [visibleWindow, setVisibleWindow] = useState<VisibleTimelineWindow | null>(null);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Timeline" }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: t("timeline.title") }]);
+  }, [setBreadcrumbs, t]);
 
   const dateRangeError = rangeError(dateRange);
   const params: WorkTimelineParams | null = useMemo(() => {
@@ -352,7 +354,7 @@ export function Timeline() {
     return (
       <>
         <RequestCollapsedSidebar />
-        <EmptyState icon={GanttChartSquare} message="Select a company to view its work timeline." />
+        <EmptyState icon={GanttChartSquare} message={t("timeline.selectCompany")} />
       </>
     );
   }
@@ -360,7 +362,7 @@ export function Timeline() {
   const header = (
     <div className="flex items-center gap-2">
       <GanttChartSquare className="h-6 w-6 text-muted-foreground" />
-      <h1 className="text-3xl font-semibold tracking-tight">Work Timeline</h1>
+      <h1 className="text-3xl font-semibold tracking-tight">{t("timeline.title")}</h1>
     </div>
   );
 
@@ -385,7 +387,7 @@ export function Timeline() {
 
   const rangeControls = (
     <label className="flex min-w-0 flex-wrap items-center gap-2 text-xs text-muted-foreground">
-      Range
+      {t("timeline.range")}
       <Segmented
         value={rangePreset}
         onChange={(preset) => {
@@ -394,9 +396,9 @@ export function Timeline() {
           setDateRange(presetRange(preset));
         }}
         options={[
-          { value: "today", label: "Today" },
-          { value: "7d", label: "7 days" },
-          { value: "30d", label: "30 days" },
+          { value: "today", label: t("timeline.today") },
+          { value: "7d", label: t("timeline.days7") },
+          { value: "30d", label: t("timeline.days30") },
         ]}
       />
       <Input
@@ -407,7 +409,7 @@ export function Timeline() {
           setDateRange((prev) => ({ ...prev, fromDate: event.target.value }));
         }}
         className="h-8 w-(--sz-150px) text-xs"
-        aria-label="Timeline start date"
+        aria-label={t("timeline.startDateAria")}
       />
       <span>to</span>
       <Input
@@ -418,7 +420,7 @@ export function Timeline() {
           setDateRange((prev) => ({ ...prev, toDate: event.target.value }));
         }}
         className="h-8 w-(--sz-150px) text-xs"
-        aria-label="Timeline end date"
+        aria-label={t("timeline.endDateAria")}
       />
     </label>
   );
@@ -426,14 +428,14 @@ export function Timeline() {
   const toolbar = (
     <div className="flex flex-wrap items-start gap-3">
       {summary && <TimelineSummaryStats summary={summary} />}
-      <div className="ml-auto flex items-center gap-1 pt-3" aria-label="Timeline zoom controls">
+      <div className="ml-auto flex items-center gap-1 pt-3" aria-label={t("timeline.zoomControlsAria")}>
         <Button
           type="button"
           variant="outline"
           size="icon-xs"
           onClick={() => adjustZoom(0.8)}
-          aria-label="Zoom out"
-          title="Zoom out"
+          aria-label={t("timeline.zoomOut")}
+          title={t("timeline.zoomOut")}
         >
           <Minus className="h-3 w-3" />
         </Button>
@@ -442,8 +444,8 @@ export function Timeline() {
           variant="outline"
           size="icon-xs"
           onClick={() => adjustZoom(1.25)}
-          aria-label="Zoom in"
-          title="Zoom in"
+          aria-label={t("timeline.zoomIn")}
+          title={t("timeline.zoomIn")}
         >
           <Plus className="h-3 w-3" />
         </Button>
@@ -452,8 +454,8 @@ export function Timeline() {
           variant="outline"
           size="icon-xs"
           onClick={resetZoom}
-          aria-label="Reset zoom"
-          title="Reset zoom"
+          aria-label={t("timeline.resetZoom")}
+          title={t("timeline.resetZoom")}
         >
           <RotateCcw className="h-3 w-3" />
         </Button>

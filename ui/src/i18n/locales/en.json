@@ -2878,5 +2878,36 @@
   },
   "pluginManager": {
     "title": "外掛管理"
+  },
+  "workspaces": {
+    "title": "Workspaces",
+    "breadcrumb": "Workspaces",
+    "summaryTitle": "Workspace summary",
+    "summaryDescription": "Summarizer tracks workspace activity, live services, and follow-up needs across projects.",
+    "noActivity": "No workspace activity yet.",
+    "workspaceCount": "{{count}} workspace",
+    "workspaceCount_other": "{{count}} workspaces",
+    "showingOfTotal": "Showing {{shown}} of {{total}} workspaces.",
+    "loadMore": "Load more",
+    "loading": "Loading..."
+  },
+  "org": {
+    "breadcrumb": "Org Chart",
+    "selectCompany": "Select a company to view org chart.",
+    "noAgents": "No agents in the organization. Create agents to build your org chart."
+  },
+  "timeline": {
+    "title": "Work Timeline",
+    "selectCompany": "Select a company to view its work timeline.",
+    "range": "Range",
+    "today": "Today",
+    "days7": "7 days",
+    "days30": "30 days",
+    "startDateAria": "Timeline start date",
+    "endDateAria": "Timeline end date",
+    "zoomControlsAria": "Timeline zoom controls",
+    "zoomOut": "Zoom out",
+    "zoomIn": "Zoom in",
+    "resetZoom": "Reset zoom"
   }
 }
