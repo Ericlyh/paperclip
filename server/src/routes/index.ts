@@ -9,6 +9,7 @@ export { summarySlotRoutes } from "./summary-slots.js";
 export { statusCardRoutes } from "./status-cards.js";
 export { teamsCatalogRoutes } from "./teams-catalog.js";
 export { agentRoutes } from "./agents.js";
+export { agentRefineRoutes } from "./agent-refine.js";
 export { projectRoutes } from "./projects.js";
 export { issueRoutes } from "./issues.js";
 export { issueTreeControlRoutes } from "./issue-tree-control.js";
