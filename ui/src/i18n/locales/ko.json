@@ -2506,5 +2506,14 @@
     "placeholder": "Search tasks, comments, documents, artifacts, agents, projects…",
     "ariaQuery": "Search query",
     "ariaClear": "Clear search"
+  },
+  "myIssues": {
+    "title": "My Tasks",
+    "selectCompany": "Select a company to view your tasks.",
+    "empty": "No tasks assigned to you."
+  },
+  "issues": {
+    "title": "Issues",
+    "selectCompany": "Select a company to view issues."
   }
 }

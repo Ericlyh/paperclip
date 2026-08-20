@@ -2515,5 +2515,14 @@
     "placeholder": "搜尋任務、留言、文件、成品、代理、專案…",
     "ariaQuery": "搜尋查詢",
     "ariaClear": "清除搜尋"
+  },
+  "myIssues": {
+    "title": "我的任務",
+    "selectCompany": "選擇公司以查看您的任務。",
+    "empty": "沒有指派給您的任務。"
+  },
+  "issues": {
+    "title": "任務",
+    "selectCompany": "選擇公司以查看任務。"
   }
 }
