@@ -4,6 +4,7 @@ import { ArrowUpDown, Check, ChevronDown, Columns3, Filter, Layers, ListTree, Se
 import { Link, useCaseHref, useNavigate } from "@/lib/router";
 import { useCompany } from "@/context/CompanyContext";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
+import { useTranslation } from "../i18n";
 import { useGeneralSettings } from "@/context/GeneralSettingsContext";
 import { queryKeys } from "@/lib/queryKeys";
 import { casesApi, CASE_STATUSES, TERMINAL_CASE_STATUSES, type CaseStatus, type CaseSummary } from "@/api/cases";
@@ -742,6 +743,7 @@ function CasesEmptyHero() {
 export function Cases() {
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const { keyboardShortcutsEnabled } = useGeneralSettings();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
@@ -755,8 +757,8 @@ export function Cases() {
   const [selectedIndex, setSelectedIndex] = useState(-1);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Cases" }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: t("sidebar.cases") }]);
+  }, [setBreadcrumbs, t]);
 
   useEffect(() => {
     setViewState(loadCaseViewState(viewStorageKey));
@@ -1194,7 +1196,7 @@ export function Cases() {
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <h1 className="text-xl font-bold">Cases</h1>
+          <h1 className="text-xl font-bold">{t("sidebar.cases")}</h1>
           <Badge variant="secondary">Experimental</Badge>
         </div>
       </div>

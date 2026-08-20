@@ -9,6 +9,7 @@ import {
 } from "../api/artifacts";
 import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
+import { useTranslation } from "../i18n";
 import { queryKeys } from "../lib/queryKeys";
 import { EmptyState } from "../components/EmptyState";
 import { PageSkeleton } from "../components/PageSkeleton";
@@ -64,6 +65,7 @@ export function artifactGroupByLabel(value: ArtifactGroupBy): string {
 export function Artifacts() {
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const [searchParams, setSearchParams] = useSearchParams();
 
   const kind = parseKind(searchParams.get("kind"));
@@ -218,13 +220,13 @@ export function Artifacts() {
   useEffect(() => {
     if (viewingSelectedStack && selectedGroup) {
       setBreadcrumbs([
-        { label: "Artifacts", href: "/artifacts" },
+        { label: t("sidebar.artifacts"), href: "/artifacts" },
         { label: `${selectedGroup.issue.identifier} · ${selectedGroup.title}` },
       ]);
     } else {
-      setBreadcrumbs([{ label: "Artifacts" }]);
+      setBreadcrumbs([{ label: t("sidebar.artifacts") }]);
     }
-  }, [setBreadcrumbs, viewingSelectedStack, selectedGroup]);
+  }, [setBreadcrumbs, viewingSelectedStack, selectedGroup, t]);
 
   if (!selectedCompanyId) {
     return <EmptyState icon={Package} message="Select a company to view artifacts." />;

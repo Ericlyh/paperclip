@@ -4,6 +4,7 @@ import { Check, ChevronDown, Copy, MoreVertical, Plus, SlidersHorizontal } from 
 import { Link, Navigate, useCaseHref, useParams } from "@/lib/router";
 import { useCompany } from "@/context/CompanyContext";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
+import { useTranslation } from "../i18n";
 import { usePanel } from "@/context/PanelContext";
 import { queryKeys } from "@/lib/queryKeys";
 import {
@@ -449,6 +450,7 @@ export function CaseDetail() {
   const { caseIdentifier } = useParams<{ caseIdentifier: string }>();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const { openPanel, closePanel } = usePanel();
   const queryClient = useQueryClient();
   const caseHref = useCaseHref();
@@ -493,10 +495,10 @@ export function CaseDetail() {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Cases", href: caseHref() },
+      { label: t("sidebar.cases"), href: caseHref() },
       { label: caseData ? `${caseData.identifier} — ${caseData.title}` : (caseIdentifier ?? "Case") },
     ]);
-  }, [setBreadcrumbs, caseData, caseIdentifier, caseHref]);
+  }, [setBreadcrumbs, caseData, caseIdentifier, caseHref, t]);
 
   const events = useMemo(() => eventsQuery.data ?? [], [eventsQuery.data]);
   const caseDocumentSubject = useMemo(() => {
