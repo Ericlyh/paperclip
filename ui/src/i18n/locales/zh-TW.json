@@ -2148,7 +2148,8 @@
     "required": "必填",
     "openFileAriaLabel": "開啟 {{filename}}",
     "downloadFileAriaLabel": "下載 {{filename}}",
-    "chooseEllipsis": "選擇…"
+    "chooseEllipsis": "選擇…",
+    "reject": "拒絕"
   },
   "projectWorkspaceDetail": {
     "A_hosted_workspace_tracked_by_external_r": "由外部參考追蹤的代管工作區。",
@@ -4480,6 +4481,14 @@
       "allAllowed": "此代理可提及的每個已知工具皆已授權。",
       "deniedToolsNote": "代理可能會提及但 Paperclip 會封鎖的工具:",
       "more": "另外還有 {{count}} 個"
+    },
+    "policyEffect": {
+      "allow": "允許",
+      "block": "封鎖",
+      "deny": "拒絕",
+      "requireApproval": "需要核准",
+      "redact": "遮蔽",
+      "rateLimit": "速率限制"
     }
   },
   "joinRequestQueue": {
@@ -7079,6 +7088,88 @@
       "pickProfileBody": "建立閘道前需要先指定存取設定檔。",
       "pickTokenActions": "請選擇權杖動作",
       "pickTokenActionsBody": "閘道權杖至少需要一項允許的 MCP 動作。"
+    }
+  },
+  "agentConfigForm": {
+    "sections": {
+      "identity": "身分",
+      "environment": "環境",
+      "adapter": "配接器",
+      "permissions": "權限與設定",
+      "runPolicy": "執行政策"
+    },
+    "warnings": {
+      "codexMinimalSearch": "Codex 在啟用搜尋時可能拒絕 `minimal` 思考等級。"
+    },
+    "login": {
+      "logIn": "登入",
+      "enterCode": "開啟驗證頁面並輸入代碼。",
+      "code": "代碼",
+      "authUrl": "驗證網址",
+      "useSaved": "使用已儲存的登入",
+      "savedLoginHint": "您有已儲存的 Claude 登入。可用其綁定此代理,或重新登入以取代已儲存的權杖。",
+      "enterBrowserCode": "開啟授權頁面,然後輸入瀏覽器顯示的代碼。",
+      "authzUrl": "授權網址"
+    },
+    "experimentalBadge": "實驗性",
+    "model": {
+      "defaultOption": "預設"
+    },
+    "cheapModel": {
+      "hint": "當執行要求使用低成本設定檔時使用(例如例行摘要)。主要模型保持不變。"
+    }
+  },
+  "toolInstalls": {
+    "installInfoNotice": "安裝後，{{appName}} 的工具會在每次執行時載入代理的上下文——請只在真正會用到的地方安裝。",
+    "installAllWarning": "這會為每個代理的每次執行增加上下文成本——這是刻意的選擇。日後新增的代理會自動安裝。",
+    "autoExtendNotice": "在 {{agentName}} 上安裝也會一併授予存取權。工具無法安裝在未獲授權使用它的代理上，因此我們會把 {{agentName}} 加入可使用者名單。此操作會被記錄。",
+    "installedHint": "已有存取權——勾選以將其工具載入此代理的上下文。"
+  },
+  "appPermissions": {
+    "access": {
+      "title": "誰可以使用",
+      "change": "變更",
+      "summaryAll": "所有代理都可以使用",
+      "summarySpecific_one": "{{count}} 個代理可以使用",
+      "summarySpecific_other": "{{count}} 個代理可以使用",
+      "allAgents": "所有代理",
+      "allAgentsHint": "所有你加入 Paperclip 的成員。",
+      "specificAgents": "僅特定代理",
+      "specificAgentsHint": "選擇可以使用的對象。"
+    },
+    "installed": {
+      "title": "已安裝的代理",
+      "subtitle": "哪些代理的執行環境會在每次執行時載入 {{appName}} 的工具。",
+      "saving": "儲存中…",
+      "badgeAll": "已安裝於所有代理",
+      "badgeCount_one": "已安裝 {{count}} 個",
+      "badgeCount_other": "已安裝 {{count}} 個",
+      "badgeNone": "僅已授權——尚未安裝於任何代理",
+      "chooseAgents": "選擇要安裝的代理",
+      "agentsInstalled_one": "已安裝 {{count}} 個代理",
+      "agentsInstalled_other": "已安裝 {{count}} 個代理",
+      "hasAccess": "有存取權",
+      "noAccessYet": "尚無存取權",
+      "willGrantAccess": "將授予存取權",
+      "installOnAll": "安裝於所有代理",
+      "oneAgentFallback": "1 個代理",
+      "agentCount_one": "{{count}} 個代理",
+      "agentCount_other": "{{count}} 個代理",
+      "reviewAccessChanges_one": "檢視這 {{count}} 項存取權變更",
+      "reviewAccessChanges_other": "檢視這 {{count}} 項存取權變更"
+    },
+    "actions": {
+      "title": "動作權限",
+      "subtitle": "選擇代理可以做什麼，以及哪些需要先經過人工確認。",
+      "refresh": "重新整理動作",
+      "readOnlyTitle": "唯讀",
+      "readOnlyHint": "可以查詢上下文，但不會變更任何內容。",
+      "canChangeTitle": "可以進行變更",
+      "canChangeHint": "可以變更另一個應用程式中的內容。",
+      "permissionAria": "{{action}} 權限",
+      "off": "關閉",
+      "allowed": "允許",
+      "ask": "先詢問人工"
     }
   }
 }

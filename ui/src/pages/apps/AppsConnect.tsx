@@ -47,7 +47,7 @@ import { useTranslation } from "@/i18n";
 import { AppLogo } from "./AppLogo";
 import { appSourceConnectHref, isMcpDirectOAuthConnectSlug } from "./app-connect-policy";
 import { parseGoogleSheetIds } from "./google-sheets";
-import { autoExtendNotice, INSTALL_ALL_WARNING, installInfoNotice, installPayload } from "@/lib/tool-installs";
+import { installPayload, TOOL_INSTALL_COPY } from "@/lib/tool-installs";
 
 type Step = "gallery" | "key" | "actions" | "who" | "install" | "success";
 export type OAuthConnectPhase = "entry" | "starting" | "redirecting" | "error";
@@ -1850,7 +1850,7 @@ export function InstallStep({
 
         <div className="mt-5">
           <InlineBanner tone="info" compact>
-            {installInfoNotice(appName)}
+            {t(TOOL_INSTALL_COPY.installInfoNotice, { appName })}
           </InlineBanner>
         </div>
 
@@ -1910,13 +1910,13 @@ export function InstallStep({
             <Radio selected={installMode === "all"} />
             <div>
               <span className="font-semibold text-foreground">{t("appsConnect.installStep.allAgentsLabel")}</span>
-              <p className="mt-1 text-xs text-muted-foreground">{INSTALL_ALL_WARNING}</p>
+              <p className="mt-1 text-xs text-muted-foreground">{t(TOOL_INSTALL_COPY.installAllWarning)}</p>
             </div>
           </button>
 
           {extendingAgentIds.length > 0 ? (
             <InlineBanner tone="warning" compact>
-              {autoExtendNotice(extendingLabel)}
+              {t(TOOL_INSTALL_COPY.autoExtendNotice, { agentName: extendingLabel })}
             </InlineBanner>
           ) : null}
         </div>

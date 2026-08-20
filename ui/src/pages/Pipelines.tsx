@@ -971,7 +971,7 @@ function PipelinesIndex() {
         </div>
         <Button onClick={() => setNewPipelineOpen(true)}>
           <Plus className="mr-2 h-4 w-4" />
-          New pipeline
+          {t("pipelines.newPipeline")}
         </Button>
       </div>
 
@@ -983,7 +983,7 @@ function PipelinesIndex() {
         <EmptyState
           icon={Hexagon}
           message="No pipelines yet."
-          action="New pipeline"
+          action={t("pipelines.newPipeline")}
           onAction={() => setNewPipelineOpen(true)}
         />
       ) : (
@@ -1280,7 +1280,7 @@ function PipelineCaseCard({
           ) : null}
           {hasChangedNotice ? (
             <Badge variant="outline" className="border-indigo-400/40 bg-indigo-50 text-(length:--text-nano) text-indigo-700 dark:border-indigo-300/30 dark:bg-indigo-900/25 dark:text-indigo-300">
-              This changed
+              {t("pipelines.statusChanged")}
             </Badge>
           ) : null}
           {liveDownstreamCount > 0 ? (
@@ -1402,7 +1402,7 @@ function PipelineBoardColumn({
       >
         {isBlockedDropTarget ? (
           <p className="rounded border border-red-200 bg-red-50 px-3 py-2 text-(length:--text-micro) text-red-700 dark:border-red-500/30 dark:bg-red-500/10 dark:text-red-200">
-            This move skips the normal flow
+            {t("pipelines.skipsNormalFlow")}
           </p>
         ) : null}
         <SortableContext items={sortableCaseIds} strategy={verticalListSortingStrategy}>
@@ -1724,7 +1724,7 @@ function PipelineBoard({ pipelineId }: { pipelineId: string }) {
     return (
       <div className="mx-auto max-w-6xl space-y-4 px-6 py-8">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">Pipeline</p>
+          <p className="text-xs font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">{t("pipelines.pipeline")}</p>
           <h1 className="text-2xl font-semibold text-foreground">{pipeline.name}</h1>
           <p className="text-sm text-muted-foreground">{t("pipelines.noStages")}</p>
         </div>
@@ -1744,7 +1744,7 @@ function PipelineBoard({ pipelineId }: { pipelineId: string }) {
     <div className="w-full space-y-4 px-6 py-8">
       <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <p className="text-xs font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">Pipeline</p>
+          <p className="text-xs font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">{t("pipelines.pipeline")}</p>
           <h1 className="text-2xl font-semibold text-foreground">{pipeline.name}</h1>
           {pipeline.description ? <p className="mt-1 text-sm text-muted-foreground">{pipeline.description}</p> : null}
           <p className="mt-1 text-xs text-muted-foreground">{cases.length} total item{cases.length === 1 ? "" : "s"}</p>
@@ -1778,7 +1778,7 @@ function PipelineBoard({ pipelineId }: { pipelineId: string }) {
           <Button asChild>
             <Link to={`/pipelines/${pipelineId}/add`}>
               <Plus className="mr-2 h-4 w-4" />
-              Add items
+              {t("pipelines.addItems")}
             </Link>
           </Button>
           <Button variant="outline" size="icon" asChild>
@@ -1896,7 +1896,7 @@ function PipelineBoard({ pipelineId }: { pipelineId: string }) {
                 setOverrideReason("");
               }}
             >
-              Cancel
+              {t("pipelines.cancel")}
             </Button>
             {pendingMove?.allowed ? (
               <Button
@@ -1910,7 +1910,7 @@ function PipelineBoard({ pipelineId }: { pipelineId: string }) {
                   })
                 }
               >
-                Move it
+                {t("pipelines.moveIt")}
               </Button>
             ) : pendingMove ? (
               <Button
@@ -1927,7 +1927,7 @@ function PipelineBoard({ pipelineId }: { pipelineId: string }) {
                   })
                 }
               >
-                Override and move
+                {t("pipelines.overrideAndMove")}
               </Button>
             ) : null}
           </DialogFooter>
@@ -2684,8 +2684,8 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
     [detail, stages],
   );
   const reviewActions = useMemo(
-    () => reviewConfig ? reviewDecisionActions(reviewConfig, stageLookup) : [],
-    [reviewConfig, stageLookup],
+    () => reviewConfig ? reviewDecisionActions(reviewConfig, stageLookup, t) : [],
+    [reviewConfig, stageLookup, t],
   );
   const nextReviewItem = useMemo(() => {
     const rows = reviewQueueItems.data ?? [];
@@ -2856,7 +2856,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
             {primaryAction}
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <Button variant="outline" size="icon" aria-label="Item actions">
+                <Button variant="outline" size="icon" aria-label={t("pipelines.itemActions")}>
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
               </DropdownMenuTrigger>
@@ -2903,7 +2903,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
                   }}
                 >
                   <ArrowUpDown className="h-4 w-4" />
-                  Move to stage...
+                  {t("pipelines.moveToStageEllipsis")}
                 </DropdownMenuItem>
                 <DropdownMenuItem
                   variant="destructive"
@@ -2914,7 +2914,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
                   }}
                 >
                   <Trash2 className="h-4 w-4" />
-                  Remove item
+                  {t("pipelines.removeItem")}
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
@@ -2964,7 +2964,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
               onClick={() => setMoveDialogOpen(false)}
               disabled={moveItemToStage.isPending}
             >
-              Cancel
+              {t("pipelines.cancel")}
             </Button>
             <Button
               type="button"
@@ -2987,13 +2987,13 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
           <DialogHeader>
             <DialogTitle>{retryDialogScope === "previous_stage" ? "Retry previous step" : "Re-run this step"}</DialogTitle>
             <DialogDescription>
-              Review the automation preflight before Paperclip dispatches a fresh run.
+              {t("pipelines.reviewTheAutomation")}
             </DialogDescription>
           </DialogHeader>
           {retryPlan.isLoading ? (
             <div className="flex items-center gap-2 py-4 text-sm text-muted-foreground">
               <Loader2 className="h-4 w-4 animate-spin" />
-              Checking retry safety...
+              {t("pipelines.checkingRetrySafety")}
             </div>
           ) : retryPlan.error ? (
             <div className="rounded-sm border border-destructive/30 bg-destructive/5 p-3 text-sm text-destructive">
@@ -3064,7 +3064,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
                 {retryPreflightRefreshing ? (
                   <div className="absolute inset-0 z-10 flex items-center justify-center gap-2 rounded-sm bg-background/70 text-sm text-muted-foreground">
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Checking retry safety...
+                    {t("pipelines.checkingRetrySafety")}
                   </div>
                 ) : null}
                 <div className={cn("space-y-4", retryPreflightRefreshing && "opacity-50")}>
@@ -3094,7 +3094,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
 
                   {retryIsNonImmediateTarget ? (
                     <p className="text-xs text-muted-foreground">
-                      Re-running from an earlier step affects more downstream items.
+                      {t("pipelines.retryAffectsMore")}
                     </p>
                   ) : null}
 
@@ -3148,7 +3148,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
               onClick={() => setRetryDialogScope(null)}
               disabled={rerunCurrentStageAutomation.isPending || retryStageAutomation.isPending}
             >
-              Cancel
+              {t("pipelines.cancel")}
             </Button>
             <Button
               type="button"
@@ -3197,7 +3197,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
                 disabled={resolveSuggestion.isPending}
               >
                 <Check className="mr-2 h-4 w-4" />
-                Approve
+                {t("pipelines.approve")}
               </Button>
               <Button
                 size="sm"
@@ -3206,7 +3206,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
                 disabled={resolveSuggestion.isPending}
               >
                 <X className="mr-2 h-4 w-4" />
-                Not yet
+                {t("pipelines.notYet")}
               </Button>
             </div>
           ) : null}
@@ -3228,13 +3228,13 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
             onClick={() => acknowledgeChange.mutate()}
             disabled={acknowledgeChange.isPending}
           >
-            Acknowledge
+            {t("pipelines.acknowledge")}
           </Button>
         </section>
       ) : null}
 
       {(childrenGate || (breakdown?.waitForPieces ?? false)) && waitingChildren.length > 0 ? (
-        <section aria-label="Waiting child items" className="mb-5 border-y border-border px-4 py-4">
+        <section aria-label={t("pipelines.waitingChildItems")} className="mb-5 border-y border-border px-4 py-4">
           <div className="flex flex-col gap-2">
             <div className="flex items-center gap-2 text-sm font-semibold text-foreground">
               <ListTree className="h-4 w-4 text-muted-foreground" />
@@ -3441,13 +3441,13 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
           <DialogHeader>
             <DialogTitle>{t("pipelines.removeItem")}</DialogTitle>
             <DialogDescription>
-              This moves the item out of active work. It stays visible in the pipeline history.
+              {t("pipelines.movesOutOfActive")}
             </DialogDescription>
           </DialogHeader>
           <DialogFooter>
             <Button variant="outline" onClick={() => setRemoveDialogOpen(false)}>{t("pipelines.keepItem")}</Button>
             <Button variant="destructive" onClick={() => removeItem.mutate()} disabled={removeItem.isPending || !removeStage}>
-              {removeItem.isPending ? "Removing..." : "Remove item"}
+              {removeItem.isPending ? "Removing..." : t("pipelines.removeItem")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -3495,7 +3495,7 @@ function ActivePipelineWorkBanner({ activeWork }: { activeWork: PipelineCaseActi
       >
         <Link to={issuePath}>
           <ExternalLink className="mr-2 h-4 w-4" />
-          Open task
+          {t("pipelines.openTask")}
         </Link>
       </Button>
     </section>
@@ -3603,12 +3603,13 @@ function reviewDecisionConfig(stage: PipelineStage, stages: PipelineStage[]): Re
 function reviewDecisionActions(
   config: ReviewDecisionConfig,
   stageLookup: Map<string, string>,
+  t: (key: string) => string,
 ): ReviewDecisionAction[] {
   const actions: ReviewDecisionAction[] = [];
   if (config.approveToStageKey) {
     actions.push({
       decision: "approve",
-      label: "Approve",
+      label: t("pipelines.approve"),
       targetStageKey: config.approveToStageKey,
       targetStageName: stageLookup.get(config.approveToStageKey) ?? humanizePipelineItemStatus(config.approveToStageKey),
       requireReason: false,
@@ -3618,7 +3619,7 @@ function reviewDecisionActions(
   if (config.requestChangesToStageKey) {
     actions.push({
       decision: "request_changes",
-      label: "Request changes",
+      label: t("pipelines.requestChanges"),
       targetStageKey: config.requestChangesToStageKey,
       targetStageName: stageLookup.get(config.requestChangesToStageKey) ?? humanizePipelineItemStatus(config.requestChangesToStageKey),
       requireReason: config.requireRequestChangesReason,
@@ -3628,7 +3629,7 @@ function reviewDecisionActions(
   if (config.rejectToStageKey) {
     actions.push({
       decision: "reject",
-      label: "Reject",
+      label: t("pipelines.reject"),
       targetStageKey: config.rejectToStageKey,
       targetStageName: stageLookup.get(config.rejectToStageKey) ?? humanizePipelineItemStatus(config.rejectToStageKey),
       requireReason: config.requireRejectReason,
@@ -3672,7 +3673,7 @@ function ReviewDecisionPanel({
 
   return (
     <section>
-      <h2 className="mb-3 text-xs font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">Review</h2>
+      <h2 className="mb-3 text-xs font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">{t("pipelines.review")}</h2>
       <div className="border-y border-amber-300 bg-amber-50/70 p-5 text-amber-950 dark:border-amber-900/70 dark:bg-amber-950/30 dark:text-amber-100 sm:p-6">
         <div className="space-y-5">
           <div className="flex items-start gap-3">
@@ -3680,7 +3681,7 @@ function ReviewDecisionPanel({
             <div>
               <p className="text-2xl font-semibold leading-tight">{t("pipelines.inReview")}</p>
               <p className="mt-1 text-sm opacity-80">
-                Decide where this item goes next.
+                {t("pipelines.chooseWhereNext")}
               </p>
             </div>
           </div>
@@ -3733,7 +3734,7 @@ function ReviewDecisionPanel({
               Next in this review queue: <span className="font-medium">{nextItemTitle}</span>
             </p>
           ) : (
-            <p className="text-xs opacity-75">No other item is waiting in this pipeline review queue.</p>
+            <p className="text-xs opacity-75">{t("pipelines.noOtherReviewItem")}</p>
           )}
         </div>
       </div>
@@ -3784,7 +3785,7 @@ function PipelineEventText({
           <>
             {" "}
             <Link to={pipelineStageAutomationSettingsHref(pipelineId, stageId)} className="font-medium text-foreground hover:underline">
-              Fix stage settings
+              {t("pipelines.fixStageSettings")}
             </Link>
           </>
         ) : null}
@@ -3901,7 +3902,7 @@ function OutputUnverifiedTag() {
 
   return (
     <Badge variant="outline" className="border-border px-1.5 text-(length:--text-nano) font-semibold uppercase text-muted-foreground">
-      Unverified
+      {t("pipelines.unverified")}
     </Badge>
   );
 }
@@ -4140,7 +4141,7 @@ function ItemOutputsSection({
             onClick={onRetry}
             className="ml-auto rounded-sm border border-border px-2 py-0.5 text-muted-foreground hover:bg-accent hover:text-foreground"
           >
-            Retry
+            {t("pipelines.retry")}
           </button>
         </div>
       ) : (
@@ -4228,9 +4229,9 @@ function PipelineAddItems({ pipelineId }: { pipelineId: string }) {
     setBreadcrumbs([
       { label: "Pipelines", href: "/pipelines" },
       { label: pipeline.data?.name ?? "Pipeline", href: `/pipelines/${pipelineId}` },
-      { label: "Add items" },
+      { label: t("pipelines.addItems") },
     ]);
-  }, [pipeline.data?.name, pipelineId, setBreadcrumbs]);
+  }, [pipeline.data?.name, pipelineId, setBreadcrumbs, t]);
 
   const fields = intake.data?.fields ?? [];
   const errors = useMemo(() => validateDraftRows(rows, fields), [fields, rows]);
@@ -4275,7 +4276,7 @@ function PipelineAddItems({ pipelineId }: { pipelineId: string }) {
         <p className="text-xs font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
           Add to {pipeline.data.name}
         </p>
-        <h1 className="text-2xl font-semibold text-foreground">Build your list, then submit it all at once</h1>
+        <h1 className="text-2xl font-semibold text-foreground">{t("pipelines.buildThenSubmit")}</h1>
         <p className="text-sm text-muted-foreground">
           Items will be added to the first stage ({firstStageName}).
         </p>
@@ -4319,13 +4320,13 @@ function PipelineAddItems({ pipelineId }: { pipelineId: string }) {
           onClick={() => setRows((current) => [...current, newDraftRow(false)])}
         >
           <Plus className="mr-2 h-4 w-4" />
-          Add another item
+          {t("pipelines.addAnotherItem")}
         </button>
       </div>
 
       <div className="mt-10 flex items-center justify-between border-t border-border pt-5">
         <Button variant="outline" onClick={() => navigate(`/pipelines/${pipelineId}`)}>
-          Cancel
+          {t("pipelines.cancel")}
         </Button>
         <div className="flex items-center gap-4">
           <span className="text-sm text-muted-foreground">
@@ -4382,7 +4383,7 @@ function DraftItemRow({
           <Button variant="outline" size="icon" onClick={onToggle} aria-label={row.expanded ? "Collapse item" : "Expand item"}>
             {row.expanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
           </Button>
-          <Button variant="outline" size="icon" onClick={onRemove} aria-label="Remove item">
+          <Button variant="outline" size="icon" onClick={onRemove} aria-label={t("pipelines.removeItem")}>
             <Trash2 className="h-4 w-4" />
           </Button>
         </div>
@@ -4682,7 +4683,7 @@ function ReviewQueueDetailDialog({
               </div>
             ) : (
               <p className="rounded-md border border-border px-3 py-3 text-sm text-muted-foreground">
-                No preview details yet.
+                {t("pipelines.noPreviewDetails")}
               </p>
             )}
           </section>
@@ -4712,7 +4713,7 @@ function ReviewQueueDetailDialog({
 
         <DialogFooter className="gap-2 sm:gap-2">
           <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={pending}>
-            Cancel
+            {t("pipelines.cancel")}
           </Button>
           {canDecide ? (
             <>
@@ -4722,7 +4723,7 @@ function ReviewQueueDetailDialog({
                 onClick={() => onRequestChanges(trimmedNote)}
                 disabled={pending || (requestChangesRequiresNote && !trimmedNote)}
               >
-                {row?.kind === "suggestion" ? "Not yet" : "Request changes"}
+                {row?.kind === "suggestion" ? t("pipelines.notYet") : t("pipelines.requestChanges")}
               </Button>
               <Button type="button" onClick={() => onApprove(trimmedNote)} disabled={pending}>
                 {pending ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
@@ -4840,13 +4841,13 @@ function ReviewQueueSection({
                       event.stopPropagation();
                       onApprove(row);
                     }}>
-                      Approve
+                      {t("pipelines.approve")}
                     </Button>
                     <Button type="button" size="sm" variant="outline" disabled={pending} onClick={(event) => {
                       event.stopPropagation();
                       onDecline(row);
                     }}>
-                      Not yet
+                      {t("pipelines.notYet")}
                     </Button>
                   </>
                 ) : row.kind === "review" ? (
@@ -4855,13 +4856,13 @@ function ReviewQueueSection({
                       event.stopPropagation();
                       onApprove(row);
                     }}>
-                      Approve
+                      {t("pipelines.approve")}
                     </Button>
                     <Button type="button" size="sm" variant="outline" disabled={pending} onClick={(event) => {
                       event.stopPropagation();
                       onRequestChanges(row);
                     }}>
-                      Request changes
+                      {t("pipelines.requestChanges")}
                     </Button>
                   </>
                 ) : null}
@@ -5245,7 +5246,7 @@ export function Learnings() {
       <div className="border-b border-border pb-5">
         <h1 className="text-2xl font-semibold tracking-normal text-foreground">{t("pipelines.learnings")}</h1>
         <p className="mt-1 text-sm text-muted-foreground">
-          Patterns from review decisions and hand moves, in plain words.
+          {t("pipelines.learningsIntro")}
         </p>
       </div>
 
@@ -5310,7 +5311,7 @@ export function Learnings() {
           disabled={!canGoPrevious}
           onClick={() => setOffset((current) => Math.max(0, current - LEARNINGS_PAGE_SIZE))}
         >
-          Previous
+          {t("pipelines.previous")}
         </Button>
         <span className="text-sm text-muted-foreground">
           {events.length > 0 ? `${formatNumber(firstVisible)}-${formatNumber(lastVisible)}` : "No rows"}
@@ -5321,7 +5322,7 @@ export function Learnings() {
           disabled={!canGoNext}
           onClick={() => setOffset((current) => pagination?.nextOffset ?? current + LEARNINGS_PAGE_SIZE)}
         >
-          Next
+          {t("pipelines.next")}
         </Button>
       </div>
     </div>

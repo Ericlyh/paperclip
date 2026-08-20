@@ -9,11 +9,10 @@ import { InlineBanner } from "@/components/InlineBanner";
 import { cn } from "@/lib/utils";
 import { brandChipBadge } from "@/lib/status-colors";
 import {
-  autoExtendNotice,
-  INSTALL_ALL_WARNING,
-  installInfoNotice,
+  TOOL_INSTALL_COPY,
   type InstallState,
 } from "@/lib/tool-installs";
+import { useTranslation } from "@/i18n";
 import { QuarantinedActionsReview } from "./SetupPanel";
 import type { AccessDraft, AppDetailSectionProps } from "./types";
 
@@ -94,6 +93,7 @@ function AccessSection({
   disabled: boolean;
   onSave: (next: AccessDraft) => void;
 }) {
+  const { t } = useTranslation();
   const [editing, setEditing] = useState(false);
   const [draft, setDraft] = useState<AccessDraft>(access);
   const liveAgents = agents.filter((a) => a.status !== "terminated");
@@ -104,8 +104,8 @@ function AccessSection({
 
   const summary =
     access.mode === "all"
-      ? "Every agent can use it"
-      : `${access.agentIds.size} ${access.agentIds.size === 1 ? "agent" : "agents"} can use it`;
+      ? t("appPermissions.access.summaryAll")
+      : t("appPermissions.access.summarySpecific", { count: access.agentIds.size });
 
   const canSave = draft.mode === "all" || draft.agentIds.size > 0;
 
@@ -113,12 +113,12 @@ function AccessSection({
     <section className="rounded-xl border border-border bg-card">
       <div className="flex items-center justify-between px-5 py-4">
         <div>
-          <h2 className="text-sm font-bold text-foreground">Who can use it</h2>
+          <h2 className="text-sm font-bold text-foreground">{t("appPermissions.access.title")}</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">{summary}</p>
         </div>
         {!editing && (
           <Button size="sm" variant="outline" onClick={() => setEditing(true)}>
-            Change
+            {t("appPermissions.access.change")}
           </Button>
         )}
       </div>
@@ -133,8 +133,8 @@ function AccessSection({
               onChange={() => setDraft({ mode: "all", agentIds: new Set() })}
             />
             <span>
-              <span className="text-sm font-semibold text-foreground">All agents</span>
-              <span className="block text-xs text-muted-foreground">Anyone you've added to Paperclip.</span>
+              <span className="text-sm font-semibold text-foreground">{t("appPermissions.access.allAgents")}</span>
+              <span className="block text-xs text-muted-foreground">{t("appPermissions.access.allAgentsHint")}</span>
             </span>
           </label>
           <label className="flex items-start gap-3">
@@ -145,8 +145,8 @@ function AccessSection({
               onChange={() => setDraft({ mode: "specific", agentIds: new Set(draft.agentIds) })}
             />
             <span>
-              <span className="text-sm font-semibold text-foreground">Only specific agents</span>
-              <span className="block text-xs text-muted-foreground">Pick who can use it.</span>
+              <span className="text-sm font-semibold text-foreground">{t("appPermissions.access.specificAgents")}</span>
+              <span className="block text-xs text-muted-foreground">{t("appPermissions.access.specificAgentsHint")}</span>
             </span>
           </label>
 
@@ -168,10 +168,10 @@ function AccessSection({
                 setEditing(false);
               }}
             >
-              Save
+              {t("common.save")}
             </Button>
             <Button size="sm" variant="ghost" onClick={() => setEditing(false)} disabled={disabled}>
-              Cancel
+              {t("common.cancel")}
             </Button>
           </div>
         </div>
@@ -195,6 +195,7 @@ function InstalledSection({
   disabled: boolean;
   onSave: (next: InstallState) => void;
 }) {
+  const { t } = useTranslation();
   const liveAgents = agents.filter((a) => a.status !== "terminated");
   const hasAccess = (agentId: string) => access.mode === "all" || access.agentIds.has(agentId);
   // Agents that are installed but not (yet) in the access set — installing on
@@ -209,20 +210,20 @@ function InstalledSection({
     <section className="rounded-xl border border-border bg-card">
       <div className="flex items-center justify-between gap-3 px-5 py-4">
         <div>
-          <h2 className="text-sm font-bold text-foreground">Installed on agents</h2>
+          <h2 className="text-sm font-bold text-foreground">{t("appPermissions.installed.title")}</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Whose harness carries {appName}'s tools on every run.
+            {t("appPermissions.installed.subtitle", { appName })}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {disabled && <span className="text-xs text-muted-foreground">Saving…</span>}
+          {disabled && <span className="text-xs text-muted-foreground">{t("appPermissions.installed.saving")}</span>}
           {install.onAll ? (
-            <InstalledBadge label="Installed on all agents" />
+            <InstalledBadge label={t("appPermissions.installed.badgeAll")} />
           ) : install.agentIds.size > 0 ? (
-            <InstalledBadge label={`${installedCount} installed`} />
+            <InstalledBadge label={t("appPermissions.installed.badgeCount", { count: installedCount })} />
           ) : (
             <span className="rounded-full border border-border bg-muted px-2 py-0.5 text-xs font-medium text-muted-foreground">
-              Permitted only — not installed on any agent
+              {t("appPermissions.installed.badgeNone")}
             </span>
           )}
         </div>
@@ -230,7 +231,7 @@ function InstalledSection({
 
       <div className="space-y-3 border-t border-border px-5 py-4">
         <InlineBanner tone="info" compact>
-          {installInfoNotice(appName)}
+          {t(TOOL_INSTALL_COPY.installInfoNotice, { appName })}
         </InlineBanner>
 
         {!install.onAll && (
@@ -240,14 +241,18 @@ function InstalledSection({
             disabled={disabled}
             triggerLabel={
               install.agentIds.size === 0
-                ? "Choose agents to install on"
-                : `${install.agentIds.size} ${install.agentIds.size === 1 ? "agent" : "agents"} installed`
+                ? t("appPermissions.installed.chooseAgents")
+                : t("appPermissions.installed.agentsInstalled", { count: install.agentIds.size })
             }
-            getDescription={(agent) => (hasAccess(agent.id) ? "has access" : "no access yet")}
+            getDescription={(agent) =>
+              hasAccess(agent.id)
+                ? t("appPermissions.installed.hasAccess")
+                : t("appPermissions.installed.noAccessYet")
+            }
             renderNameSuffix={(agent) =>
               !hasAccess(agent.id) && install.agentIds.has(agent.id) ? (
                 <span className={cn("rounded border px-1 py-0 text-xs font-medium", brandChipBadge.amber)}>
-                  will grant access
+                  {t("appPermissions.installed.willGrantAccess")}
                 </span>
               ) : null
             }
@@ -264,15 +269,15 @@ function InstalledSection({
           <Checkbox
             checked={install.onAll}
             disabled={disabled}
-            aria-label="Install on all agents"
+            aria-label={t("appPermissions.installed.installOnAll")}
             onCheckedChange={(checked) =>
               onSave(checked ? { onAll: true, agentIds: new Set() } : { onAll: false, agentIds: new Set() })
             }
           />
           <span className="text-xs text-foreground">
-            <span className="font-semibold">Install on all agents</span>
+            <span className="font-semibold">{t("appPermissions.installed.installOnAll")}</span>
             <span className="mt-0.5 block text-muted-foreground">
-              {INSTALL_ALL_WARNING}
+              {t(TOOL_INSTALL_COPY.installAllWarning)}
             </span>
           </span>
         </label>
@@ -280,14 +285,15 @@ function InstalledSection({
         {extendingAgents.length > 0 ? (
           <InlineBanner tone="warning" compact>
             <span>
-              {autoExtendNotice(
-                extendingAgents.length === 1
-                  ? liveAgents.find((a) => a.id === extendingAgents[0])?.name ?? "1 agent"
-                  : `${extendingAgents.length} agents`,
-              )}{" "}
+              {t(TOOL_INSTALL_COPY.autoExtendNotice, {
+                agentName:
+                  extendingAgents.length === 1
+                    ? liveAgents.find((a) => a.id === extendingAgents[0])?.name ??
+                      t("appPermissions.installed.oneAgentFallback")
+                    : t("appPermissions.installed.agentCount", { count: extendingAgents.length }),
+              })}{" "}
               <span className="font-medium">
-                Review the {extendingAgents.length} access change
-                {extendingAgents.length === 1 ? "" : "s"}
+                {t("appPermissions.installed.reviewAccessChanges", { count: extendingAgents.length })}
               </span>
             </span>
           </InlineBanner>
@@ -331,17 +337,18 @@ function ActionsSection({
   onReviewQuarantined: (enabledIds: string[]) => void;
   onRefreshActions: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <section className="space-y-3">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
-          <h2 className="text-sm font-bold text-foreground">Action permissions</h2>
+          <h2 className="text-sm font-bold text-foreground">{t("appPermissions.actions.title")}</h2>
           <p className="mt-0.5 text-sm text-muted-foreground">
-            Choose what agents can do and what needs a human first.
+            {t("appPermissions.actions.subtitle")}
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {disabled && <span className="text-xs text-muted-foreground">Saving...</span>}
+          {disabled && <span className="text-xs text-muted-foreground">{t("common.saving")}</span>}
           <Button
             variant="outline"
             size="sm"
@@ -353,7 +360,7 @@ function ActionsSection({
             ) : (
               <RefreshCw className="mr-1.5 h-3.5 w-3.5" />
             )}
-            Refresh actions
+            {t("appPermissions.actions.refresh")}
           </Button>
         </div>
       </div>
@@ -367,8 +374,8 @@ function ActionsSection({
       )}
 
       <ActionGroup
-        title="Read only"
-        hint="Can look up context without changing anything."
+        title={t("appPermissions.actions.readOnlyTitle")}
+        hint={t("appPermissions.actions.readOnlyHint")}
         actions={readOnly}
         enabledIds={enabledIds}
         askFirstIds={askFirstIds}
@@ -377,8 +384,8 @@ function ActionsSection({
         onSetPermission={onSetPermission}
       />
       <ActionGroup
-        title="Can make changes"
-        hint="Can change something in another app."
+        title={t("appPermissions.actions.canChangeTitle")}
+        hint={t("appPermissions.actions.canChangeHint")}
         actions={canChange}
         enabledIds={enabledIds}
         askFirstIds={askFirstIds}
@@ -409,6 +416,7 @@ function ActionGroup({
   focusId?: string | null;
   onSetPermission: (id: string, next: ActionPermission) => void;
 }) {
+  const { t } = useTranslation();
   const focusRef = useRef<HTMLDivElement | null>(null);
   useEffect(() => {
     if (focusId && focusRef.current) {
@@ -443,7 +451,9 @@ function ActionGroup({
                 )}
               </div>
               <select
-                aria-label={`${action.title ?? action.toolName} permission`}
+                aria-label={t("appPermissions.actions.permissionAria", {
+                  action: action.title ?? action.toolName,
+                })}
                 className={cn(
                   "h-9 w-44 rounded-md border border-input bg-background px-3 text-sm text-foreground shadow-xs outline-none",
                   "focus-visible:border-ring focus-visible:ring-(length:--rad-3) focus-visible:ring-ring/50",
@@ -453,9 +463,9 @@ function ActionGroup({
                 disabled={disabled}
                 onChange={(event) => onSetPermission(action.id, event.currentTarget.value as ActionPermission)}
               >
-                <option value="off">Off</option>
-                <option value="allowed">Allowed</option>
-                <option value="ask">Ask a human first</option>
+                <option value="off">{t("appPermissions.actions.off")}</option>
+                <option value="allowed">{t("appPermissions.actions.allowed")}</option>
+                <option value="ask">{t("appPermissions.actions.ask")}</option>
               </select>
             </div>
           );

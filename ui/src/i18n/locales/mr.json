@@ -2140,7 +2140,8 @@
     "required": "required",
     "openFileAriaLabel": "Open {{filename}}",
     "downloadFileAriaLabel": "Download {{filename}}",
-    "chooseEllipsis": "Choose…"
+    "chooseEllipsis": "Choose…",
+    "reject": "Reject"
   },
   "projectWorkspaceDetail": {
     "A_hosted_workspace_tracked_by_external_r": "A hosted workspace tracked by external reference.",
@@ -6107,6 +6108,14 @@
       "allAllowed": "Every known tool this agent could name is allowed.",
       "deniedToolsNote": "Tools the agent could name but Paperclip would block:",
       "more": "+{{count}} more"
+    },
+    "policyEffect": {
+      "allow": "allow",
+      "block": "block",
+      "deny": "deny",
+      "requireApproval": "require approval",
+      "redact": "redact",
+      "rateLimit": "rate limit"
     }
   },
   "joinRequestQueue": {
@@ -7079,6 +7088,88 @@
       "pickProfileBody": "A gateway needs an access profile before it can be created.",
       "pickTokenActions": "Pick token actions",
       "pickTokenActionsBody": "Gateway tokens need at least one allowed MCP action."
+    }
+  },
+  "agentConfigForm": {
+    "sections": {
+      "identity": "Identity",
+      "environment": "Environment",
+      "adapter": "Adapter",
+      "permissions": "Permissions & Configuration",
+      "runPolicy": "Run Policy"
+    },
+    "warnings": {
+      "codexMinimalSearch": "Codex may reject `minimal` thinking when search is enabled."
+    },
+    "login": {
+      "logIn": "Log in",
+      "enterCode": "Open the authentication page and enter the code.",
+      "code": "Code",
+      "authUrl": "Authentication URL",
+      "useSaved": "Use saved login",
+      "savedLoginHint": "You have a saved Claude login. Use it to bind this agent, or log in again to replace the stored token.",
+      "enterBrowserCode": "Open the authorization page, then enter the browser code it shows.",
+      "authzUrl": "Authorization URL"
+    },
+    "experimentalBadge": "Experimental",
+    "model": {
+      "defaultOption": "Default"
+    },
+    "cheapModel": {
+      "hint": "Used when a run requests the cheap profile (e.g. routine summaries). The primary model stays unchanged."
+    }
+  },
+  "toolInstalls": {
+    "installInfoNotice": "Installing adds {{appName}}'s tools to the agent's context on every run — install only where it will actually be used.",
+    "installAllWarning": "Adds context cost to every run of every agent — a deliberate choice. New agents you add later are installed automatically.",
+    "autoExtendNotice": "Installing on {{agentName}} will also grant access. A tool can't be installed on an agent that isn't allowed to use it, so we'll add {{agentName}} to who can use it. This is logged.",
+    "installedHint": "Has access — tick to load its tools into this agent's context."
+  },
+  "appPermissions": {
+    "access": {
+      "title": "Who can use it",
+      "change": "Change",
+      "summaryAll": "Every agent can use it",
+      "summarySpecific_one": "{{count}} agent can use it",
+      "summarySpecific_other": "{{count}} agents can use it",
+      "allAgents": "All agents",
+      "allAgentsHint": "Anyone you've added to Paperclip.",
+      "specificAgents": "Only specific agents",
+      "specificAgentsHint": "Pick who can use it."
+    },
+    "installed": {
+      "title": "Installed on agents",
+      "subtitle": "Whose harness carries {{appName}}'s tools on every run.",
+      "saving": "Saving…",
+      "badgeAll": "Installed on all agents",
+      "badgeCount_one": "{{count}} installed",
+      "badgeCount_other": "{{count}} installed",
+      "badgeNone": "Permitted only — not installed on any agent",
+      "chooseAgents": "Choose agents to install on",
+      "agentsInstalled_one": "{{count}} agent installed",
+      "agentsInstalled_other": "{{count}} agents installed",
+      "hasAccess": "has access",
+      "noAccessYet": "no access yet",
+      "willGrantAccess": "will grant access",
+      "installOnAll": "Install on all agents",
+      "oneAgentFallback": "1 agent",
+      "agentCount_one": "{{count}} agent",
+      "agentCount_other": "{{count}} agents",
+      "reviewAccessChanges_one": "Review the {{count}} access change",
+      "reviewAccessChanges_other": "Review the {{count}} access changes"
+    },
+    "actions": {
+      "title": "Action permissions",
+      "subtitle": "Choose what agents can do and what needs a human first.",
+      "refresh": "Refresh actions",
+      "readOnlyTitle": "Read only",
+      "readOnlyHint": "Can look up context without changing anything.",
+      "canChangeTitle": "Can make changes",
+      "canChangeHint": "Can change something in another app.",
+      "permissionAria": "{{action}} permission",
+      "off": "Off",
+      "allowed": "Allowed",
+      "ask": "Ask a human first"
     }
   }
 }

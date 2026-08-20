@@ -21,7 +21,7 @@ import {
 } from "./tools/shared";
 import { cn } from "../lib/utils";
 import { brandChipBadge } from "../lib/status-colors";
-import { installPayload, installStateFrom, isAgentInstalled, INSTALLED_HINT } from "../lib/tool-installs";
+import { installPayload, installStateFrom, isAgentInstalled, TOOL_INSTALL_COPY } from "../lib/tool-installs";
 import { useTranslation } from "../i18n";
 
 /** Normalize a selector value (string or string[]) into a flat string list. */
@@ -141,7 +141,7 @@ function InstalledAppsSection({
                           ? t("agentToolsTab.installedApps.installedForAllNote")
                           : checked
                             ? t("agentToolsTab.installedApps.installedNote")
-                            : INSTALLED_HINT}
+                            : t(TOOL_INSTALL_COPY.installedHint)}
                       </span>
                     </span>
                   </label>
@@ -216,13 +216,15 @@ function InstallSaveStatusChip({
   return <span className="text-xs text-muted-foreground">{t("agentToolsTab.status.saved")}</span>;
 }
 
-const POLICY_EFFECT_LABEL: Record<string, string> = {
-  allow: "allow",
-  block: "block",
-  deny: "deny",
-  require_approval: "require approval",
-  redact: "redact",
-  rate_limit: "rate limit",
+/** Policy-type → i18n key. A module-level const has no hook scope, so the map
+ *  holds keys and `t()` is called at the render site. */
+const POLICY_EFFECT_LABEL_KEY: Record<string, string> = {
+  allow: "agentToolsTab.policyEffect.allow",
+  block: "agentToolsTab.policyEffect.block",
+  deny: "agentToolsTab.policyEffect.deny",
+  require_approval: "agentToolsTab.policyEffect.requireApproval",
+  redact: "agentToolsTab.policyEffect.redact",
+  rate_limit: "agentToolsTab.policyEffect.rateLimit",
 };
 
 const DENIED_TOOLS_DISPLAY_LIMIT = 30;
@@ -591,7 +593,9 @@ export function AgentToolsTab({ agent, companyId }: { agent: AgentDetailRecord; 
                         #{order} {policy.name}
                       </Link>
                       <span className="shrink-0 rounded border border-border px-1.5 py-0.5 text-(length:--text-nano) uppercase text-muted-foreground">
-                        {POLICY_EFFECT_LABEL[policy.policyType] ?? policy.policyType}
+                        {POLICY_EFFECT_LABEL_KEY[policy.policyType]
+                          ? t(POLICY_EFFECT_LABEL_KEY[policy.policyType])
+                          : policy.policyType}
                       </span>
                     </div>
                     {policy.description ? (
