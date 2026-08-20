@@ -2851,5 +2851,14 @@
       "boardOnly": "Board only",
       "boardOrAgents": "Board or agents"
     }
+  },
+  "companySkills": {
+    "breadcrumb": "Skills",
+    "forkSkill": "Fork skill",
+    "newSkill": "New skill",
+    "detail": "Detail",
+    "back": "Back",
+    "skillsStore": "Skills Store",
+    "skillsStoreSubtitle": "Discover, install, fork, share"
   }
 }

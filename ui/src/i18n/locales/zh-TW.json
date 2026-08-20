@@ -2851,5 +2851,14 @@
       "boardOnly": "僅限 board",
       "boardOrAgents": "Board 或代理"
     }
+  },
+  "companySkills": {
+    "breadcrumb": "技能",
+    "forkSkill": "複製技能",
+    "newSkill": "新技能",
+    "detail": "詳細資訊",
+    "back": "返回",
+    "skillsStore": "技能商店",
+    "skillsStoreSubtitle": "探索、安裝、複製、分享"
   }
 }
