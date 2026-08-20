@@ -31,88 +31,6 @@ const BYTES_PER_MIB = 1024 * 1024;
 const DEFAULT_COMPANY_ATTACHMENT_MAX_MIB = DEFAULT_COMPANY_ATTACHMENT_MAX_BYTES / BYTES_PER_MIB;
 const MAX_COMPANY_ATTACHMENT_MAX_MIB = MAX_COMPANY_ATTACHMENT_MAX_BYTES / BYTES_PER_MIB;
 
-// Sentinel for "no override" — Radix Select disallows empty-string item values.
-const GOVERNANCE_UNSET = "default";
-type GovernanceSelectValue = typeof GOVERNANCE_UNSET | IssueThreadInteractionResolverPolicy;
-
-function toSelectValue(policy: IssueThreadInteractionResolverPolicy | undefined): GovernanceSelectValue {
-  return policy ?? GOVERNANCE_UNSET;
-}
-
-/**
- * Apply a single (kind, field) change to a governance map immutably, pruning
- * empty entries so the persisted object stays sparse (only real overrides).
- */
-function applyGovernanceChange(
-  current: InteractionResolverGovernance,
-  kind: IssueThreadInteractionKind,
-  field: "defaultPolicy" | "cap",
-  value: GovernanceSelectValue,
-): InteractionResolverGovernance {
-  const next: InteractionResolverGovernance = { ...current };
-  const entry = { ...(next[kind] ?? {}) };
-  if (value === GOVERNANCE_UNSET) {
-    delete entry[field];
-  } else {
-    entry[field] = value;
-  }
-  if (entry.defaultPolicy === undefined && entry.cap === undefined) {
-    delete next[kind];
-  } else {
-    next[kind] = entry;
-  }
-  return next;
-}
-function GovernanceSelect({
-  value,
-  onChange,
-  disabled,
-  testId,
-  ariaLabel,
-  mobileLabel,
-  options,
-}: {
-  value: GovernanceSelectValue;
-  onChange: (value: GovernanceSelectValue) => void;
-  disabled?: boolean;
-  testId?: string;
-  ariaLabel: string;
-  mobileLabel: string;
-  options: { value: GovernanceSelectValue; label: string }[];
-}) {
-  return (
-    <div className="min-w-0">
-      {/*
-       * Below `sm` the governance grid collapses to a single column (see the
-       * grid classes on the panel), detaching each select from its column
-       * header. Surface a mobile-only inline label so the control stays
-       * self-describing for sighted users, and always carry `aria-label` for
-       * screen-reader pairing. WCAG 2.1 SC 1.4.10 (Reflow) — design review R2.
-       */}
-      <span className="mb-1 block text-xs font-medium text-muted-foreground uppercase tracking-wide sm:hidden">
-        {mobileLabel}
-      </span>
-      <Select value={value} onValueChange={(v) => onChange(v as GovernanceSelectValue)} disabled={disabled}>
-        <SelectTrigger
-          size="sm"
-          aria-label={ariaLabel}
-          className="w-full min-w-0 text-xs sm:w-(--sz-170px)"
-          data-testid={testId}
-        >
-          <SelectValue />
-        </SelectTrigger>
-        <SelectContent>
-          {options.map((option) => (
-            <SelectItem key={option.value} value={option.value} className="text-xs">
-              {option.label}
-            </SelectItem>
-          ))}
-        </SelectContent>
-      </Select>
-    </div>
-  );
-}
-
 export function CompanySettings() {
   const { t } = useTranslation();
   const {
@@ -131,12 +49,6 @@ export function CompanySettings() {
   const [logoUrl, setLogoUrl] = useState("");
   const [logoUploadError, setLogoUploadError] = useState<string | null>(null);
   const [governance, setGovernance] = useState<InteractionResolverGovernance>({});
-
-  const governancePolicyOptions = [
-    { value: GOVERNANCE_UNSET, label: t("companySettings.governancePolicyOptions.companyDefault") },
-    { value: "board_only", label: t("companySettings.governancePolicyOptions.boardOnly") },
-    { value: "board_or_agents", label: t("companySettings.governancePolicyOptions.boardOrAgents") },
-  ] as const;
 
   // Sync local state from selected company
   useEffect(() => {
@@ -482,72 +394,18 @@ export function CompanySettings() {
       </div>
 
       {/* Interaction governance */}
-      <div className="space-y-4" data-testid="company-settings-interaction-governance-section">
-        <div className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-          {t("companySettings.sections.interactionGovernance")}
-        </div>
-        <div className="space-y-4 rounded-md border border-border px-4 py-4">
-          <p className="text-sm text-muted-foreground">
-            {t("companySettings.governance.description", {
-              defaultPolicy: t("companySettings.governance.defaultPolicyBold"),
-              cap: t("companySettings.governance.capBold"),
-              boardOnly: t("companySettings.governance.boardOnlyBold"),
-            })}
-          </p>
-          {/*
-           * Responsive: below `sm` the row collapses to a single column so the
-           * two 170px selects never force horizontal overflow on a ~390px
-           * viewport (WCAG 2.1 SC 1.4.10 Reflow — design review R2). Each kind
-           * then stacks as: label → Default policy → Cap, each full-width with
-           * its own inline label. At `sm`+ it restores the aligned 3-col grid.
-           */}
-          <div className="grid grid-cols-1 gap-y-4 sm:grid-cols-[1fr_auto_auto] sm:items-center sm:gap-x-4 sm:gap-y-2.5">
-            <div className="hidden text-xs font-medium text-muted-foreground uppercase tracking-wide sm:block">
-              {t("companySettings.governance.kindLabel")}
-            </div>
-            <div className="hidden text-xs font-medium text-muted-foreground uppercase tracking-wide sm:block">
-              {t("companySettings.governance.defaultPolicyLabel")}
-            </div>
-            <div className="hidden text-xs font-medium text-muted-foreground uppercase tracking-wide sm:block">
-              {t("companySettings.governance.capLabel")}
-            </div>
-            {ISSUE_THREAD_INTERACTION_KINDS.map((kind) => {
-              const entry = governance[kind] ?? {};
-              const kindLabel = t(`companySettings.interactionKindLabels.${kind}`);
-              return (
-                <Fragment key={kind}>
-                  <div className="text-sm font-medium sm:font-normal">{kindLabel}</div>
-                  <GovernanceSelect
-                    testId={`governance-${kind}-default`}
-                    ariaLabel={`Default resolver policy for ${kindLabel}`}
-                    mobileLabel={t("companySettings.governance.defaultPolicyLabel")}
-                    value={toSelectValue(entry.defaultPolicy)}
-                    disabled={governanceMutation.isPending}
-                    onChange={(v) => handleGovernanceChange(kind, "defaultPolicy", v)}
-                    options={governancePolicyOptions as unknown as { value: GovernanceSelectValue; label: string }[]}
-                  />
-                  <GovernanceSelect
-                    testId={`governance-${kind}-cap`}
-                    ariaLabel={`Resolver cap for ${kindLabel}`}
-                    mobileLabel={t("companySettings.governance.capLabel")}
-                    value={toSelectValue(entry.cap)}
-                    disabled={governanceMutation.isPending}
-                    onChange={(v) => handleGovernanceChange(kind, "cap", v)}
-                    options={governancePolicyOptions as unknown as { value: GovernanceSelectValue; label: string }[]}
-                  />
-                </Fragment>
-              );
-            })}
-          </div>
-          {governanceMutation.isError && (
-            <span className="text-xs text-destructive">
-              {governanceMutation.error instanceof Error
-                ? governanceMutation.error.message
-                : t("companySettings.governance.saveFailed")}
-            </span>
-          )}
-        </div>
-      </div>
+      <InteractionGovernancePanel
+        governance={governance}
+        onChange={handleGovernanceChange}
+        isPending={governanceMutation.isPending}
+        errorMessage={
+          governanceMutation.isError
+            ? governanceMutation.error instanceof Error
+              ? governanceMutation.error.message
+              : "Failed to save interaction governance"
+            : null
+        }
+      />
 
       {/* Import / Export */}
       <div className="space-y-4">

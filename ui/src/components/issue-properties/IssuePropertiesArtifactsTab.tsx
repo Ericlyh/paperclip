@@ -132,6 +132,7 @@ function DocumentRow({
   doc: IssueDocument;
   openRequestId?: number;
 }) {
+  const { t } = useTranslation();
   const [expanded, setExpanded] = useState(false);
   const [annotationPanelOpen, setAnnotationPanelOpen] = useState(false);
   const headerRef = useRef<HTMLDivElement | null>(null);
