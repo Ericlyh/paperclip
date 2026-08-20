@@ -2475,5 +2475,10 @@
     "otherProjects": "Other Projects",
     "projectCount_one": "{{count}} project",
     "projectCount_other": "{{count}} projects"
+  },
+  "search": {
+    "placeholder": "Search tasks, comments, documents, artifacts, agents, projects…",
+    "ariaQuery": "Search query",
+    "ariaClear": "Clear search"
   }
 }

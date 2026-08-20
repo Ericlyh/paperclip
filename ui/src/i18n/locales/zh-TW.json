@@ -2475,5 +2475,10 @@
     "otherProjects": "其他專案",
     "projectCount_one": "{{count}} 個專案",
     "projectCount_other": "{{count}} 個專案"
+  },
+  "search": {
+    "placeholder": "搜尋任務、留言、文件、成品、代理、專案…",
+    "ariaQuery": "搜尋查詢",
+    "ariaClear": "清除搜尋"
   }
 }
