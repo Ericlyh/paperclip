@@ -93,6 +93,7 @@ import { PipelineItemBodyDocument } from "../components/PipelineItemBodyDocument
 import { PipelineLivenessBanner } from "../components/PipelineLivenessBanner";
 import { PipelineWorkReferences } from "../components/PipelineWorkReferences";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
+import { useTranslation } from "../i18n";
 import { useCompany } from "../context/CompanyContext";
 import { useToastActions } from "../context/ToastContext";
 import { assigneeValueFromSelection, parseAssigneeValue, suggestedCommentAssigneeValue } from "../lib/assignees";
@@ -899,13 +900,14 @@ export function pipelineKeyFromName(name: string) {
 function PipelinesIndex() {
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [search, setSearch] = useState("");
   const [viewMode, setViewMode] = useState<PipelineViewMode>("nested");
   const [newPipelineOpen, setNewPipelineOpen] = useState(false);
 
-  useEffect(() => setBreadcrumbs([{ label: "Pipelines" }]), [setBreadcrumbs]);
+  useEffect(() => setBreadcrumbs([{ label: t("sidebar.pipelines") }]), [setBreadcrumbs, t]);
 
   const pipelinesQuery = useQuery({
     queryKey: selectedCompanyId ? queryKeys.pipelines.list(selectedCompanyId) : ["pipelines", "missing-company"],
@@ -953,7 +955,7 @@ function PipelinesIndex() {
       <div className="mb-6 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
           <p className="text-xs font-semibold uppercase tracking-(--tracking-eyebrow) text-muted-foreground">Work</p>
-          <h1 className="text-2xl font-semibold text-foreground">Pipelines</h1>
+          <h1 className="text-2xl font-semibold text-foreground">{t("sidebar.pipelines")}</h1>
           <p className="mt-1 text-sm text-muted-foreground">
             {formatNumber(pipelines.length)} pipeline{pipelines.length === 1 ? "" : "s"}. Connected ones are grouped from upstream work into downstream work.
           </p>
@@ -1423,6 +1425,7 @@ function PipelineBoardColumn({
 
 function PipelineBoard({ pipelineId }: { pipelineId: string }) {
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const { pushToast } = useToastActions();
   const { selectedCompanyId } = useCompany();
   const queryClient = useQueryClient();
@@ -1691,10 +1694,10 @@ function PipelineBoard({ pipelineId }: { pipelineId: string }) {
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Pipelines", href: "/pipelines" },
-      { label: pipeline?.name ?? "Pipeline" },
+      { label: t("sidebar.pipelines"), href: "/pipelines" },
+      { label: pipeline?.name ?? t("sidebar.pipelines") },
     ]);
-  }, [pipeline?.name, setBreadcrumbs]);
+  }, [pipeline?.name, setBreadcrumbs, t]);
 
   useEffect(() => {
     setGroupByState({ pipelineId, value: readStoredPipelineBoardGroupBy(pipelineId) });
@@ -1956,6 +1959,7 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
   const queryClient = useQueryClient();
   const { pushToast } = useToastActions();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const { selectedCompanyId } = useCompany();
   const [removeDialogOpen, setRemoveDialogOpen] = useState(false);
   const [moveDialogOpen, setMoveDialogOpen] = useState(false);
@@ -2284,11 +2288,11 @@ export function PipelineItemDetailView({ pipelineId, caseId }: { pipelineId: str
 
   useEffect(() => {
     setBreadcrumbs([
-      { label: "Pipelines", href: "/pipelines" },
-      { label: pipeline.data?.name ?? detail?.pipeline.name ?? "Pipeline", href: `/pipelines/${pipelineId}` },
+      { label: t("sidebar.pipelines"), href: "/pipelines" },
+      { label: pipeline.data?.name ?? detail?.pipeline.name ?? t("sidebar.pipelines"), href: `/pipelines/${pipelineId}` },
       { label: detail?.case.title ?? "Item" },
     ]);
-  }, [detail?.case.title, detail?.pipeline.name, pipeline.data?.name, pipelineId, setBreadcrumbs]);
+  }, [detail?.case.title, detail?.pipeline.name, pipeline.data?.name, pipelineId, setBreadcrumbs, t]);
 
   const invalidateItem = useCallback(async () => {
     await Promise.all([
