@@ -6268,5 +6268,159 @@
     "toastForgetFailed": "Forget failed",
     "toastInvalidRule": "Invalid rule",
     "toastTestFailed": "Rule test failed"
+  },
+  "profilesTab": {
+    "entryFields": {
+      "selector": "Selector",
+      "effect": "Effect",
+      "application": "Application",
+      "applicationPlaceholder": "Select an application",
+      "connection": "Connection",
+      "connectionPlaceholder": "Select a connection",
+      "catalogEntryId": "Catalog entry ID",
+      "toolName": "Tool name",
+      "toolNamePlaceholder": "e.g. send_email or slack.list_*",
+      "riskLevel": "Risk level",
+      "effectInclude": "Include",
+      "effectExclude": "Exclude",
+      "selectorType": {
+        "tool_name": "Tool name",
+        "risk_level": "Risk level",
+        "application": "Application",
+        "connection": "Connection",
+        "catalog_entry": "Catalog entry ID"
+      }
+    },
+    "effectiveAgent": {
+      "agent": "Agent",
+      "selectAgentPlaceholder": "Select an agent",
+      "pickAgentHint": "Pick an agent to see what it can use right now.",
+      "checkingAccess": "Checking access...",
+      "canUse": "Can use",
+      "toolsCount": "tools",
+      "noToolsAvailable": "This agent cannot use any app tools right now.",
+      "accessProfiles": "Access profiles",
+      "noActiveProfile": "No active profile applies to this agent.",
+      "companyDefault": "Company default"
+    },
+    "sourceBadge": {
+      "explicit": "explicit",
+      "defaultAllow": "default allow",
+      "pattern": "pattern {{label}}"
+    },
+    "allowList": {
+      "heading": "Allow list",
+      "toolCount": "{{count}} tools",
+      "explicitCount": " · {{count}} explicit",
+      "patternCount": " · {{count}} via pattern",
+      "defaultCount": " · {{count}} via default",
+      "resolvingTools": "Resolving allowed tools…",
+      "noToolsResolved": "No tools resolved for this profile. Add an include selector or refresh the tool catalog.",
+      "colTool": "Tool",
+      "colApplication": "Application",
+      "colCapabilities": "Capabilities",
+      "colRisk": "Risk",
+      "colSource": "Source",
+      "patternWarning": "Tools marked pattern were pulled in by a wildcard, application, connection, or risk selector rather than named explicitly — review them when the catalog changes."
+    },
+    "toast": {
+      "profileCreated": "Profile created",
+      "couldNotCreateProfile": "Could not create profile",
+      "profileUpdated": "Profile updated",
+      "couldNotUpdateProfile": "Could not update profile",
+      "entryAdded": "Entry added",
+      "couldNotAddEntry": "Could not add entry",
+      "entryRemoved": "Entry removed",
+      "couldNotRemoveEntry": "Could not remove entry",
+      "profileBound": "Profile bound",
+      "couldNotBindProfile": "Could not bind profile",
+      "bindingRemoved": "Binding removed",
+      "couldNotRemoveBinding": "Could not remove binding",
+      "entryTargetRequired": "Entry target required",
+      "bindingTargetRequired": "Binding target required"
+    },
+    "page": {
+      "title": "Access profiles",
+      "description": "Reusable bundles of allowed applications, connections, and tools, assignable to agents, projects, routines, or issues.",
+      "newProfile": "New profile"
+    },
+    "emptyState": {
+      "message": "No access profiles yet",
+      "description": "Create a profile to group tool selectors, then bind it to the company or a specific agent.",
+      "action": "New profile"
+    },
+    "profileList": {
+      "unbound": "unbound",
+      "boundToAgents": "bound to {{count}} agents",
+      "bindingsCount": "{{count}} bindings",
+      "tool": "tool",
+      "tools": "tools"
+    },
+    "dialog": {
+      "createEdit": {
+        "titleEdit": "Edit profile",
+        "titleNew": "New profile",
+        "description": "Profile rules are enforced by the tool gateway policy service.",
+        "nameLabel": "Name",
+        "namePlaceholder": "Engineering write tools",
+        "keyLabel": "Key",
+        "descriptionLabel": "Description",
+        "descriptionPlaceholder": "Optional context for reviewers.",
+        "defaultActionLabel": "Default action",
+        "denyUnlessIncluded": "Deny unless included",
+        "allowUnlessExcluded": "Allow unless excluded",
+        "statusLabel": "Status",
+        "statusActive": "Active",
+        "statusDisabled": "Disabled",
+        "statusArchived": "Archived",
+        "cancel": "Cancel",
+        "save": "Save",
+        "creating": "Creating...",
+        "create": "Create"
+      },
+      "addEntry": {
+        "title": "Add entry",
+        "cancel": "Cancel",
+        "addEntry": "Add entry"
+      },
+      "bindProfile": {
+        "title": "Bind profile",
+        "targetTypeLabel": "Target type",
+        "targetType": {
+          "company": "Company",
+          "agent": "Agent",
+          "project": "Project",
+          "routine": "Routine",
+          "issue": "Issue ID"
+        },
+        "agentLabel": "Agent",
+        "selectAgentPlaceholder": "Select an agent",
+        "projectLabel": "Project",
+        "selectProjectPlaceholder": "Select a project",
+        "routineLabel": "Routine",
+        "selectRoutinePlaceholder": "Select a routine",
+        "issueIdLabel": "Issue ID",
+        "priorityLabel": "Priority",
+        "cancel": "Cancel",
+        "bind": "Bind"
+      }
+    },
+    "profileDetail": {
+      "defaultLabel": "default {{action}}",
+      "updated": "updated",
+      "edit": "Edit",
+      "entry": "Entry",
+      "bind": "Bind",
+      "targets": "Targets",
+      "noTargets": "No targets bound.",
+      "removeBinding": "Remove {{targetType}} binding",
+      "effectiveScope": "Effective scope",
+      "default": "Default",
+      "toolsAllowed": "tools allowed",
+      "includeSlashExclude": "include / {{count}} exclude",
+      "selectors": "Selectors",
+      "noSelectors": "No selectors.",
+      "deleteEntry": "Delete {{selectorType}} entry"
+    }
   }
 }
