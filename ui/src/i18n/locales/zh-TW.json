@@ -2457,5 +2457,23 @@
     "agentResumed": "代理已恢復",
     "couldNotPause": "無法暫停代理",
     "couldNotResume": "無法恢復代理"
+  },
+  "projects": {
+    "title": "專案",
+    "selectCompany": "請先選擇一間公司以查看專案。",
+    "noProjectsYet": "尚無專案。",
+    "addProject": "新增專案",
+    "sort": "排序",
+    "sortLabel": "排序：{{field}}",
+    "asc": "升序",
+    "desc": "降序",
+    "sortName": "名稱",
+    "sortUpdated": "更新時間",
+    "sortCreated": "建立時間",
+    "sortTargetDate": "目標日期",
+    "myProjects": "我的專案",
+    "otherProjects": "其他專案",
+    "projectCount_one": "{{count}} 個專案",
+    "projectCount_other": "{{count}} 個專案"
   }
 }

@@ -2448,5 +2448,23 @@
     "agentResumed": "Agent resumed",
     "couldNotPause": "Could not pause agent",
     "couldNotResume": "Could not resume agent"
+  },
+  "projects": {
+    "title": "Projects",
+    "selectCompany": "Select a company to view projects.",
+    "noProjectsYet": "No projects yet.",
+    "addProject": "Add Project",
+    "sort": "Sort",
+    "sortLabel": "Sort: {{field}}",
+    "asc": "Asc",
+    "desc": "Desc",
+    "sortName": "Name",
+    "sortUpdated": "Updated",
+    "sortCreated": "Created",
+    "sortTargetDate": "Target date",
+    "myProjects": "My Projects",
+    "otherProjects": "Other Projects",
+    "projectCount_one": "{{count}} project",
+    "projectCount_other": "{{count}} projects"
   }
 }
