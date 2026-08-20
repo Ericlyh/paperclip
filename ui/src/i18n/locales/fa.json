@@ -2426,7 +2426,13 @@
     "MY_SECRET": "MY_SECRET",
     "Operation": "Operation",
     "Proposals": "Proposals",
-    "Secrets": "Secrets"
+    "Secrets": "Secrets",
+    "actions": "Actions",
+    "nameLabel": "Name",
+    "providerLabel": "Provider",
+    "secretColumn": "Secret",
+    "updatedColumn": "Updated",
+    "valueLabel": "Value"
   },
   "settings": {
     "action": {

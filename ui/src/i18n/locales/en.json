@@ -5186,6 +5186,7 @@
     "Who_provides_the_value": "Who provides the value?",
     "Write_new_value": "Write new value",
     "Writes_a_new_version_of_the_referenced_p": "Writes a new version of the referenced provider secret. The new value becomes current for every consumer of that secret, in and outside Paperclip.",
+    "actions": "Actions",
     "alias_paperclip_secrets": "alias/paperclip-secrets",
     "arn_aws_secretsmanager": "arn:aws:secretsmanager:...",
     "filterTitle": "Filter",
@@ -5318,9 +5319,14 @@
         "duplicateKeyBatch": "Another row in this batch already uses this key."
       }
     },
+    "nameLabel": "Name",
     "optional": "(optional)",
     "paperclip_prod": "paperclip/prod",
-    "title": "Secrets"
+    "providerLabel": "Provider",
+    "secretColumn": "Secret",
+    "title": "Secrets",
+    "updatedColumn": "Updated",
+    "valueLabel": "Value"
   },
   "settings": {
     "action": {

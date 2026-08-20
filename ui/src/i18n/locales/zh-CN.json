@@ -2434,7 +2434,13 @@
     "MY_SECRET": "MY_SECRET",
     "Operation": "操作",
     "Proposals": "提案",
-    "Secrets": "机密"
+    "Secrets": "机密",
+    "actions": "Actions",
+    "nameLabel": "Name",
+    "providerLabel": "Provider",
+    "secretColumn": "Secret",
+    "updatedColumn": "Updated",
+    "valueLabel": "Value"
   },
   "settings": {
     "action": {
