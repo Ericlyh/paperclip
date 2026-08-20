@@ -1618,7 +1618,8 @@
     "title": "All routines",
     "unknownAgent": "Unknown agent",
     "unknownFolder": "Unknown folder",
-    "unknownProject": "Unknown project"
+    "unknownProject": "Unknown project",
+    "allRoutines": "All routines"
   },
   "secrets": {
     "API_alias": "API alias",

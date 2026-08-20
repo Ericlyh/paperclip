@@ -1627,7 +1627,8 @@
     "title": "所有定期任務",
     "unknownAgent": "未知代理",
     "unknownFolder": "未知資料夾",
-    "unknownProject": "未知專案"
+    "unknownProject": "未知專案",
+    "allRoutines": "所有例行性任務"
   },
   "secrets": {
     "API_alias": "API 別名",
