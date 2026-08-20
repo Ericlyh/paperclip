@@ -1227,11 +1227,128 @@
   },
   "chatThread": {
     "liveRun": {
-      "noOutput": "no output for {{elapsed}} - still running"
+      "noOutput": "no output for {{elapsed}} - still running",
+      "usingTool": "Using {{tool}}",
+      "ago": "{{elapsed}} ago"
     },
     "toolSummary": {
       "ranCommands": "ran {{count}} command(s)",
       "calledTools": "called {{count}} tool(s)"
+    },
+    "toolPart": {
+      "input": "Input",
+      "result": "Result",
+      "copy": "Copy",
+      "copyFailed": "Copy failed",
+      "unableToCopy": "Unable to copy text"
+    },
+    "chainOfThought": {
+      "working": "Working",
+      "worked": "Worked",
+      "forDuration": "for {{duration}}"
+    },
+    "fallback": {
+      "internalError": "Chat renderer hit an internal state error.",
+      "internalErrorDetail": "Showing a safe fallback transcript instead of crashing the tasks page.",
+      "noMessageContent": "No message content.",
+      "authorAgent": "Agent",
+      "authorUser": "You",
+      "authorSystem": "System"
+    },
+    "userMessage": {
+      "followUp": "Follow-up",
+      "commentDeleted": "Comment deleted",
+      "sending": "Sending...",
+      "interrupting": "Interrupting...",
+      "interrupt": "Interrupt",
+      "cancel": "Cancel",
+      "copyMessage": "Copy message",
+      "copyFailed": "Copy failed",
+      "unableToCopyMessage": "Unable to copy message",
+      "deleteComment": "Delete comment",
+      "deleteCommentTitle": "Delete comment?",
+      "deleteCommentDescription": "This will replace the comment with a deleted-comment marker.",
+      "queued": "Queued",
+      "deferredWake": "Deferred wake"
+    },
+    "assistantMessage": {
+      "moreActions": "More actions",
+      "viewRun": "View run",
+      "deleted": "Comment deleted",
+      "running": "Running"
+    },
+    "feedback": {
+      "helpful": "Helpful",
+      "needsWork": "Needs work",
+      "whatCouldHaveBeenBetter": "What could have been better?",
+      "addShortNote": "Add a short note",
+      "dismiss": "Dismiss",
+      "saveNote": "Save note",
+      "saving": "Saving...",
+      "savePreferenceTitle": "Save your feedback sharing preference",
+      "savePreferenceDescription": "Choose whether voted AI outputs can be shared with Paperclip Labs. This answer becomes the default for future thumbs up and thumbs down votes.",
+      "savedLocally": "This vote is always saved locally.",
+      "alwaysAllow": "Always allow",
+      "dontAllow": "Don't allow",
+      "alwaysAllowSentence": "Choose <1>Always allow</1> to share this vote and future voted AI outputs.",
+      "dontAllowSentence": "Choose <1>Don't allow</1> to keep this vote and future votes local.",
+      "readTerms": "Read our terms of service",
+      "changeInSettings": "You can change this later in Instance Settings > General."
+    },
+    "systemNotice": {
+      "noAdditionalDetails": "No additional details.",
+      "staleDispositionWarning": "Stale disposition warning",
+      "copyLink": "Copy link",
+      "copyLinkToSystemNotice": "Copy link to system notice",
+      "copyNoticeText": "Copy notice text",
+      "copySystemNotice": "Copy system notice",
+      "unableToCopySystemNotice": "Unable to copy system notice",
+      "unableToCopySystemNoticeLink": "Unable to copy system notice link",
+      "legacyRecoveryTask": "Legacy recovery task",
+      "legacyRecoveryTaskBody": "Legacy recovery task. Newer recovery actions live on the source task",
+      "updatedThisTask": "updated this task",
+      "requestedFollowUp": "requested follow-up",
+      "runNoun": "run"
+    },
+    "activity": {
+      "hideConfirmation": "Hide confirmation",
+      "expiredConfirmation": "Expired confirmation"
+    },
+    "deletedComment": {
+      "deletedThisComment": "deleted this comment"
+    },
+    "thread": {
+      "jumpToLatest": "Jump to latest",
+      "emptyEmbedded": "No run output yet.",
+      "emptyFull": "This task conversation is empty. Start with a message below."
+    },
+    "composer": {
+      "dropToUpload": "Drop to upload",
+      "dropHint": "Images insert into the reply. Other files are added to this task.",
+      "replyPlaceholder": "Reply",
+      "attachFile": "Attach file",
+      "posting": "Posting...",
+      "send": "Send",
+      "noResponsibleTitle": "No responsible selected",
+      "noResponsibleDescription": "This comment will be posted without an assignee, so no agent will be woken to act on it. Go back to pick a responsible, or send anyway.",
+      "goBack": "Go back",
+      "sendAnyway": "Send anyway",
+      "responsible": "Responsible",
+      "noResponsible": "No responsible",
+      "searchResponsible": "Search responsible...",
+      "noResponsibleFound": "No responsible found.",
+      "uploadingToTask": "Uploading to task",
+      "uploadFailed": "Upload failed",
+      "insertedInline": "Inserted inline",
+      "attachedToTask": "Attached to task",
+      "unableToAttachType": "This file type cannot be attached here",
+      "cyclesModes": "Cmd/Ctrl+. cycles modes"
+    },
+    "pausedNotice": {
+      "budgetPaused": "It was paused by a budget hard stop.",
+      "systemPaused": "It was paused by the system.",
+      "manuallyPaused": "It was paused manually.",
+      "isPaused": "{{name}} is paused. New runs will not start until the agent is resumed. {{detail}}"
     }
   },
   "cliAuth": {
