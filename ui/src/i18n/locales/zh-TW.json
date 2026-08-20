@@ -2909,5 +2909,100 @@
     "zoomOut": "縮小",
     "zoomIn": "放大",
     "resetZoom": "重設縮放"
+  },
+  "instanceSettings": {
+    "title": "排程心跳",
+    "breadcrumb": "執行個體設定",
+    "subtitle": "所有公司中已啟用計時器心跳的代理。",
+    "loading": "正在載入排程心跳...",
+    "empty": "目前條件下沒有符合的排程心跳。",
+    "stats": {
+      "active": "啟用中",
+      "disabled": "已停用",
+      "company_one": "間公司",
+      "company_other": "間公司"
+    },
+    "status": {
+      "on": "開啟",
+      "off": "關閉",
+      "never": "從未"
+    },
+    "actions": {
+      "disableAll": "全部停用",
+      "disabling": "停用中...",
+      "enableTimer": "啟用計時器心跳",
+      "disableTimer": "停用計時器心跳",
+      "fullConfig": "完整代理設定"
+    },
+    "confirm": {
+      "disableAll": "確定要停用全部 {{count}} 個已啟用{{noun}}的計時器心跳嗎？",
+      "agent_one": "代理",
+      "agent_other": "代理"
+    },
+    "errors": {
+      "loadFailed": "載入排程心跳失敗。",
+      "updateHeartbeat": "更新心跳失敗。",
+      "disableAll": "停用全部心跳失敗。",
+      "unknownError": "未知錯誤",
+      "disableOne": "停用 1 個計時器心跳失敗:{{detail}}",
+      "disableMany": "停用 {{total}} 個計時器心跳中 {{failed}} 個失敗。第一個錯誤:{{detail}}"
+    }
+  },
+  "agentToolsTab": {
+    "loading": "正在解析有效存取權限...",
+    "enforcement": {
+      "title": "有效存取",
+      "bodyBefore": "這是 Paperclip 對",
+      "bodyBetween": "接受的完整工具清單。設定檔和政策變更約在 5 秒內生效。代理的提示可以縮減此清單，但",
+      "cannotExpand": "無法擴充",
+      "bodyAfter": "— 其他所有項目預設皆會被封鎖。"
+    },
+    "installedApps": {
+      "title": "已安裝的應用程式",
+      "subtitle": "已安裝的應用程式會在每次執行時將工具載入 {{agentName}} 的上下文。僅獲授權的應用程式不會增加上下文成本。",
+      "help": "可存取代表該應用程式已獲授權。已安裝代表其工具已加入此代理的執行階段上下文。",
+      "empty": "目前尚無獲授權的應用程式。請綁定存取設定檔以在此處提供應用程式。",
+      "installAria": "在 {{agentName}} 上安裝 {{name}}",
+      "installedForAllNote": "已從應用程式頁面為所有代理安裝。請至該處移除對全部代理的安裝。",
+      "installedNote": "已載入此代理的執行階段上下文。",
+      "openPermissions": "開啟權限",
+      "permittedButNotInstalled": "已獲授權但未安裝 — 工具將不會在執行中出現。",
+      "installedForAll": "已為全部代理安裝",
+      "installed": "已安裝",
+      "permittedOnly": "僅獲授權",
+      "notPermitted": "未獲授權"
+    },
+    "allowedTools": {
+      "title": "已授權的工具",
+      "tool_one": "個工具",
+      "tool_other": "個工具",
+      "empty": "此代理沒有任何已授權的工具。請綁定工具設定檔以授予存取權限。",
+      "colTool": "工具",
+      "colCapability": "能力",
+      "colRisk": "風險",
+      "colSource": "來源"
+    },
+    "status": {
+      "saving": "儲存中...",
+      "saveError": "無法儲存",
+      "unsaved": "有未儲存的變更",
+      "saved": "已儲存"
+    },
+    "sidePanel": {
+      "whyTheseTools": "為什麼是這些工具？",
+      "accessProfiles": "存取設定檔",
+      "checkAccess": "檢查存取",
+      "noProfile": "沒有作用中的設定檔套用至此代理，因此沒有任何已授權的工具。",
+      "companyDefault": "公司預設",
+      "activePolicies": "作用中政策",
+      "loadingPolicies": "正在載入政策...",
+      "noPolicy": "沒有啟用的政策正在修改此代理的授權清單。",
+      "policyTitle": "政策 #{{order}}:{{name}}",
+      "unavailableTools": "無法使用的工具",
+      "checkingTools": "正在檢查工具...",
+      "allAllowed": "此代理可提及的每個已知工具皆已授權。",
+      "deniedToolsNote": "代理可能會提及但 Paperclip 會封鎖的工具:",
+      "more": "另外還有 {{count}} 個"
+    }
   }
 }

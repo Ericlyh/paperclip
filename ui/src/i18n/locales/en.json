@@ -2909,5 +2909,100 @@
     "zoomOut": "Zoom out",
     "zoomIn": "Zoom in",
     "resetZoom": "Reset zoom"
+  },
+  "instanceSettings": {
+    "title": "Scheduler Heartbeats",
+    "breadcrumb": "Instance settings",
+    "subtitle": "Agents with a timer heartbeat enabled across all of your companies.",
+    "loading": "Loading scheduler heartbeats...",
+    "empty": "No scheduler heartbeats match the current criteria.",
+    "stats": {
+      "active": "active",
+      "disabled": "disabled",
+      "company_one": "company",
+      "company_other": "companies"
+    },
+    "status": {
+      "on": "On",
+      "off": "Off",
+      "never": "never"
+    },
+    "actions": {
+      "disableAll": "Disable All",
+      "disabling": "Disabling...",
+      "enableTimer": "Enable Timer Heartbeat",
+      "disableTimer": "Disable Timer Heartbeat",
+      "fullConfig": "Full agent config"
+    },
+    "confirm": {
+      "disableAll": "Disable timer heartbeats for all {{count}} enabled {{noun}}?",
+      "agent_one": "agent",
+      "agent_other": "agents"
+    },
+    "errors": {
+      "loadFailed": "Failed to load scheduler heartbeats.",
+      "updateHeartbeat": "Failed to update heartbeat.",
+      "disableAll": "Failed to disable all heartbeats.",
+      "unknownError": "Unknown error",
+      "disableOne": "Failed to disable 1 timer heartbeat: {{detail}}",
+      "disableMany": "Failed to disable {{failed}} of {{total}} timer heartbeats. First error: {{detail}}"
+    }
+  },
+  "agentToolsTab": {
+    "loading": "Resolving effective access…",
+    "enforcement": {
+      "title": "Effective access",
+      "bodyBefore": "This is exactly the tool set Paperclip will accept for",
+      "bodyBetween": ". Profile and policy edits are reflected within ~5 seconds. The agent's prompt can narrow this list but",
+      "cannotExpand": "cannot expand it",
+      "bodyAfter": "— everything else is blocked by default."
+    },
+    "installedApps": {
+      "title": "Installed apps",
+      "subtitle": "Installed apps load tools into {{agentName}}'s context on every run. Permitted-only apps do not add context cost.",
+      "help": "Has access means the app is permitted. Installed means its tools are added to this agent's runtime context.",
+      "empty": "No permitted apps yet. Bind an access profile to make apps available here.",
+      "installAria": "Install {{name}} on {{agentName}}",
+      "installedForAllNote": "Installed from the app page for every agent. Remove the all-agents install there.",
+      "installedNote": "Loaded into this agent's runtime context.",
+      "openPermissions": "Open permissions",
+      "permittedButNotInstalled": "Permitted but not installed — tools will not appear in runs.",
+      "installedForAll": "Installed for all",
+      "installed": "Installed",
+      "permittedOnly": "Permitted only",
+      "notPermitted": "Not permitted"
+    },
+    "allowedTools": {
+      "title": "Allowed tools",
+      "tool_one": "tool",
+      "tool_other": "tools",
+      "empty": "No tools are allowed for this agent. Bind a tool profile to grant access.",
+      "colTool": "Tool",
+      "colCapability": "Capability",
+      "colRisk": "Risk",
+      "colSource": "Source"
+    },
+    "status": {
+      "saving": "Saving...",
+      "saveError": "Could not save",
+      "unsaved": "Unsaved changes",
+      "saved": "Saved"
+    },
+    "sidePanel": {
+      "whyTheseTools": "Why these tools?",
+      "accessProfiles": "Access profiles",
+      "checkAccess": "Check access",
+      "noProfile": "No active profile applies to this agent, so it has no allowed tools.",
+      "companyDefault": "Company default",
+      "activePolicies": "Active policies",
+      "loadingPolicies": "Loading policies…",
+      "noPolicy": "No enabled policy currently mutates this agent's allow list.",
+      "policyTitle": "Policy #{{order}}: {{name}}",
+      "unavailableTools": "Unavailable tools",
+      "checkingTools": "Checking tools…",
+      "allAllowed": "Every known tool this agent could name is allowed.",
+      "deniedToolsNote": "Tools the agent could name but Paperclip would block:",
+      "more": "+{{count}} more"
+    }
   }
 }
