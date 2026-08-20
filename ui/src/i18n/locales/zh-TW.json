@@ -1894,7 +1894,9 @@
       "saving": "儲存中...",
       "saveProfile": "儲存個人檔案",
       "board": "看板"
-    }
+    },
+    "export": "匯出",
+    "import": "匯入"
   },
   "sidebar": {
     "activity": "活動",
