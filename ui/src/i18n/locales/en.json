@@ -722,8 +722,10 @@
   "inbox": {
     "action": {
       "dismiss": "Dismiss from inbox",
+      "dismissShort": "Dismiss",
       "markAllAsRead": "Mark all as read",
-      "markAsRead": "Mark as read"
+      "markAsRead": "Mark as read",
+      "newIssueIn": "New issue in {group}"
     },
     "approvalStatus": {
       "all": "All approval statuses",
@@ -737,14 +739,18 @@
       "approvals": "Approvals",
       "failedRuns": "Failed runs",
       "joinRequests": "Join requests",
+      "label": "Category",
+      "myRecentIssues": "My recent issues",
       "myRecentTasks": "My recent tasks"
     },
     "column": {
       "chooseVisible": "Choose which inbox columns stay visible"
     },
     "dialog": {
+      "cancel": "Cancel",
       "markAllAsReadConfirm": "Mark all as read?",
-      "markAllAsReadPending": "Marking…"
+      "markAllAsReadPending": "Marking…",
+      "markAllAsReadDescription": "This will mark {count, plural, one {# unread item} other {# unread items}} as read."
     },
     "empty": {
       "archived": "Archived",
@@ -773,8 +779,23 @@
       "disable": "Disable parent-child nesting",
       "enable": "Enable parent-child nesting"
     },
+    "row": {
+      "retry": "Retry",
+      "retrying": "Retrying…"
+    },
     "search": {
       "placeholder": "Search inbox…"
+    },
+    "tab": {
+      "all": "All",
+      "blocked": "Blocked",
+      "mine": "Mine",
+      "recent": "Recent",
+      "unread": "Unread"
+    },
+    "toolbar": {
+      "group": "Group",
+      "sort": "Sort"
     }
   },
   "instanceExperimentalSettings": {

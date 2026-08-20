@@ -722,7 +722,9 @@
     "action": {
       "dismiss": "Dismiss from inbox",
       "markAllAsRead": "Mark all as read",
-      "markAsRead": "Mark as read"
+      "markAsRead": "Mark as read",
+      "dismissShort": "Dismiss",
+      "newIssueIn": "New issue in {group}"
     },
     "approvalStatus": {
       "all": "All approval statuses",
@@ -736,14 +738,18 @@
       "approvals": "Approvals",
       "failedRuns": "Failed runs",
       "joinRequests": "Join requests",
-      "myRecentTasks": "My recent tasks"
+      "myRecentTasks": "My recent tasks",
+      "label": "Category",
+      "myRecentIssues": "My recent issues"
     },
     "column": {
       "chooseVisible": "Choose which inbox columns stay visible"
     },
     "dialog": {
       "markAllAsReadConfirm": "Mark all as read?",
-      "markAllAsReadPending": "Marking…"
+      "markAllAsReadPending": "Marking…",
+      "cancel": "Cancel",
+      "markAllAsReadDescription": "This will mark {count, plural, one {# unread item} other {# unread items}} as read."
     },
     "empty": {
       "archived": "Archived",
@@ -774,6 +780,21 @@
     },
     "search": {
       "placeholder": "Search inbox…"
+    },
+    "row": {
+      "retry": "Retry",
+      "retrying": "Retrying…"
+    },
+    "tab": {
+      "all": "All",
+      "blocked": "Blocked",
+      "mine": "Mine",
+      "recent": "Recent",
+      "unread": "Unread"
+    },
+    "toolbar": {
+      "group": "Group",
+      "sort": "Sort"
     }
   },
   "instanceExperimentalSettings": {

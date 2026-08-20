@@ -722,8 +722,10 @@
   "inbox": {
     "action": {
       "dismiss": "從收件匣移除",
+      "dismissShort": "關閉",
       "markAllAsRead": "全部標記為已讀",
-      "markAsRead": "標記為已讀"
+      "markAsRead": "標記為已讀",
+      "newIssueIn": "在 {group} 中新增問題"
     },
     "approvalStatus": {
       "all": "所有審核狀態",
@@ -737,14 +739,18 @@
       "approvals": "審核項目",
       "failedRuns": "執行失敗",
       "joinRequests": "加入請求",
+      "label": "類別",
+      "myRecentIssues": "我最近的議題",
       "myRecentTasks": "我最近的任務"
     },
     "column": {
       "chooseVisible": "選擇要顯示的收件匣欄位"
     },
     "dialog": {
+      "cancel": "取消",
       "markAllAsReadConfirm": "確定要全部標記為已讀嗎？",
-      "markAllAsReadPending": "標記中…"
+      "markAllAsReadPending": "標記中…",
+      "markAllAsReadDescription": "這會將 {count, plural, one {# 個未讀項目} other {# 個未讀項目}} 標記為已讀。"
     },
     "empty": {
       "archived": "已封存",
@@ -773,8 +779,23 @@
       "disable": "停用父子任務巢狀",
       "enable": "啟用父子任務巢狀"
     },
+    "row": {
+      "retry": "重試",
+      "retrying": "重試中…"
+    },
     "search": {
       "placeholder": "搜尋收件匣…"
+    },
+    "tab": {
+      "all": "全部",
+      "blocked": "已封鎖",
+      "mine": "我的",
+      "recent": "最近",
+      "unread": "未讀"
+    },
+    "toolbar": {
+      "group": "群組",
+      "sort": "排序"
     }
   },
   "instanceExperimentalSettings": {
