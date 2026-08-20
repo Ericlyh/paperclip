@@ -605,7 +605,10 @@
       "title": "環境",
       "unsupportedProvider": "不支援的供應商",
       "workspaceDir": "/Users/paperclip/workspace"
-    }
+    },
+    "title": "環境",
+    "add": "新增環境",
+    "edit": "編輯環境"
   },
   "executionWorkspaceDetail": {
     "Advanced_runtime_JSON": "Advanced runtime JSON",

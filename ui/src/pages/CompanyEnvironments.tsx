@@ -38,6 +38,7 @@ import {
   type SecretRefHintsContextValue,
 } from "@/components/SecretBindingPicker";
 import { useBreadcrumbs } from "@/context/BreadcrumbContext";
+import { useTranslation } from "../i18n";
 import { useCompany } from "@/context/CompanyContext";
 import { useToast } from "@/context/ToastContext";
 import { isPlatformManagedEnvironment } from "@/lib/managed-sandbox-environment";
@@ -1148,6 +1149,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
   const navigate = useNavigate();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const { pushToast } = useToast();
   const queryClient = useQueryClient();
   const isEnvironmentFormPage = mode === "create" || mode === "edit";
@@ -1167,16 +1169,16 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
 
   useEffect(() => {
     const crumbs = [
-      { label: "Settings", href: "/company/settings" },
-      { label: "Instance settings", href: "/company/settings/instance/general" },
+      { label: t("sidebar.settings"), href: "/company/settings" },
+      { label: t("instanceExperimentalSettings.Instance_settings"), href: "/company/settings/instance/general" },
       isEnvironmentFormPage
-        ? { label: "Environments", href: ENVIRONMENTS_PATH }
-        : { label: "Environments" },
+        ? { label: t("environments.title"), href: ENVIRONMENTS_PATH }
+        : { label: t("environments.title") },
     ];
-    if (mode === "create") crumbs.push({ label: "Add environment" });
-    if (mode === "edit") crumbs.push({ label: "Edit environment" });
+    if (mode === "create") crumbs.push({ label: t("environments.add") });
+    if (mode === "edit") crumbs.push({ label: t("environments.edit") });
     setBreadcrumbs(crumbs);
-  }, [isEnvironmentFormPage, mode, setBreadcrumbs]);
+  }, [isEnvironmentFormPage, mode, setBreadcrumbs, t]);
 
   const { data: instanceSettings } = useQuery({
     queryKey: queryKeys.instance.settings,
@@ -1873,7 +1875,7 @@ export function CompanyEnvironments({ mode = "list" }: CompanyEnvironmentsProps)
                 </Link>
               </Button>
             </div>
-            <h1 className="text-lg font-semibold">{editingEnvironmentId ? "Edit environment" : "Add environment"}</h1>
+            <h1 className="text-lg font-semibold">{editingEnvironmentId ? t("environments.edit") : t("environments.add")}</h1>
             <p className="mt-1 max-w-3xl text-sm text-muted-foreground">
               Configure a reusable execution target for your agents. Saved changes affect future runs; Paperclip may start fresh sessions or sandbox leases after environment config changes.
             </p>

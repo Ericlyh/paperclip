@@ -605,7 +605,10 @@
       "title": "Environments",
       "unsupportedProvider": "Unsupported provider",
       "workspaceDir": "/Users/paperclip/workspace"
-    }
+    },
+    "title": "Environments",
+    "add": "Add environment",
+    "edit": "Edit environment"
   },
   "executionWorkspaceDetail": {
     "Advanced_runtime_JSON": "Advanced runtime JSON",
