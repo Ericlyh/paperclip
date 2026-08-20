@@ -768,7 +768,486 @@
     "online_blue_glow": "online · blue glow",
     "pending_approval": "pending_approval",
     "ring_2_ring_ring": "ring-2 ring-ring",
-    "teams_catalog": "/teams-catalog"
+    "teams_catalog": "/teams-catalog",
+    "page": {
+      "title": "設計指南",
+      "description": "Paperclip 中使用的每一個元件、樣式與設計模式。"
+    },
+    "coverage": {
+      "title": "元件涵蓋範圍",
+      "description": "每當新增 UI 基本元件或應用層級的設計模式時，都應更新此頁面。",
+      "uiPrimitives": "UI 基本元件",
+      "appComponents": "應用元件"
+    },
+    "colors": {
+      "title": "色彩",
+      "core": "核心",
+      "sidebar": "側邊欄",
+      "chart": "圖表",
+      "swatch": {
+        "background": "背景",
+        "foreground": "前景",
+        "card": "卡片",
+        "primary": "主要",
+        "primaryForeground": "主要前景",
+        "secondary": "次要",
+        "muted": "靜音",
+        "mutedForeground": "靜音前景",
+        "accent": "強調",
+        "destructive": "破壞性",
+        "border": "邊框",
+        "ring": "焦點環",
+        "sidebarBackground": "側邊欄",
+        "sidebarBorder": "側邊欄邊框",
+        "chart1": "圖表 1",
+        "chart2": "圖表 2",
+        "chart3": "圖表 3",
+        "chart4": "圖表 4",
+        "chart5": "圖表 5"
+      }
+    },
+    "typography": {
+      "title": "字型",
+      "pageTitle": "頁面標題 — text-xl font-bold",
+      "sectionTitle": "區塊標題 — text-lg font-semibold",
+      "sectionHeading": "區塊小標題 — text-sm font-semibold uppercase tracking-wide",
+      "cardTitle": "卡片標題 — text-sm font-medium",
+      "cardTitleAlt": "卡片標題替代 — text-sm font-semibold",
+      "bodyText": "內文 — text-sm",
+      "mutedDescription": "靜音描述 — text-sm text-muted-foreground",
+      "tinyLabel": "迷你標籤 — text-xs text-muted-foreground",
+      "monoIdentifier": "等寬識別碼 — text-sm font-mono text-muted-foreground",
+      "largeStat": "大型數據 — text-2xl font-bold",
+      "logCodeText": "日誌／程式碼文字 — font-mono text-xs"
+    },
+    "radius": {
+      "title": "圓角"
+    },
+    "buttons": {
+      "title": "按鈕",
+      "variants": "樣式",
+      "sizes": "尺寸",
+      "iconButtons": "圖示按鈕",
+      "withIcons": "含圖示",
+      "states": "狀態",
+      "label": {
+        "default": "預設",
+        "secondary": "次要",
+        "outline": "外框",
+        "ghost": "幽靈",
+        "destructive": "破壞性",
+        "link": "連結",
+        "extraSmall": "超小",
+        "small": "小",
+        "large": "大",
+        "newIssue": "新增議題",
+        "upload": "上傳",
+        "delete": "刪除",
+        "add": "新增",
+        "disabled": "停用",
+        "disabledOutline": "停用外框"
+      }
+    },
+    "badges": {
+      "title": "徽章",
+      "variants": "樣式",
+      "label": {
+        "default": "預設",
+        "secondary": "次要",
+        "outline": "外框",
+        "destructive": "破壞性",
+        "ghost": "幽靈"
+      }
+    },
+    "statusSystem": {
+      "title": "狀態系統",
+      "allStatuses": "StatusBadge（所有狀態）",
+      "issueStatusBadge": "IssueStatusBadge（品牌標籤 + 圖示 — PAP-75）",
+      "statusIconInteractive": "StatusIcon（可互動）",
+      "priorityIconInteractive": "PriorityIcon（可互動）",
+      "agentStatusDots": "代理狀態點",
+      "runInvocationBadges": "執行呼叫徽章",
+      "issueReferencePill": "議題參考標籤",
+      "statusInteractiveHint": "點擊圖示以變更狀態（目前：{{status}}）",
+      "priorityInteractiveHint": "點擊圖示以變更（目前：{{priority}}）",
+      "issueReferencePillDescription": "在所有引用任務的地方都會用到——包括 Markdown、相關工作分頁與活動摘要。傳入 status 即可一眼顯示目標議題的狀態。在「已移除」情境下請使用 strikethrough。"
+    },
+    "agentCapsule": {
+      "title": "代理膠囊",
+      "description": "品牌「膠囊即代理」主題。單一代理呈現為高聳的膠囊造型，並在啟動過程中經歷三個階段。在線狀態的填色使用品牌代理漸層色票（--agent-Na → --agent-Nb）；若使用者啟用 prefers-reduced-motion，則會略過液態上升與脈動動畫，直接呈現最終狀態。",
+      "states": "狀態",
+      "sizes": "尺寸",
+      "gradients": "漸層",
+      "stateSlot": "槽位",
+      "stateConfigured": "已設定",
+      "stateOnline": "上線",
+      "stateOnlineBlueGlow": "上線 · 藍色光暈",
+      "sizeSm": "小",
+      "sizeMd": "中",
+      "sizeLg": "大",
+      "sizeCustomPx": "自訂像素"
+    },
+    "formElements": {
+      "title": "表單元件",
+      "input": "輸入框",
+      "textarea": "文字區域",
+      "checkboxLabel": "核取方塊與標籤",
+      "inlineEditor": "行內編輯器",
+      "placeholder": {
+        "default": "預設輸入",
+        "disabled": "停用輸入",
+        "writeSomething": "寫點東西..."
+      },
+      "label": {
+        "checked": "已勾選項目",
+        "unchecked": "未勾選項目",
+        "disabled": "停用項目"
+      },
+      "editor": {
+        "title": "標題（單行）",
+        "body": "內文（單行）",
+        "description": "描述（多行、自動調整大小）"
+      }
+    },
+    "select": {
+      "title": "選取",
+      "defaultSize": "預設尺寸",
+      "smallTrigger": "小型觸發器",
+      "placeholder": {
+        "status": "選取狀態"
+      },
+      "currentValue": "目前值：{{value}}",
+      "item": {
+        "backlog": "待辦清單",
+        "todo": "待辦",
+        "inProgress": "進行中",
+        "inReview": "審核中",
+        "done": "完成",
+        "critical": "緊急",
+        "high": "高",
+        "medium": "中",
+        "low": "低"
+      }
+    },
+    "dropdownMenu": {
+      "title": "下拉選單",
+      "trigger": "快速動作",
+      "markAsDone": "標記為完成",
+      "openDocs": "開啟文件",
+      "watchIssue": "關注議題",
+      "deleteIssue": "刪除議題"
+    },
+    "popover": {
+      "title": "彈出框",
+      "open": "開啟彈出框",
+      "agentHeartbeat": "代理心跳",
+      "lastRunStatus": "上次執行於 24 秒前成功完成。下次排程執行將於 9 分鐘後開始。",
+      "wakeNow": "立即喚醒"
+    },
+    "collapsible": {
+      "title": "可摺疊區",
+      "hideFilters": "隱藏進階篩選",
+      "showFilters": "顯示進階篩選",
+      "owner": "負責人",
+      "filterByAgent": "以代理名稱篩選"
+    },
+    "sheet": {
+      "title": "側邊面板",
+      "openSidePanel": "開啟側邊面板",
+      "issueProperties": "議題屬性",
+      "editMetadata": "編輯中繼資料，無須離開目前頁面。"
+    },
+    "scrollArea": {
+      "title": "捲動區",
+      "heartbeatRun": "心跳執行 #{{n}}：已成功完成"
+    },
+    "command": {
+      "title": "指令面板（CMDK）",
+      "placeholder": "輸入指令或搜尋...",
+      "noResults": "查無結果。",
+      "group": {
+        "pages": "頁面",
+        "actions": "動作"
+      },
+      "item": {
+        "dashboard": "儀表板",
+        "issues": "議題",
+        "openCommandPalette": "開啟指令面板",
+        "createNewIssue": "建立新議題"
+      }
+    },
+    "breadcrumb": {
+      "title": "麵包屑導覽",
+      "projects": "專案",
+      "paperclipApp": "Paperclip 應用",
+      "issueList": "議題清單"
+    },
+    "cards": {
+      "title": "卡片",
+      "standardCard": "標準卡片",
+      "metricCards": "數據卡片",
+      "description": {
+        "demo": "含輔助說明的卡片描述。"
+      },
+      "content": {
+        "demo": "卡片內容放置於此，為主要內文區域。"
+      },
+      "action": "動作",
+      "metric": {
+        "activeAgents": "啟用中的代理",
+        "openIssues": "未結議題",
+        "monthlyCost": "每月成本",
+        "uptime": "運行時間",
+        "deltaThisWeek": "本週 +3",
+        "underBudget": "低於預算"
+      },
+      "cardTitleDemo": "卡片標題",
+      "cardDescriptionDemo": "含輔助說明的卡片描述。",
+      "cardContentDemo": "卡片內容放置於此，為主要內文區域。"
+    },
+    "tabs": {
+      "title": "頁�",
+      "pillVariant": "預設（藥丸）樣式",
+      "lineVariant": "底線樣式",
+      "overview": "總覽",
+      "runs": "執行紀錄",
+      "config": "設定",
+      "costs": "成本",
+      "summary": "摘要",
+      "details": "詳細資料",
+      "comments": "留言",
+      "content": {
+        "overview": "總覽頁籤的內容。",
+        "runs": "執行紀錄頁籤的內容。",
+        "config": "設定頁籤的內容。",
+        "costs": "成本頁籤的內容。",
+        "summary": "使用底線頁籤的摘要內容。",
+        "details": "詳細資料內容。",
+        "comments": "留言內容。"
+      }
+    },
+    "entityRows": {
+      "membershipAction": "成員動作",
+      "subtitle": {
+        "responsible": "負責人：Agent Alpha",
+        "completedAgo": "於 2 天前完成",
+        "blockedBy": "被 PAP-001 阻擋",
+        "hoverHint": "將游標懸停或聚焦於該列，以顯示保留的動作區。",
+        "persistentAction": "持續顯示的動作，列內容會變淡。",
+        "disabledPending": "在樂觀更新進行中時停用。",
+        "targetVisible": "伺服器確認時會立即顯示目標狀態。"
+      },
+      "title": "實體列"
+    },
+    "filterBar": {
+      "title": "篩選列",
+      "resetFilters": "重設篩選"
+    },
+    "avatars": {
+      "title": "頭像",
+      "sizes": "尺寸",
+      "group": "群組"
+    },
+    "identity": {
+      "title": "身份",
+      "sizes": "尺寸",
+      "initialsDerivation": "縮寫衍生",
+      "customInitials": "自訂縮寫"
+    },
+    "tooltips": {
+      "title": "工具提示",
+      "hoverMe": "將游標移至此處",
+      "thisIsTooltip": "這是工具提示",
+      "settings": "設定"
+    },
+    "dialog": {
+      "title": "對話框",
+      "open": "開啟對話框",
+      "dialogTitle": "對話框標題",
+      "description": "這是一個範例對話框，展示包含標頭、內容與頁尾的標準版面。",
+      "label": {
+        "name": "名稱",
+        "description": "描述"
+      },
+      "placeholder": {
+        "name": "輸入名稱",
+        "describe": "描述..."
+      }
+    },
+    "emptyState": {
+      "title": "空狀態",
+      "demoMessage": "目前沒有項目。建立第一個項目以開始使用。",
+      "demoAction": "建立項目"
+    },
+    "progressBars": {
+      "title": "進度條（預算）",
+      "underBudget": "低於預算（{{pct}}%）",
+      "warning": "警告（{{pct}}%）",
+      "overBudget": "超出預算（{{pct}}%）",
+      "percent": "{{pct}}%",
+      "horizontal": "水平",
+      "left": "左",
+      "right": "右"
+    },
+    "logViewer": {
+      "title": "日誌檢視器",
+      "line1": "[12:00:01] INFO  代理已成功啟動",
+      "line2": "[12:00:02] INFO  正在處理任務 PAP-001",
+      "line3": "[12:00:05] WARN  接近速率上限（80%）",
+      "line4": "[12:00:08] INFO  任務 PAP-001 已完成",
+      "line5": "[12:00:12] ERROR 連線上游服務逾時",
+      "line6": "[12:00:12] SYS   將於 5 秒後重試連線...",
+      "line7": "[12:00:17] INFO  重新連線成功",
+      "live": "即時"
+    },
+    "propertyRow": {
+      "title": "屬性列模式",
+      "responsible": "負責人",
+      "created": "建立時間",
+      "demoDate": "2025 年 1 月 15 日"
+    },
+    "navigation": {
+      "title": "導覽模式",
+      "sidebarNavItems": "側邊欄導覽項目",
+      "viewToggle": "檢視切換",
+      "item": {
+        "dashboard": "儀表板",
+        "issues": "議題",
+        "agents": "代理",
+        "projects": "專案"
+      },
+      "toggle": {
+        "list": "清單",
+        "org": "組織"
+      }
+    },
+    "groupedList": {
+      "title": "分組清單（議題模式）",
+      "inProgress": "進行中"
+    },
+    "commentThread": {
+      "title": "留言串模式",
+      "heading": "留言（{{count}}）",
+      "author": {
+        "agent": "代理",
+        "human": "人類"
+      },
+      "demoDate1": "2025 年 1 月 15 日",
+      "demoDate2": "2025 年 1 月 16 日",
+      "body1": "已開始處理認證模組。需要先設定 API 金鑰。",
+      "body2": "API 金鑰已新增至保險庫，請繼續進行。",
+      "placeholder": "新增留言...",
+      "submit": "留言"
+    },
+    "costTable": {
+      "title": "成本表格模式",
+      "header": {
+        "model": "模型",
+        "tokens": "權杖",
+        "cost": "成本"
+      },
+      "total": "總計"
+    },
+    "skeletons": {
+      "title": "骨架元件",
+      "individual": "單一",
+      "pageList": "頁面骨架（清單）",
+      "pageDetail": "頁面骨架（詳細資料）"
+    },
+    "separator": {
+      "title": "分隔線"
+    },
+    "teamCatalog": {
+      "title": "團隊目錄",
+      "description": "團隊目錄瀏覽／安裝介面中的元件（/teams-catalog）。測試資料與 Storybook 共用。",
+      "teamRow": "TeamRow（瀏覽清單）",
+      "bundled": "內建 · {{count}}",
+      "optional": "選用 · {{count}}",
+      "installed": "已安裝 · {{count}}",
+      "installedNote": "已安裝的團隊會摺疊於 INSTALLED · N 之下；若安裝版本過舊（伺服器 originHash ≠ 目錄 contentHash），會顯示琥珀色 ↑ 徽章（PAP-10256）。",
+      "teamCard": "TeamCard（引導流程格狀）",
+      "teamCardDescription": "引導流程「挑選起始團隊」格狀中的方形磁磚。被選取的磁磚會加上 ring-2 ring-ring。驅動 useInstallTeamCatalogEntry 簡化流程。",
+      "teamHierarchyPreview": "TeamHierarchyPreview",
+      "requiredSkillsList": "RequiredSkillsList",
+      "envInputsList": "EnvInputsList",
+      "externalSourcesList": "ExternalSourcesList",
+      "sourcePolicyStep": "來源政策步驟（StepSourcePolicy）",
+      "skillPlanStep": "技能規劃步驟（StepSkillPlan）"
+    },
+    "commonIcons": {
+      "title": "常用圖示（Lucide）"
+    },
+    "keyboardShortcuts": {
+      "title": "鍵盤快捷鍵",
+      "openCommandPalette": "開啟指令面板",
+      "newIssue": "新增議題（輸入框外）",
+      "toggleSidebar": "切換側邊欄",
+      "togglePropertiesPanel": "切換屬性面板",
+      "submitMarkdownComment": "送出 Markdown 留言"
+    },
+    "issueOutput": {
+      "title": "議題輸出介面",
+      "multipleOutputs": "多個輸出（主要影片 +「其他產出」）",
+      "degradedOutput": "降級輸出（無效／失敗的附件中繼資料）",
+      "empty": "空狀態",
+      "emptyDescription": "當議題未產出任何工件工作產物時，輸出區塊不會渲染任何內容（無佔位卡片）。"
+    },
+    "toolsAndAccess": {
+      "title": "工具與存取",
+      "enforcementBannerDefault": "EnforcementBanner — 預設／偵測到拒絕",
+      "enforcementBannerTones": "EnforcementBanner — 展示性色調（資訊／警告／錯誤）",
+      "enforcementBannerDescription1": "持續顯示於「工具與存取」介面頂端。當過去一小時內受治理的工具呼叫被拒絕或失敗時，會切換為 denied-detected 色調。僅供觀察，實際執行是在工具閘道中進行。",
+      "enforcementBannerDescription2": "帶有色調的靜態治理文案。用於 Runtime 上的 PAP-10400 信任層級橫幅，以及「代理 → 工具」中的有效存取橫幅。傳入 title／body 與選填的 icon。",
+      "effectiveAccessTitle": "有效存取 — 已由伺服器解析。",
+      "effectiveAccessBody": "這就是工具閘道所能接受的內容。設定檔與政策的編輯約 5 秒內生效；提示本身無法擴充範圍。",
+      "localStdioTitle": "本機 stdio 是本機程式碼執行，並非安全性沙箱。",
+      "localStdioBody": "本機 stdio 插槽以協調器的權限執行。僅�定受信任的指令；對於任何您不會親自執行的項目，請予以隔離。",
+      "runtimeFailedTitle": "執行階段已安全關閉。",
+      "runtimeFailedBody": "監督器正在重新啟動（第 2／3 次嘗試）。閘道會回傳 runtime-error，且代理不會看到部分輸出。",
+      "actionCardPending": "動作核准卡 — 待處理／過期（介面 11／12）",
+      "actionCardPendingDescription": "在所有變體上都顯示簽署的 payload sha256 與到期時間（PAP-10400）。過期變體會將邊框染成琥珀色、橫幅提示目錄雜湊不符、在目前雜湊旁以刪除線標示前一組雜湊，並在重新發出請求前將「核准」按鈕設為停用。",
+      "actionCardMobile": "動作核准卡 — 行動版（390×844，介面 99）",
+      "actionCardMobileDescription": "內容相同；三個按鈕以全寬堆疊呈現，依序為「核准／拒絕／編輯並重新簽署」，綁定表格使用 70px 的標�欄。",
+      "bindingsTable": "BindingsTable（亦於稽核列展開檢視中重複使用）",
+      "bindingsTableDescription": "兩欄式鍵／值區塊，值以等寬字型呈現。內嵌於 ActionCard 中，亦於稽核列展開檢視中獨立重複使用。",
+      "toolAccessStatusKeys": "工具存取狀態鍵（StatusBadge）",
+      "toolAccessStatusDescription": "政策決策、連線／執行階段狀態與目錄隔離皆透過 lib/status-colors 中定義的標準 StatusBadge 鍵進行呈現。",
+      "emptyStateCanonical": "EmptyState（標準，含描述與動作）",
+      "emptyStateMessage": "尚無連線",
+      "emptyStateDescription": "新增應用程式連線以設定憑證並探索其工具。",
+      "emptyStateAction": "新增連線"
+    },
+    "envVarsEditor": {
+      "title": "環境變數編輯器",
+      "description": "可重複使用的環境變數編輯器（代理、專案、環境、routines）。共用一個表格、欄內 Text／Secret 來源切換、含釘選「建立密鑰」項目的模糊搜尋密鑰選擇器、機敏值自動偵測，以及內嵌的密鑰健康狀態警告。完整 10 種狀態請參閱 Storybook 的 Product／Environment Variables Editor 故事。"
+    },
+    "resizablePanels": {
+      "title": "可調整大小的面板",
+      "description": "圍繞 react-resizable-panels（Skill Studio D2）所建立的設計系統元件。拖曳分隔線即可調整大小；面板支援百分比或像素（minSize=\"240px\"）限制，且中間面板可摺疊。任何需要分割畫面的場景皆可使用。",
+      "panelA": "面板 A",
+      "panelB": "面板 B（可摺疊）",
+      "panelC": "面板 C"
+    },
+    "inlineBanner": {
+      "title": "行內橫幅",
+      "description": "以 token 為基礎的全幅通知（brandBanner 色調）。info 用於來源／情境，warning 用於已暫停／需注意。支援選填的粗體標題與尾端動作區。可取代手刻的 bg-yellow-*／bg-blue-* 橫幅。",
+      "builtInAgent": "內建代理",
+      "builtInAgentBody": "隨 Paperclip 內建並驅動 Briefs。可暫停但無法刪除。",
+      "briefsPausedTitle": "Briefs 已暫停。",
+      "briefsPausedBody": "其內建代理於 2 天前暫停，因此目前未產生新的 brief。",
+      "summaryFailedTitle": "摘要產生失敗。",
+      "summaryFailedBody": "關聯議題在寫入摘要前已進入終止狀態。",
+      "resetToDefaults": "重設為預設值",
+      "viewAgent": "檢視代理",
+      "resumeAgent": "恢復代理",
+      "retry": "重試",
+      "compactBody": "用於嵌入對話框與互動視窗中的精簡變體。"
+    },
+    "builtInLifecycle": {
+      "title": "內建代理生命週期標�",
+      "description1": "用於提示狀態的衍生生命週期標籤（琥珀色）。生命週期標籤與代理狀態詞彙分開，僅在 needs_setup／pending_approval 時顯示。",
+      "description2": "<BuiltInAgentGate agentKey> 組合 PageSkeleton + EmptyState + InlineBanner，呈現依賴內建代理之功能的載入／設定／待核准／已暫停／就緒狀態。"
+    }
   },
   "environments": {
     "environments": {

@@ -2407,7 +2407,486 @@
     "online_blue_glow": "online · blue glow",
     "pending_approval": "pending_approval",
     "ring_2_ring_ring": "ring-2 ring-ring",
-    "teams_catalog": "/teams-catalog"
+    "teams_catalog": "/teams-catalog",
+    "page": {
+      "title": "Design Guide",
+      "description": "Every component, style, and pattern used across Paperclip."
+    },
+    "coverage": {
+      "title": "Component Coverage",
+      "description": "This page should be updated when new UI primitives or app-level patterns ship.",
+      "uiPrimitives": "UI primitives",
+      "appComponents": "App components"
+    },
+    "colors": {
+      "title": "Colors",
+      "core": "Core",
+      "sidebar": "Sidebar",
+      "chart": "Chart",
+      "swatch": {
+        "background": "Background",
+        "foreground": "Foreground",
+        "card": "Card",
+        "primary": "Primary",
+        "primaryForeground": "Primary foreground",
+        "secondary": "Secondary",
+        "muted": "Muted",
+        "mutedForeground": "Muted foreground",
+        "accent": "Accent",
+        "destructive": "Destructive",
+        "border": "Border",
+        "ring": "Ring",
+        "sidebarBackground": "Sidebar",
+        "sidebarBorder": "Sidebar border",
+        "chart1": "Chart 1",
+        "chart2": "Chart 2",
+        "chart3": "Chart 3",
+        "chart4": "Chart 4",
+        "chart5": "Chart 5"
+      }
+    },
+    "typography": {
+      "title": "Typography",
+      "pageTitle": "Page Title — text-xl font-bold",
+      "sectionTitle": "Section Title — text-lg font-semibold",
+      "sectionHeading": "Section Heading — text-sm font-semibold uppercase tracking-wide",
+      "cardTitle": "Card Title — text-sm font-medium",
+      "cardTitleAlt": "Card Title Alt — text-sm font-semibold",
+      "bodyText": "Body text — text-sm",
+      "mutedDescription": "Muted description — text-sm text-muted-foreground",
+      "tinyLabel": "Tiny label — text-xs text-muted-foreground",
+      "monoIdentifier": "Mono identifier — text-sm font-mono text-muted-foreground",
+      "largeStat": "Large stat — text-2xl font-bold",
+      "logCodeText": "Log/code text — font-mono text-xs"
+    },
+    "radius": {
+      "title": "Radius"
+    },
+    "buttons": {
+      "title": "Buttons",
+      "variants": "Variants",
+      "sizes": "Sizes",
+      "iconButtons": "Icon buttons",
+      "withIcons": "With icons",
+      "states": "States",
+      "label": {
+        "default": "Default",
+        "secondary": "Secondary",
+        "outline": "Outline",
+        "ghost": "Ghost",
+        "destructive": "Destructive",
+        "link": "Link",
+        "extraSmall": "Extra Small",
+        "small": "Small",
+        "large": "Large",
+        "newIssue": "New Issue",
+        "upload": "Upload",
+        "delete": "Delete",
+        "add": "Add",
+        "disabled": "Disabled",
+        "disabledOutline": "Disabled Outline"
+      }
+    },
+    "badges": {
+      "title": "Badges",
+      "variants": "Variants",
+      "label": {
+        "default": "Default",
+        "secondary": "Secondary",
+        "outline": "Outline",
+        "destructive": "Destructive",
+        "ghost": "Ghost"
+      }
+    },
+    "statusSystem": {
+      "title": "Status System",
+      "allStatuses": "StatusBadge (all statuses)",
+      "issueStatusBadge": "IssueStatusBadge (brand chip + glyph — PAP-75)",
+      "statusIconInteractive": "StatusIcon (interactive)",
+      "priorityIconInteractive": "PriorityIcon (interactive)",
+      "agentStatusDots": "Agent status dots",
+      "runInvocationBadges": "Run invocation badges",
+      "issueReferencePill": "IssueReferencePill",
+      "statusInteractiveHint": "Click the icon to change status (current: {{status}})",
+      "priorityInteractiveHint": "Click the icon to change (current: {{priority}})",
+      "issueReferencePillDescription": "Used wherever a task is referenced — in markdown, the Related Work tab, and activity summaries. Pass status to show the target issue's state at a glance. Use strikethrough for \"removed\" contexts."
+    },
+    "agentCapsule": {
+      "title": "Agent Capsule",
+      "description": "The brand \"capsule is the agent\" motif. A single agent reads as a tall pill that moves through three states as it comes to life. The online fill uses the live brand agent-gradient tokens (--agent-Na → --agent-Nb); prefers-reduced-motion skips the liquid rise and pulses and renders the final state.",
+      "states": "States",
+      "sizes": "Sizes",
+      "gradients": "Gradients",
+      "stateSlot": "slot",
+      "stateConfigured": "configured",
+      "stateOnline": "online",
+      "stateOnlineBlueGlow": "online · blue glow",
+      "sizeSm": "sm",
+      "sizeMd": "md",
+      "sizeLg": "lg",
+      "sizeCustomPx": "custom px"
+    },
+    "formElements": {
+      "title": "Form Elements",
+      "input": "Input",
+      "textarea": "Textarea",
+      "checkboxLabel": "Checkbox & Label",
+      "inlineEditor": "Inline Editor",
+      "placeholder": {
+        "default": "Default input",
+        "disabled": "Disabled input",
+        "writeSomething": "Write something..."
+      },
+      "label": {
+        "checked": "Checked item",
+        "unchecked": "Unchecked item",
+        "disabled": "Disabled item"
+      },
+      "editor": {
+        "title": "Title (single-line)",
+        "body": "Body text (single-line)",
+        "description": "Description (multiline, auto-sizing)"
+      }
+    },
+    "select": {
+      "title": "Select",
+      "defaultSize": "Default size",
+      "smallTrigger": "Small trigger",
+      "placeholder": {
+        "status": "Select status"
+      },
+      "currentValue": "Current value: {{value}}",
+      "item": {
+        "backlog": "Backlog",
+        "todo": "Todo",
+        "inProgress": "In Progress",
+        "inReview": "In Review",
+        "done": "Done",
+        "critical": "Critical",
+        "high": "High",
+        "medium": "Medium",
+        "low": "Low"
+      }
+    },
+    "dropdownMenu": {
+      "title": "Dropdown Menu",
+      "trigger": "Quick Actions",
+      "markAsDone": "Mark as done",
+      "openDocs": "Open docs",
+      "watchIssue": "Watch issue",
+      "deleteIssue": "Delete issue"
+    },
+    "popover": {
+      "title": "Popover",
+      "open": "Open Popover",
+      "agentHeartbeat": "Agent heartbeat",
+      "lastRunStatus": "Last run succeeded 24s ago. Next timer run in 9m.",
+      "wakeNow": "Wake now"
+    },
+    "collapsible": {
+      "title": "Collapsible",
+      "hideFilters": "Hide advanced filters",
+      "showFilters": "Show advanced filters",
+      "owner": "Owner",
+      "filterByAgent": "Filter by agent name"
+    },
+    "sheet": {
+      "title": "Sheet",
+      "openSidePanel": "Open Side Panel",
+      "issueProperties": "Issue Properties",
+      "editMetadata": "Edit metadata without leaving the current page."
+    },
+    "scrollArea": {
+      "title": "Scroll Area",
+      "heartbeatRun": "Heartbeat run #{{n}}: completed successfully"
+    },
+    "command": {
+      "title": "Command (CMDK)",
+      "placeholder": "Type a command or search...",
+      "noResults": "No results found.",
+      "group": {
+        "pages": "Pages",
+        "actions": "Actions"
+      },
+      "item": {
+        "dashboard": "Dashboard",
+        "issues": "Issues",
+        "openCommandPalette": "Open command palette",
+        "createNewIssue": "Create new issue"
+      }
+    },
+    "breadcrumb": {
+      "title": "Breadcrumb",
+      "projects": "Projects",
+      "paperclipApp": "Paperclip App",
+      "issueList": "Issue List"
+    },
+    "cards": {
+      "title": "Cards",
+      "standardCard": "Standard Card",
+      "metricCards": "Metric Cards",
+      "description": {
+        "demo": "Card description with supporting text."
+      },
+      "content": {
+        "demo": "Card content goes here. This is the main body area."
+      },
+      "action": "Action",
+      "metric": {
+        "activeAgents": "Active Agents",
+        "openIssues": "Open Issues",
+        "monthlyCost": "Monthly Cost",
+        "uptime": "Uptime",
+        "deltaThisWeek": "+3 this week",
+        "underBudget": "Under budget"
+      },
+      "cardTitleDemo": "Card Title",
+      "cardDescriptionDemo": "Card description with supporting text.",
+      "cardContentDemo": "Card content goes here. This is the main body area."
+    },
+    "tabs": {
+      "title": "Tabs",
+      "pillVariant": "Default (pill) variant",
+      "lineVariant": "Line variant",
+      "overview": "Overview",
+      "runs": "Runs",
+      "config": "Config",
+      "costs": "Costs",
+      "summary": "Summary",
+      "details": "Details",
+      "comments": "Comments",
+      "content": {
+        "overview": "Overview tab content.",
+        "runs": "Runs tab content.",
+        "config": "Config tab content.",
+        "costs": "Costs tab content.",
+        "summary": "Summary content with underline tabs.",
+        "details": "Details content.",
+        "comments": "Comments content."
+      }
+    },
+    "entityRows": {
+      "membershipAction": "Membership action",
+      "subtitle": {
+        "responsible": "Responsible: Agent Alpha",
+        "completedAgo": "Completed 2 days ago",
+        "blockedBy": "Blocked by PAP-001",
+        "hoverHint": "Hover or focus the row to reveal the reserved action slot.",
+        "persistentAction": "Persistent action with dimmed row content.",
+        "disabledPending": "Disabled while the optimistic mutation is pending.",
+        "targetVisible": "The target state is visible immediately while the server confirms."
+      },
+      "title": "Entity Rows"
+    },
+    "filterBar": {
+      "title": "Filter Bar",
+      "resetFilters": "Reset filters"
+    },
+    "avatars": {
+      "title": "Avatars",
+      "sizes": "Sizes",
+      "group": "Group"
+    },
+    "identity": {
+      "title": "Identity",
+      "sizes": "Sizes",
+      "initialsDerivation": "Initials derivation",
+      "customInitials": "Custom initials"
+    },
+    "tooltips": {
+      "title": "Tooltips",
+      "hoverMe": "Hover me",
+      "thisIsTooltip": "This is a tooltip",
+      "settings": "Settings"
+    },
+    "dialog": {
+      "title": "Dialog",
+      "open": "Open Dialog",
+      "dialogTitle": "Dialog Title",
+      "description": "This is a sample dialog showing the standard layout with header, content, and footer.",
+      "label": {
+        "name": "Name",
+        "description": "Description"
+      },
+      "placeholder": {
+        "name": "Enter a name",
+        "describe": "Describe..."
+      }
+    },
+    "emptyState": {
+      "title": "Empty State",
+      "demoMessage": "No items to show. Create your first one to get started.",
+      "demoAction": "Create Item"
+    },
+    "progressBars": {
+      "title": "Progress Bars (Budget)",
+      "underBudget": "Under budget ({{pct}}%)",
+      "warning": "Warning ({{pct}}%)",
+      "overBudget": "Over budget ({{pct}}%)",
+      "percent": "{{pct}}%",
+      "horizontal": "Horizontal",
+      "left": "Left",
+      "right": "Right"
+    },
+    "logViewer": {
+      "title": "Log Viewer",
+      "line1": "[12:00:01] INFO  Agent started successfully",
+      "line2": "[12:00:02] INFO  Processing task PAP-001",
+      "line3": "[12:00:05] WARN  Rate limit approaching (80%)",
+      "line4": "[12:00:08] INFO  Task PAP-001 completed",
+      "line5": "[12:00:12] ERROR Connection timeout to upstream service",
+      "line6": "[12:00:12] SYS   Retrying connection in 5s...",
+      "line7": "[12:00:17] INFO  Reconnected successfully",
+      "live": "Live"
+    },
+    "propertyRow": {
+      "title": "Property Row Pattern",
+      "responsible": "Responsible",
+      "created": "Created",
+      "demoDate": "Jan 15, 2025"
+    },
+    "navigation": {
+      "title": "Navigation Patterns",
+      "sidebarNavItems": "Sidebar nav items",
+      "viewToggle": "View toggle",
+      "item": {
+        "dashboard": "Dashboard",
+        "issues": "Issues",
+        "agents": "Agents",
+        "projects": "Projects"
+      },
+      "toggle": {
+        "list": "List",
+        "org": "Org"
+      }
+    },
+    "groupedList": {
+      "title": "Grouped List (Issues pattern)",
+      "inProgress": "In Progress"
+    },
+    "commentThread": {
+      "title": "Comment Thread Pattern",
+      "heading": "Comments ({{count}})",
+      "author": {
+        "agent": "Agent",
+        "human": "Human"
+      },
+      "demoDate1": "Jan 15, 2025",
+      "demoDate2": "Jan 16, 2025",
+      "body1": "Started working on the authentication module. Will need API keys configured.",
+      "body2": "API keys have been added to the vault. Please proceed.",
+      "placeholder": "Leave a comment...",
+      "submit": "Comment"
+    },
+    "costTable": {
+      "title": "Cost Table Pattern",
+      "header": {
+        "model": "Model",
+        "tokens": "Tokens",
+        "cost": "Cost"
+      },
+      "total": "Total"
+    },
+    "skeletons": {
+      "title": "Skeletons",
+      "individual": "Individual",
+      "pageList": "Page Skeleton (list)",
+      "pageDetail": "Page Skeleton (detail)"
+    },
+    "separator": {
+      "title": "Separator"
+    },
+    "teamCatalog": {
+      "title": "Team Catalog",
+      "description": "Components from the Team Catalog browse/install surface (/teams-catalog). Fixtures are shared with the Storybook stories.",
+      "teamRow": "TeamRow (browse list)",
+      "bundled": "Bundled · {{count}}",
+      "optional": "Optional · {{count}}",
+      "installed": "Installed · {{count}}",
+      "installedNote": "Installed teams collapse under INSTALLED · N; an out-of-date install (server originHash ≠ catalog contentHash) shows the amber ↑ badge (PAP-10256).",
+      "teamCard": "TeamCard (onboarding grid)",
+      "teamCardDescription": "Square tile for the onboarding \"Pick a starter team\" grid. Selected tile gets ring-2 ring-ring. Drives the useInstallTeamCatalogEntry simplified flow.",
+      "teamHierarchyPreview": "TeamHierarchyPreview",
+      "requiredSkillsList": "RequiredSkillsList",
+      "envInputsList": "EnvInputsList",
+      "externalSourcesList": "ExternalSourcesList",
+      "sourcePolicyStep": "Source policy step (StepSourcePolicy)",
+      "skillPlanStep": "Skill plan step (StepSkillPlan)"
+    },
+    "commonIcons": {
+      "title": "Common Icons (Lucide)"
+    },
+    "keyboardShortcuts": {
+      "title": "Keyboard Shortcuts",
+      "openCommandPalette": "Open Command Palette",
+      "newIssue": "New Issue (outside inputs)",
+      "toggleSidebar": "Toggle Sidebar",
+      "togglePropertiesPanel": "Toggle Properties Panel",
+      "submitMarkdownComment": "Submit markdown comment"
+    },
+    "issueOutput": {
+      "title": "Issue Output Surface",
+      "multipleOutputs": "Multiple outputs (primary video + 'Also produced')",
+      "degradedOutput": "Degraded output (invalid / failed attachment metadata)",
+      "empty": "Empty state",
+      "emptyDescription": "When an issue has produced no artifact work products, the Output section renders nothing at all (no placeholder card)."
+    },
+    "toolsAndAccess": {
+      "title": "Tools & Access",
+      "enforcementBannerDefault": "EnforcementBanner — default / denied-detected",
+      "enforcementBannerTones": "EnforcementBanner — presentational tones (info / warning / error)",
+      "enforcementBannerDescription1": "Persistent at the top of the Tools & Access surface. Tints to denied-detected when governed tool calls were denied or failed in the last hour. Observability only — enforcement lives in the tool gateway.",
+      "enforcementBannerDescription2": "Static governance copy with a tone. Used for the PAP-10400 trust-tier banner on Runtime and the effective-access banner on Agent → Tools. Pass title/body and an optional icon.",
+      "effectiveAccessTitle": "Effective access — server resolved.",
+      "effectiveAccessBody": "This is exactly what the tool gateway will accept. Profile and policy edits reflect within ~5s; the prompt cannot expand it.",
+      "localStdioTitle": "Local stdio is local code execution, not a security sandbox.",
+      "localStdioBody": "A local-stdio slot runs with the orchestrator's privileges. Only bind trusted commands; quarantine anything you would not run yourself.",
+      "runtimeFailedTitle": "Runtime failed closed.",
+      "runtimeFailedBody": "The supervisor is restarting (attempt 2/3). The gateway returns runtime-error and the agent does not see partial output.",
+      "actionCardPending": "Action approval card — pending / stale (surfaces 11/12)",
+      "actionCardPendingDescription": "Signed payload sha256 + expiry surface on every variant (PAP-10400). The stale variant tints the border amber, banners the catalog-hash mismatch, strikes through the previous hash next to the current one, and renders Approve disabled until the request is re-issued.",
+      "actionCardMobile": "Action approval card — mobile (390×844, surface 99)",
+      "actionCardMobileDescription": "Identical content; the three buttons stack full-width in the order Approve / Deny / Edit & re-sign, and the bindings table uses a 70px label column.",
+      "bindingsTable": "BindingsTable (reused in the audit row drilldown)",
+      "bindingsTableDescription": "Two-column key/value block with mono values. Lives inside ActionCard and is reused standalone in the audit row drilldown.",
+      "toolAccessStatusKeys": "Tool-access status keys (StatusBadge)",
+      "toolAccessStatusDescription": "Policy decisions, connection/runtime health, and catalog quarantine all route through the canonical StatusBadge keys defined in lib/status-colors.",
+      "emptyStateCanonical": "EmptyState (canonical, with description + action)",
+      "emptyStateMessage": "No connections yet",
+      "emptyStateDescription": "Add a connection to an application to configure credentials and discover its tools.",
+      "emptyStateAction": "New connection"
+    },
+    "envVarsEditor": {
+      "title": "Environment Variables Editor",
+      "description": "Reusable env-var editor (agents, projects, environments, routines). One shared grid, an in-field Text/Secret source switch, a fuzzy secret picker with a pinned \"Create secret\" item, automatic sensitive-value detection, and inline secret-health warnings. See the Storybook Product/Environment Variables Editor stories for all 10 states."
+    },
+    "resizablePanels": {
+      "title": "Resizable Panels",
+      "description": "Design-system wrapper over react-resizable-panels (Skill Studio D2). Drag a handle to resize; panels accept percentage or pixel (minSize=\"240px\") constraints and the middle panel is collapsible. Use anywhere a split view is needed.",
+      "panelA": "Panel A",
+      "panelB": "Panel B (collapsible)",
+      "panelC": "Panel C"
+    },
+    "inlineBanner": {
+      "title": "Inline Banner",
+      "description": "Token-backed full-width notice (brandBanner tones). Use info for provenance/context and warning for paused/attention. Supports an optional bold title and a trailing actions slot. Replaces hand-rolled bg-yellow-*/bg-blue-* banners.",
+      "builtInAgent": "Built-in agent",
+      "builtInAgentBody": "Ships with Paperclip and powers Briefs. It can be paused but not deleted.",
+      "briefsPausedTitle": "Briefs is paused.",
+      "briefsPausedBody": "Its built-in agent was paused 2 days ago, so new briefs aren't being generated.",
+      "summaryFailedTitle": "Summary generation failed.",
+      "summaryFailedBody": "The linked issue reached a terminal state before a summary was written.",
+      "resetToDefaults": "Reset to defaults",
+      "viewAgent": "View agent",
+      "resumeAgent": "Resume agent",
+      "retry": "Retry",
+      "compactBody": "Compact variant for embedding inside dialogs and modals."
+    },
+    "builtInLifecycle": {
+      "title": "Built-in Agent Lifecycle Chips",
+      "description1": "A derived lifecycle chip (amber) for attention states. The lifecycle chip is separate from the agent status vocabulary and only shows for needs_setup / pending_approval.",
+      "description2": "<BuiltInAgentGate agentKey> composes PageSkeleton + EmptyState + InlineBanner to render the loading / setup / pending-approval / paused / ready states of a feature that depends on a built-in agent."
+    }
   },
   "devRestart": {
     "reason": {
