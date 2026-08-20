@@ -53,6 +53,7 @@ import type {
 } from "@paperclipai/shared";
 import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
+import { useTranslation } from "../i18n";
 import { useToastActions } from "../context/ToastContext";
 import {
   secretsApi,
@@ -650,6 +651,7 @@ export function Secrets() {
   const queryClient = useQueryClient();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation();
   const { pushToast } = useToastActions();
   const [activeTab, setActiveTab] = useState<SecretsTab>("secrets");
   const [secretDetailTab, setSecretDetailTab] = useState("details");
@@ -719,8 +721,8 @@ export function Secrets() {
   const [newFolderError, setNewFolderError] = useState<string | null>(null);
 
   useEffect(() => {
-    setBreadcrumbs([{ label: "Secrets" }]);
-  }, [setBreadcrumbs]);
+    setBreadcrumbs([{ label: t("secrets.title") }]);
+  }, [setBreadcrumbs, t]);
 
   const secretsQuery = useQuery({
     queryKey: selectedCompanyId
@@ -1796,7 +1798,7 @@ export function Secrets() {
     <div className="flex h-full min-h-0 flex-col gap-4">
       <div className="flex items-center gap-2">
         <KeyRound className="h-5 w-5 text-muted-foreground" />
-        <h1 className="text-lg font-semibold">Secrets</h1>
+        <h1 className="text-lg font-semibold">{t("secrets.title")}</h1>
       </div>
 
       <Tabs

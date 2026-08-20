@@ -1827,7 +1827,8 @@
     "arn_aws_secretsmanager": "arn:aws:secretsmanager:...",
     "https_vault_example_com": "https://vault.example.com",
     "optional": "(optional)",
-    "paperclip_prod": "paperclip/prod"
+    "paperclip_prod": "paperclip/prod",
+    "title": "Secrets"
   },
   "settings": {
     "action": {
