@@ -3004,5 +3004,149 @@
       "deniedToolsNote": "代理可能會提及但 Paperclip 會封鎖的工具:",
       "more": "另外還有 {{count}} 個"
     }
+  },
+  "joinRequestQueue": {
+    "title": "加入申請佇列",
+    "breadcrumb": "加入申請",
+    "subtitle": "在混合收件匣摘要之外，審核人類與代理的加入申請。此佇列使用與內嵌收件匣卡片相同的核准變更。",
+    "selectCompany": "請選擇公司以審核加入申請。",
+    "loading": "正在載入加入申請...",
+    "empty": "目前的篩選條件下沒有符合的加入申請。",
+    "filters": {
+      "status": "狀態",
+      "type": "申請類型"
+    },
+    "status": {
+      "pending": "待核准",
+      "approved": "已核准",
+      "rejected": "已拒絕"
+    },
+    "type": {
+      "all": "全部",
+      "human": "人類",
+      "agent": "代理"
+    },
+    "actions": {
+      "reject": "拒絕",
+      "approve": "核准"
+    },
+    "toast": {
+      "approved": "已核准加入申請",
+      "rejected": "已拒絕加入申請"
+    },
+    "errors": {
+      "forbidden": "您沒有審核此公司加入申請的權限。",
+      "loadFailed": "載入加入申請失敗。"
+    },
+    "requester": {
+      "unknownHuman": "未知的人類申請者",
+      "unknownAgent": "未知的代理申請者"
+    },
+    "details": {
+      "inviteContext": "邀請背景",
+      "joinInvite": "加入邀請",
+      "defaultRole": "• 預設角色 {{role}}",
+      "inviteUnavailable": "邀請中繼資料無法取得",
+      "requestDetails": "申請詳情",
+      "submitted": "提交於 {{date}}",
+      "sourceIp": "來源 IP {{ip}}"
+    }
+  },
+  "inviteLanding": {
+    "sessionFallback": "此帳號",
+    "loading": "正在載入邀請...",
+    "checkingAccess": "正在檢查您的存取權限...",
+    "openingCompany": "正在開啟公司...",
+    "bootstrapComplete": "引導完成",
+    "joinedCompany": "您已加入此公司",
+    "openBoard": "開啟看板",
+    "invitedTagline": "您已獲邀請加入 Paperclip",
+    "bootstrapTitle": "設定 Paperclip",
+    "joinTitle": "加入 {{company}}",
+    "companyDisplayFallback": "此 Paperclip 公司",
+    "descriptions": {
+      "agentForm": "請檢視邀請詳情，然後提交下方的代理資訊以啟動加入申請。",
+      "requiresAccount": "請先建立您的 Paperclip 帳號。若您已擁有帳號，請切換至登入並使用同一個電子郵件繼續此邀請。",
+      "ready": "您的帳號已準備就緒。請檢視邀請詳情，然後接受邀請以繼續。"
+    },
+    "summary": {
+      "company": "公司",
+      "invitedBy": "邀請者",
+      "invitedByFallback": "Paperclip 看板",
+      "requestedAccess": "要求的存取權限",
+      "agentJoin": "代理加入申請",
+      "companyAccess": "公司存取",
+      "inviteExpires": "邀請到期時間"
+    },
+    "messageFromInviter": "邀請者留言",
+    "signedInAs": "已登入為 {{session}}。",
+    "buttons": {
+      "continue": "繼續",
+      "openCompany": "開啟公司",
+      "acceptInvite": "接受邀請",
+      "submitRequest": "提交申請",
+      "working": "處理中...",
+      "signInContinue": "登入並繼續",
+      "createAccountContinue": "建立帳號並繼續"
+    },
+    "notAvailable": {
+      "title": "邀請無法使用",
+      "body": "此邀請可能已過期、被撤銷或已被使用。",
+      "rejected": "此加入申請未獲核准。",
+      "used": "此邀請已被使用。"
+    },
+    "errors": {
+      "invalidToken": "邀請權杖無效。",
+      "inviteNotFound": "找不到邀請",
+      "checkingAccess": "正在檢查您的公司存取權限。請稍後再試一次。",
+      "alreadyMember": "此帳號已屬於該公司。",
+      "acceptFailed": "接受邀請失敗"
+    },
+    "agentForm": {
+      "title": "提交代理詳細資料",
+      "subtitle": "此邀請將在 {{company}} 中為新代理建立審核申請。",
+      "agentName": "代理名稱",
+      "adapterType": "配接器類型",
+      "capabilities": "能力",
+      "comingSoon": "(即將推出)"
+    },
+    "authForm": {
+      "titleCreate": "建立您的帳號",
+      "titleSignIn": "登入以繼續",
+      "subtitleCreate": "請先建立 Paperclip 帳號。完成後將回到此處接受 {{company}} 的邀請。",
+      "subtitleSignIn": "請使用與此邀請相符的 Paperclip 帳號。若您尚無帳號，請切換回建立帳號。",
+      "createAccount": "建立帳號",
+      "existingAccount": "我已有帳號",
+      "fillAll": "請填寫所有必填欄位。",
+      "name": "名稱",
+      "email": "電子郵件",
+      "password": "密碼",
+      "helperCreate": "之前已註冊過？請改用「我已有帳號」選項，確保邀請綁定到正確的 Paperclip 使用者。",
+      "helperSignIn": "還沒有帳號？請切換回建立帳號，以便使用新登入接受邀請。"
+    },
+    "acceptForm": {
+      "alreadyMember": "您已在此公司中",
+      "completing": "正在完成公司存取",
+      "bootstrapTitle": "接受引導邀請",
+      "acceptTitle": "接受公司邀請",
+      "granting": "正在授予您對 {{company}} 的存取權限。",
+      "belongs": "此帳號已屬於 {{company}}。",
+      "thisWill": "此操作將{{action}}。",
+      "finishBootstrap": "完成 Paperclip 設定",
+      "grantOrComplete": "授予或完成您對 {{company}} 的存取",
+      "submitting": "正在提交申請...",
+      "finishing": "正在完成登入..."
+    },
+    "awaiting": {
+      "title": "申請加入 {{company}}",
+      "body": "您的申請仍在等待核准。{{approver}} 必須核准您的加入申請。",
+      "adminFallback": "公司管理員",
+      "approvalPageLabel": "核准頁面",
+      "approvalPagePath": "公司設定 → 成員",
+      "askThem": "請他們前往 {{path}} 以核准您的申請。",
+      "refreshNote": "經核准後請重新整理此頁面，您將會自動被重新導向。",
+      "claimSecretLabel": "領取密鑰",
+      "onboardingLabel": "入門指引"
+    }
   }
 }

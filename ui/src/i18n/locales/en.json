@@ -3004,5 +3004,149 @@
       "deniedToolsNote": "Tools the agent could name but Paperclip would block:",
       "more": "+{{count}} more"
     }
+  },
+  "joinRequestQueue": {
+    "title": "Join Request Queue",
+    "breadcrumb": "Join Requests",
+    "subtitle": "Review human and agent join requests outside the mixed inbox feed. This queue uses the same approval mutations as the inline inbox cards.",
+    "selectCompany": "Select a company to review join requests.",
+    "loading": "Loading join requests…",
+    "empty": "No join requests match the current filters.",
+    "filters": {
+      "status": "Status",
+      "type": "Request type"
+    },
+    "status": {
+      "pending": "Pending approval",
+      "approved": "Approved",
+      "rejected": "Rejected"
+    },
+    "type": {
+      "all": "All",
+      "human": "Human",
+      "agent": "Agent"
+    },
+    "actions": {
+      "reject": "Reject",
+      "approve": "Approve"
+    },
+    "toast": {
+      "approved": "Join request approved",
+      "rejected": "Join request rejected"
+    },
+    "errors": {
+      "forbidden": "You do not have permission to review join requests for this company.",
+      "loadFailed": "Failed to load join requests."
+    },
+    "requester": {
+      "unknownHuman": "Unknown human requester",
+      "unknownAgent": "Unknown agent requester"
+    },
+    "details": {
+      "inviteContext": "Invite context",
+      "joinInvite": "join invite",
+      "defaultRole": "• default role {{role}}",
+      "inviteUnavailable": "Invite metadata unavailable",
+      "requestDetails": "Request details",
+      "submitted": "Submitted {{date}}",
+      "sourceIp": "Source IP {{ip}}"
+    }
+  },
+  "inviteLanding": {
+    "sessionFallback": "this account",
+    "loading": "Loading invite...",
+    "checkingAccess": "Checking your access...",
+    "openingCompany": "Opening company...",
+    "bootstrapComplete": "Bootstrap complete",
+    "joinedCompany": "You joined the company",
+    "openBoard": "Open board",
+    "invitedTagline": "You've been invited to join Paperclip",
+    "bootstrapTitle": "Set up Paperclip",
+    "joinTitle": "Join {{company}}",
+    "companyDisplayFallback": "this Paperclip company",
+    "descriptions": {
+      "agentForm": "Review the invite details, then submit the agent information below to start the join request.",
+      "requiresAccount": "Create your Paperclip account first. If you already have one, switch to sign in and continue the invite with the same email.",
+      "ready": "Your account is ready. Review the invite details, then accept it to continue."
+    },
+    "summary": {
+      "company": "Company",
+      "invitedBy": "Invited by",
+      "invitedByFallback": "Paperclip board",
+      "requestedAccess": "Requested access",
+      "agentJoin": "Agent join request",
+      "companyAccess": "Company access",
+      "inviteExpires": "Invite expires"
+    },
+    "messageFromInviter": "Message from inviter",
+    "signedInAs": "Signed in as {{session}}.",
+    "buttons": {
+      "continue": "Continue",
+      "openCompany": "Open company",
+      "acceptInvite": "Accept invite",
+      "submitRequest": "Submit request",
+      "working": "Working...",
+      "signInContinue": "Sign in and continue",
+      "createAccountContinue": "Create account and continue"
+    },
+    "notAvailable": {
+      "title": "Invite not available",
+      "body": "This invite may be expired, revoked, or already used.",
+      "rejected": "This join request was not approved.",
+      "used": "This invite has already been used."
+    },
+    "errors": {
+      "invalidToken": "Invalid invite token.",
+      "inviteNotFound": "Invite not found",
+      "checkingAccess": "Checking your company access. Try again in a moment.",
+      "alreadyMember": "This account already belongs to the company.",
+      "acceptFailed": "Failed to accept invite"
+    },
+    "agentForm": {
+      "title": "Submit agent details",
+      "subtitle": "This invite will create an approval request for a new agent in {{company}}.",
+      "agentName": "Agent name",
+      "adapterType": "Adapter type",
+      "capabilities": "Capabilities",
+      "comingSoon": "(Coming soon)"
+    },
+    "authForm": {
+      "titleCreate": "Create your account",
+      "titleSignIn": "Sign in to continue",
+      "subtitleCreate": "Start with a Paperclip account. After that, you'll come right back here to accept the invite for {{company}}.",
+      "subtitleSignIn": "Use the Paperclip account that already matches this invite. If you do not have one yet, switch back to create account.",
+      "createAccount": "Create account",
+      "existingAccount": "I already have an account",
+      "fillAll": "Please fill in all required fields.",
+      "name": "Name",
+      "email": "Email",
+      "password": "Password",
+      "helperCreate": "Already signed up before? Use the existing-account option instead so the invite lands on the right Paperclip user.",
+      "helperSignIn": "No account yet? Switch back to create account so you can accept the invite with a new login."
+    },
+    "acceptForm": {
+      "alreadyMember": "Already in this company",
+      "completing": "Completing company access",
+      "bootstrapTitle": "Accept bootstrap invite",
+      "acceptTitle": "Accept company invite",
+      "granting": "Granting your access to {{company}}.",
+      "belongs": "This account already belongs to {{company}}.",
+      "thisWill": "This will {{action}}.",
+      "finishBootstrap": "finish setting up Paperclip",
+      "grantOrComplete": "grant or complete your access to {{company}}",
+      "submitting": "Submitting request...",
+      "finishing": "Finishing sign-in..."
+    },
+    "awaiting": {
+      "title": "Request to join {{company}}",
+      "body": "Your request is still awaiting approval. {{approver}} must approve your request to join.",
+      "adminFallback": "A company admin",
+      "approvalPageLabel": "Approval page",
+      "approvalPagePath": "Company Settings → Members",
+      "askThem": "Ask them to visit {{path}} to approve your request.",
+      "refreshNote": "Refresh this page after you've been approved — you'll be redirected automatically.",
+      "claimSecretLabel": "Claim secret",
+      "onboardingLabel": "Onboarding"
+    }
   }
 }
