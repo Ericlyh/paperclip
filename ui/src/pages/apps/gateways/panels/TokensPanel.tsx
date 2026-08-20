@@ -15,6 +15,7 @@ import { cn } from "@/lib/utils";
 import { copyTextToClipboard } from "@/lib/clipboard";
 import { gatewaysQueryKey } from "../NewGatewayDialog";
 import { maskedTokenLabel, TOKEN_STATUS_LABEL, tokenStatus, type TokenStatus } from "../gateway-helpers";
+import { useTranslation } from "react-i18next";
 
 const DEFAULT_ACTIONS: ToolMcpGatewayTokenAction[] = ["tools/list", "tools/call"];
 
@@ -62,6 +63,7 @@ export function TokensPanel({
   gateway: ToolMcpGatewayWithTokens;
   onTokenCreated?: (token: ToolMcpGatewayTokenCreated) => void;
 }) {
+  const { t } = useTranslation("tokensPanel");
   const queryClient = useQueryClient();
   const { pushToast } = useToast();
   const [minting, setMinting] = useState(false);
@@ -94,8 +96,8 @@ export function TokensPanel({
       setOwnerNote("");
       setExpiresAt(defaultExpiry());
       pushToast({
-        title: "Token minted",
-        body: "Copy it now — you won’t see the full value again.",
+        title: t("toastTokenMinted"),
+        body: t("toastCopyNow"),
         tone: "success",
       });
       onTokenCreated?.(token);
@@ -103,7 +105,7 @@ export function TokensPanel({
     },
     onError: (error) =>
       pushToast({
-        title: "Token was not minted",
+        title: t("toastTokenNotMinted"),
         body: error instanceof Error ? error.message : String(error),
         tone: "error",
       }),
@@ -114,12 +116,12 @@ export function TokensPanel({
     onSuccess: async (token) => {
       setConfirmToken(null);
       setRevokeName("");
-      pushToast({ title: "Token revoked", body: `${token.name} can no longer connect.`, tone: "success" });
+      pushToast({ title: t("toastTokenRevoked"), body: t("toastTokenRevokedBody", { name: token.name }), tone: "success" });
       await invalidate();
     },
     onError: (error) =>
       pushToast({
-        title: "Token was not revoked",
+        title: t("toastTokenNotRevoked"),
         body: error instanceof Error ? error.message : String(error),
         tone: "error",
       }),
@@ -128,11 +130,11 @@ export function TokensPanel({
   async function copyToken(value: string) {
     try {
       await copyTextToClipboard(value);
-      pushToast({ title: "Copied", body: "Access token", tone: "success" });
+      pushToast({ title: t("toastCopied"), body: t("toastAccessToken"), tone: "success" });
     } catch (error) {
       pushToast({
-        title: "Copy failed",
-        body: error instanceof Error ? error.message : "Clipboard access is unavailable.",
+        title: t("toastCopyFailed"),
+        body: error instanceof Error ? error.message : t("toastClipboardUnavailable"),
         tone: "error",
       });
     }
@@ -156,11 +158,11 @@ export function TokensPanel({
     <div className="space-y-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <p className="text-sm text-muted-foreground">
-          Each token is a separate way in. Revoke any one without breaking the others.
+          {t("tokensPanelDescription")}
         </p>
         <Button size="sm" onClick={() => setMinting((value) => !value)}>
           <Plus className="mr-1.5 h-3.5 w-3.5" />
-          Mint token
+          {t("mintToken")}
         </Button>
       </div>
 
@@ -168,11 +170,11 @@ export function TokensPanel({
         <form className="space-y-3 rounded-md border border-border p-4" onSubmit={submit}>
           <div className="grid gap-3 md:grid-cols-2">
             <label className="space-y-1.5 text-sm">
-              <span className="text-xs font-medium text-muted-foreground">Name</span>
+              <span className="text-xs font-medium text-muted-foreground">{t("name")}</span>
               <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="cto-cursor" required autoFocus />
             </label>
             <label className="space-y-1.5 text-sm">
-              <span className="text-xs font-medium text-muted-foreground">Owner / client</span>
+              <span className="text-xs font-medium text-muted-foreground">{t("ownerClient")}</span>
               <Input
                 value={clientLabel}
                 onChange={(e) => setClientLabel(e.target.value)}
@@ -182,20 +184,20 @@ export function TokensPanel({
           </div>
           <div className="grid gap-3 md:grid-cols-[1fr_auto]">
             <label className="space-y-1.5 text-sm">
-              <span className="text-xs font-medium text-muted-foreground">Note (why it exists)</span>
+              <span className="text-xs font-medium text-muted-foreground">{t("noteWhyItExists")}</span>
               <Input value={ownerNote} onChange={(e) => setOwnerNote(e.target.value)} placeholder="Dotta’s MacBook" />
             </label>
             <label className="space-y-1.5 text-sm">
-              <span className="text-xs font-medium text-muted-foreground">Expires</span>
+              <span className="text-xs font-medium text-muted-foreground">{t("expires")}</span>
               <Input type="date" value={expiresAt} onChange={(e) => setExpiresAt(e.target.value)} required />
             </label>
           </div>
           <div className="flex justify-end gap-2">
             <Button type="button" variant="ghost" size="sm" onClick={() => setMinting(false)}>
-              Cancel
+              {t("cancel")}
             </Button>
             <Button type="submit" size="sm" disabled={createMutation.isPending || !name.trim()}>
-              {createMutation.isPending ? "Minting…" : "Mint token"}
+              {createMutation.isPending ? t("minting") : t("mintToken")}
             </Button>
           </div>
         </form>

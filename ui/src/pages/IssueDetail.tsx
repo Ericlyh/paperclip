@@ -752,6 +752,7 @@ function IssueDetailLoadingState({
 }: {
   headerSeed: ReturnType<typeof readIssueDetailHeaderSeed>;
 }) {
+  const { t } = useTranslation();
   const identifier = headerSeed?.identifier ?? headerSeed?.id.slice(0, 8) ?? null;
   const { enabled: classicTaskInterfaceEnabled } = useClassicTaskInterfaceEnabled();
   const taskChatShellEnabled = !classicTaskInterfaceEnabled;
@@ -797,7 +798,7 @@ function IssueDetailLoadingState({
               ) : (
                 <span className="inline-flex items-center gap-1 text-xs text-muted-foreground opacity-50 px-1 -mx-1 py-0.5">
                   <ProjectTile size="xs" />
-                  No project
+                  {t("issueDetail.empty.noProject")}
                 </span>
               )}
             </>
@@ -871,6 +872,7 @@ interface InboxMobileToolbarProps {
     copyTaskAsMarkdown: string;
     openFile: string;
     properties: string;
+    hideTask: string;
   };
 }
 
@@ -933,14 +935,14 @@ function InboxMobileToolbar({
               onClick={() => { onCopy(); setMenuOpen(false); }}
             >
               <Copy className="h-3 w-3" />
-              Copy as markdown
+              {labels.copyTaskAsMarkdown}
             </button>
             <button
               className="flex items-center gap-2 w-full px-2 py-1.5 text-xs rounded hover:bg-accent/50"
               onClick={() => { onProperties(); setMenuOpen(false); }}
             >
               <SlidersHorizontal className="h-3 w-3" />
-              Properties
+              {labels.properties}
             </button>
             {issueIdProp && (
               <button
@@ -948,7 +950,7 @@ function InboxMobileToolbar({
                 onClick={() => { onHide(); setMenuOpen(false); }}
               >
                 <EyeOff className="h-3 w-3" />
-                Hide this task
+                {labels.hideTask}
               </button>
             )}
           </PopoverContent>
@@ -1142,6 +1144,7 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
   externalReferences,
   linkCaseReferences,
 }: IssueDetailChatTabProps) {
+  const { t } = useTranslation();
   // Seam for the Classic Task Interface (flag: enableClassicTaskInterface).
   // Flag ON renders the legacy IssueChatThread verbatim; flag OFF (the
   // default) renders the chat-style TaskChatThread. Both components share one
@@ -1303,7 +1306,7 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
         disabled={commentsLoadingOlder}
         onClick={onLoadOlderComments}
       >
-        {commentsLoadingOlder ? "Loading earlier comments..." : "Load earlier comments"}
+        {commentsLoadingOlder ? t("issueDetail.placeholder.loadingEarlierComments") : t("issueDetail.action.loadEarlierComments")}
       </Button>
     </div>
   ) : null;
@@ -1568,11 +1571,11 @@ function IssueDetailActivityTab({
         <div className="mb-3 px-3 py-2 rounded-lg border border-border">
           <div className="text-sm font-medium text-muted-foreground mb-1">{t("issueDetail.action.costSummary")}</div>
           {!issueCostSummary.hasCost && !issueCostSummary.hasTokens && !hasIssueTreeCost ? (
-            <div className="text-xs text-muted-foreground">No cost data yet.</div>
+            <div className="text-xs text-muted-foreground">{t("issueDetail.empty.noCostDataYet")}</div>
           ) : (
             <div className="space-y-1 text-xs text-muted-foreground tabular-nums">
               <div className="flex flex-wrap gap-3">
-                <span className="font-medium text-foreground">This task</span>
+                <span className="font-medium text-foreground">{t("issueDetail.action.thisTask")}</span>
                 {issueCostSummary.hasCost ? (
                   <span className="font-medium text-foreground">
                     ${issueCostSummary.cost.toFixed(4)}
@@ -1593,13 +1596,13 @@ function IssueDetailActivityTab({
                   </span>
                 ) : null}
                 {!issueCostSummary.hasCost && !issueCostSummary.hasTokens && !issueCostSummary.hasRuntime ? (
-                  <span>No direct cost data.</span>
+                  <span>{t("issueDetail.empty.noDirectCostData")}</span>
                 ) : null}
               </div>
               {hasIssueTreeCost && issueTreeCostSummary ? (
                 <div className="flex flex-wrap gap-3">
                   <span className="font-medium text-foreground">
-                    Including sub-tasks {(issueTreeCostSummary.costCents / 100).toLocaleString(undefined, {
+                    {t("issueDetail.action.includingSubTasks")} {(issueTreeCostSummary.costCents / 100).toLocaleString(undefined, {
                       style: "currency",
                       currency: "USD",
                       minimumFractionDigits: 4,
@@ -3959,6 +3962,7 @@ export function IssueDetail() {
           copyTaskAsMarkdown: t("issueDetail.action.copyTaskAsMarkdown"),
           openFile: t("issueDetail.action.openFile"),
           properties: t("issueDetail.section.properties"),
+          hideTask: t("issueDetail.action.hideTask"),
         }}
       />,
     );
