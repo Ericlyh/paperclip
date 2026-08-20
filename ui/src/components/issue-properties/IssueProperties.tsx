@@ -861,10 +861,10 @@ export function IssueProperties({
   const approverLabel = approverValues.map((value) => executionParticipantLabel(value)).join(", ");
   const reviewerTrigger = reviewerValues.length > 0
     ? <span className="text-sm truncate min-w-0" title={reviewerLabel}>{reviewerLabel}</span>
-    : <span className="text-sm text-muted-foreground">None</span>;
+    : <span className="text-sm text-muted-foreground">{t("common.none")}</span>;
   const approverTrigger = approverValues.length > 0
     ? <span className="text-sm truncate min-w-0" title={approverLabel}>{approverLabel}</span>
-    : <span className="text-sm text-muted-foreground">None</span>;
+    : <span className="text-sm text-muted-foreground">{t("common.none")}</span>;
   // PAP-16506 P4: who may give the `in_review` verdict. Only an agent sets this,
   // and only the two opt-in constraints are worth a row — the default (`null` ≡
   // "anyone can approve") is what every issue already does, so it shows nothing.
@@ -993,7 +993,7 @@ export function IssueProperties({
       ) : null}
     </span>
   ) : (
-    <span className="text-sm text-muted-foreground">None</span>
+    <span className="text-sm text-muted-foreground">{t("common.none")}</span>
   );
   const watchdogContent = (
     <div className="space-y-3 p-2">
@@ -1197,7 +1197,7 @@ export function IssueProperties({
                 {checkingMonitorNow ? "Checking…" : "Check now"}
               </Button>
             ) : null}
-            <Button type="button" size="sm" variant="outline" onClick={() => { setMonitorDetailsOpen(false); setMonitorOpen(true); }}>Edit</Button>
+            <Button type="button" size="sm" variant="outline" onClick={() => { setMonitorDetailsOpen(false); setMonitorOpen(true); }}>{t("common.edit")}</Button>
             <Button type="button" size="sm" variant="outline" onClick={() => { setMonitorDetailsOpen(false); clearMonitor(); }}>{t("issueProperties.watchdogClear")}</Button>
           </div>
         </TooltipContent>
@@ -1450,7 +1450,7 @@ export function IssueProperties({
       )}
     </div>
   ) : (
-    <span className="text-sm text-muted-foreground">None</span>
+    <span className="text-sm text-muted-foreground">{t("common.none")}</span>
   );
   const labelsExtra = (issue.labelIds ?? []).length > 0 ? (
     <button
@@ -1788,7 +1788,7 @@ export function IssueProperties({
       <span className="text-sm truncate min-w-0" title={projectName(issue.projectId)}>{projectName(issue.projectId)}</span>
     </>
   ) : (
-    <span className="text-sm text-muted-foreground">None</span>
+    <span className="text-sm text-muted-foreground">{t("common.none")}</span>
   );
   const projectPickerOptions = orderItemsBySelectedAndRecent(
     [
@@ -1920,7 +1920,7 @@ export function IssueProperties({
       {parentTitle}
     </span>
   ) : (
-    <span className="text-sm text-muted-foreground">None</span>
+    <span className="text-sm text-muted-foreground">{t("common.none")}</span>
   );
   const parentLink = issue.parentId ? (
     <Link
@@ -1989,9 +1989,9 @@ export function IssueProperties({
           </button>
         ))}
         {parentOptionsLoading ? (
-          <div className="px-2 py-2 text-xs text-muted-foreground">Searching tasks...</div>
+          <div className="px-2 py-2 text-xs text-muted-foreground">{t("issueProperties.relationSearchingTasks")}</div>
         ) : parentOptions.length === 0 ? (
-          <div className="px-2 py-2 text-xs text-muted-foreground">No matching tasks.</div>
+          <div className="px-2 py-2 text-xs text-muted-foreground">{t("issueProperties.relationNoMatchingTasks")}</div>
         ) : null}
       </div>
     </>
@@ -2088,7 +2088,7 @@ export function IssueProperties({
 
   const propertiesBody = (
     <div>
-      <PropertySection title="Triage" first>
+      <PropertySection title={t("issueProperties.sectionTriage")} first>
         <PropertyRow label="Status">
           <StatusIcon
             status={issue.status}
@@ -2179,7 +2179,7 @@ export function IssueProperties({
         </PropertyPicker>
       </PropertySection>
 
-      <PropertySection title="Relationships">
+      <PropertySection title={t("issueProperties.sectionRelationships")}>
         <PropertyPicker
           inline={inline}
           label="Parent"
@@ -2265,7 +2265,7 @@ export function IssueProperties({
               />
             </div>
           ) : (
-            <span className="text-sm text-muted-foreground">None</span>
+            <span className="text-sm text-muted-foreground">{t("common.none")}</span>
           )}
         </PropertyRow>
 
@@ -2292,7 +2292,7 @@ export function IssueProperties({
                   onClick={onAddSubIssue}
                 >
                   <Plus className="h-3 w-3" />
-                  Add sub-task
+                  {t("issueProperties.taskAddSubtask")}
                 </button>
               ) : null}
             </div>
@@ -2322,7 +2322,7 @@ export function IssueProperties({
         />
       </PropertySection>
 
-      <PropertySection title="Execution">
+      <PropertySection title={t("issueProperties.sectionExecution")}>
         {/* Read-only: agents set the policy, the board does not. */}
         {reviewPolicyBadge ? (
           <PropertyRow label="Approvals">
@@ -2418,8 +2418,8 @@ export function IssueProperties({
                 <Link
                   to={`/issues/${watchdogIssueRef.id}`}
                   className="inline-flex items-center justify-center h-5 w-5 rounded hover:bg-accent/50 transition-colors text-muted-foreground hover:text-foreground"
-                  title="Open watchdog task"
-                  aria-label="Open watchdog task"
+                  title={t("issueProperties.watchdogOpenTaskAria")}
+                  aria-label={t("issueProperties.watchdogOpenTaskAria")}
                   onClick={(e) => e.stopPropagation()}
                 >
                   <ArrowUpRight className="h-3 w-3" />
@@ -2433,7 +2433,7 @@ export function IssueProperties({
       </PropertySection>
 
       {hasWorkspaceRuntimeControls || issue.currentExecutionWorkspace?.branchName || issue.currentExecutionWorkspace?.cwd || issue.executionWorkspaceId ? (
-        <PropertySection title="Workspace">
+        <PropertySection title={t("issueProperties.sectionWorkspace")}>
           {showWorkspaceDetailLink && issue.executionWorkspaceId && (
             <PropertyRow label="Workspace">
               <Link
@@ -2441,7 +2441,7 @@ export function IssueProperties({
                 className="text-sm text-primary hover:underline inline-flex min-w-0 items-center gap-1.5"
               >
                 <HardDrive className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
-                View workspace
+                {t("issueProperties.taskViewWorkspace")}
                 <ArrowUpRight className="h-3 w-3 shrink-0" />
               </Link>
             </PropertyRow>
@@ -2486,7 +2486,7 @@ export function IssueProperties({
         </PropertySection>
       ) : null}
 
-      <PropertySection title="About">
+      <PropertySection title={t("issueProperties.sectionAbout")}>
         {originatingActor ? (
           <PropertyRow label="Originating">
             {originatingActor.kind === "agent" ? (
@@ -2602,7 +2602,7 @@ export function IssueProperties({
     return (
       <>
         {paneHeaderSlot
-          ? createPortal(<span className="text-sm font-medium">Properties</span>, paneHeaderSlot)
+          ? createPortal(<span className="text-sm font-medium">{t("issueProperties.title")}</span>, paneHeaderSlot)
           : null}
         {propertiesBody}
       </>
@@ -2635,16 +2635,16 @@ export function IssueProperties({
       }
     >
       <TabsTrigger value="properties" className={paneTabTriggerClass}>
-        Properties
+        {t("issueProperties.title")}
       </TabsTrigger>
       {hasPlanTab ? (
         <TabsTrigger value="plans" className={paneTabTriggerClass}>
-          Plan
+          {t("issueProperties.tabPlan")}
         </TabsTrigger>
       ) : null}
       {hasArtifactsTab ? (
         <TabsTrigger value="artifacts" className={paneTabTriggerClass}>
-          Artifacts
+          {t("issueProperties.tabArtifacts")}
         </TabsTrigger>
       ) : null}
     </TabsList>

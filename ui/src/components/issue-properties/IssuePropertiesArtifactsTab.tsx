@@ -28,6 +28,7 @@ import { MarkdownBody } from "@/components/MarkdownBody";
 import { DocumentAnnotationsCountChip, IssueDocumentAnnotations } from "@/components/IssueDocumentAnnotations";
 import { cn } from "@/lib/utils";
 import { useLocation } from "@/lib/router";
+import { useTranslation } from "@/i18n";
 
 interface IssuePropertiesArtifactsTabProps {
   issue: Issue;
@@ -185,7 +186,7 @@ function DocumentRow({
               <MarkdownBody>{doc.body}</MarkdownBody>
             </IssueDocumentAnnotations>
           ) : (
-            <p className="text-sm text-muted-foreground">Document is empty.</p>
+            <p className="text-sm text-muted-foreground">{t("issueProperties.artifactsEmpty")}</p>
           )}
         </div>
       ) : null}
@@ -204,6 +205,7 @@ function DocumentRow({
  * thread.
  */
 export function IssuePropertiesArtifactsTab({ issue, documentDeepLink }: IssuePropertiesArtifactsTabProps) {
+  const { t } = useTranslation();
   const { data: attachments } = useQuery({
     queryKey: queryKeys.issues.attachments(issue.id),
     queryFn: () => issuesApi.listAttachments(issue.id),
@@ -230,7 +232,7 @@ export function IssuePropertiesArtifactsTab({ issue, documentDeepLink }: IssuePr
     <div className="flex flex-col gap-2 py-2">
       {workProductRows.length > 0 ? (
         <>
-          <SectionHeading>Work products</SectionHeading>
+          <SectionHeading>{t("issueProperties.artifactsWorkProducts")}</SectionHeading>
           <ul className="flex flex-col gap-1">
             {workProductRows.map((wp) => (
               <li key={wp.id}>
@@ -242,7 +244,7 @@ export function IssuePropertiesArtifactsTab({ issue, documentDeepLink }: IssuePr
       ) : null}
       {documentRows.length > 0 ? (
         <>
-          <SectionHeading>Documents</SectionHeading>
+          <SectionHeading>{t("issueProperties.artifactsDocuments")}</SectionHeading>
           <ul className="flex flex-col gap-1">
             {documentRows.map((doc) => (
               <li key={doc.key}>
@@ -260,7 +262,7 @@ export function IssuePropertiesArtifactsTab({ issue, documentDeepLink }: IssuePr
       ) : null}
       {fileRows.length > 0 ? (
         <>
-          <SectionHeading>Files</SectionHeading>
+          <SectionHeading>{t("issueProperties.artifactsFiles")}</SectionHeading>
           <ul className="flex flex-col gap-1">
             {fileRows.map((a) => (
               <li key={a.id}>
