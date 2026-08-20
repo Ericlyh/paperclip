@@ -132,7 +132,7 @@ import {
   hasVisibleMonitorSurface,
 } from "../components/IssueMonitorBanner";
 import { IssueScheduledRetryCard } from "../components/IssueScheduledRetryCard";
-import { IssueProperties } from "../components/IssueProperties";
+import { IssueProperties, type IssuePropertiesDocumentDeepLink } from "../components/IssueProperties";
 import { PauseAffectsSummaryView } from "../components/interrupt-handoff/InterruptHandoffViews";
 import { computePauseAffectsSummary } from "../lib/interrupt-handoff";
 import { useIssueExternalObjects } from "../hooks/useIssueExternalObjects";
@@ -173,6 +173,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { formatIssueActivityAction } from "@/lib/activity-format";
 import { copyTextToClipboard } from "../lib/clipboard";
 import { buildIssuePropertiesPanelKey } from "../lib/issue-properties-panel-key";
+import { resolveIssueDocumentDeepLink } from "../lib/issue-document-deep-link";
 import { buildIssueSiblingNavigation, shouldRenderRichSubIssuesSection } from "../lib/issue-detail-subissues";
 import { filterIssueDescendants } from "../lib/issue-tree";
 import { buildSubIssueDefaultsForViewer } from "../lib/subIssueDefaults";
@@ -211,7 +212,6 @@ import {
 import { Badge } from "@/components/ui/badge";
 import {
   deriveOriginatingActor,
-  getClosedIsolatedExecutionWorkspaceMessage,
   isClosedIsolatedExecutionWorkspace,
   ISSUE_CONTINUATION_SUMMARY_DOCUMENT_KEY,
   ONBOARDING_FIRST_TASK_ORIGIN_KIND,
@@ -236,6 +236,12 @@ import {
   type WorkspaceFileRef,
   workspaceFileRefSchema,
 } from "@paperclipai/shared";
+
+// Stable empty array for React Query `data` defaults. A literal `= []` default
+// creates a new array reference on every render while `data` is undefined
+// (loading/idle), which destabilizes downstream memos and panel keys that
+// depend on it. Reusing one shared reference keeps those values stable.
+const EMPTY_ISSUES: Issue[] = [];
 
 type StopAndFinalizeRunError = Error & {
   runCancelledBeforeStatusUpdateFailed?: boolean;
@@ -667,33 +673,76 @@ function IssueSectionSkeleton({
   );
 }
 
+/**
+ * One chat-bubble placeholder mirroring TaskChatBubble's anatomy: agent replies
+ * sit left under an avatar + name author row, human messages sit right with no
+ * header. The bubble reuses the real rounding (rounded-2xl with a squared tail
+ * corner) so the skeleton reads as a conversation, not a stack of cards.
+ */
+function ChatBubbleSkeleton({
+  side,
+  className,
+}: {
+  side: "agent" | "human";
+  className?: string;
+}) {
+  const isHuman = side === "human";
+  return (
+    <div className={cn("flex w-full flex-col gap-1", isHuman ? "items-end" : "items-start")}>
+      {isHuman ? null : (
+        <span className="flex items-center gap-2 px-1">
+          <Skeleton className="h-6 w-6 rounded-full" />
+          <Skeleton className="h-3 w-24" />
+        </span>
+      )}
+      <Skeleton
+        className={cn(
+          "max-w-(--pct-85)",
+          isHuman ? "rounded-2xl rounded-br-sm" : "rounded-2xl rounded-bl-sm",
+          className,
+        )}
+      />
+    </div>
+  );
+}
+
+/**
+ * Composer placeholder mirroring TaskChatComposer's docked card (a bordered
+ * rounded input area with a plus, a mode chip, and a send affordance) so the
+ * foot of the loading state matches the real chat shell.
+ */
+function IssueChatComposerSkeleton({ className }: { className?: string }) {
+  return (
+    <div
+      className={cn("rounded-xl border border-input bg-card p-2", className)}
+      data-testid="issue-chat-composer-skeleton"
+    >
+      <div className="min-h-(--sz-48px) space-y-2 px-1 py-1">
+        <Skeleton className="h-3 w-1/2" />
+        <Skeleton className="h-3 w-1/3" />
+      </div>
+      <div className="mt-1 flex items-center gap-2">
+        <Skeleton className="h-8 w-8 rounded-md" />
+        <Skeleton className="h-8 w-24 rounded-md" />
+        <div className="flex-1" />
+        <Skeleton className="h-8 w-8 rounded-md" />
+      </div>
+    </div>
+  );
+}
+
+/**
+ * Alternating chat-bubble placeholders for the thread body. Widths and heights
+ * vary so the skeleton mirrors a real back-and-forth (TaskChatThreadView)
+ * rather than the pre-chat bordered card it replaced.
+ */
 function IssueChatSkeleton() {
   return (
-    <div className="space-y-3 rounded-lg border border-border p-3">
-      <div className="space-y-2">
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-8 w-8 rounded-full" />
-          <div className="space-y-2">
-            <Skeleton className="h-3 w-24" />
-            <Skeleton className="h-3 w-16" />
-          </div>
-        </div>
-        <Skeleton className="h-20 w-full rounded-xl" />
-      </div>
-      <div className="space-y-2">
-        <div className="flex items-center justify-end gap-2">
-          <div className="space-y-2 text-right">
-            <Skeleton className="ml-auto h-3 w-20" />
-            <Skeleton className="ml-auto h-3 w-14" />
-          </div>
-          <Skeleton className="h-8 w-8 rounded-full" />
-        </div>
-        <Skeleton className="ml-auto h-16 w-(--pct-85) rounded-xl" />
-      </div>
-      <div className="space-y-2 border-t border-border pt-3">
-        <Skeleton className="h-3 w-28" />
-        <Skeleton className="h-24 w-full rounded-xl" />
-      </div>
+    <div className="flex flex-col gap-3" data-testid="issue-chat-skeleton">
+      <ChatBubbleSkeleton side="agent" className="h-16 w-3/4" />
+      <ChatBubbleSkeleton side="human" className="h-9 w-1/2" />
+      <ChatBubbleSkeleton side="agent" className="h-24 w-4/5" />
+      <ChatBubbleSkeleton side="human" className="h-8 w-2/5" />
     </div>
   );
 }
@@ -778,17 +827,29 @@ function IssueDetailLoadingState({
         )}
       </div>
 
-      <Skeleton className="h-28 w-full rounded-lg border border-border" />
-
-      <div className="space-y-3">
-        <div className="flex items-center gap-2">
-          <Skeleton className="h-8 w-20" />
-          <Skeleton className="h-8 w-20" />
+      {taskChatShellEnabled ? (
+        // Chat shell: the thread is the whole surface — alternating bubble
+        // placeholders followed by the docked composer, no tab strip or
+        // properties-card chrome (those don't exist in the chat layout).
+        <div className="space-y-6">
+          <IssueChatSkeleton />
+          <IssueChatComposerSkeleton />
         </div>
-        <IssueChatSkeleton />
-      </div>
+      ) : (
+        <>
+          <Skeleton className="h-28 w-full rounded-lg border border-border" />
 
-      <IssueSectionSkeleton titleWidth="w-24" rows={3} />
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Skeleton className="h-8 w-20" />
+              <Skeleton className="h-8 w-20" />
+            </div>
+            <IssueChatSkeleton />
+          </div>
+
+          <IssueSectionSkeleton titleWidth="w-24" rows={3} />
+        </>
+      )}
     </div>
   );
 }
@@ -1179,7 +1240,8 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
       if (followUpCommentIds.has(comment.id)) {
         nextComment.followUpRequested = true;
       }
-      const queuedTargetRunId = locallyQueuedCommentRunIds.get(comment.id) ?? null;
+      const queuedTargetRunId =
+        locallyQueuedCommentRunIds.get(comment.id) ?? nextComment.queueTargetRunId ?? null;
       const locallyQueuedComment = applyLocalQueuedIssueCommentState(nextComment, {
         queuedTargetRunId,
         targetRunIsLive: queuedTargetRunId ? liveRunIds.has(queuedTargetRunId) : false,
@@ -1187,6 +1249,12 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
       });
       if (locallyQueuedComment !== nextComment) {
         return locallyQueuedComment;
+      }
+      // A queued target is fixed when the message is submitted. If that run
+      // settles while the request is still in flight, do not rebind the
+      // message's Interrupt action to an unrelated run that became live later.
+      if (queuedTargetRunId) {
+        return nextComment;
       }
       if (
         isQueuedIssueComment({
@@ -1202,7 +1270,7 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
         return {
           ...nextComment,
           queueState: "queued" as const,
-          queueTargetRunId: interruptibleIssueRun?.id ?? nextComment.queueTargetRunId ?? null,
+          queueTargetRunId: interruptibleIssueRun?.id ?? null,
           queueReason: queuedCommentReason,
         };
       }
@@ -1246,7 +1314,16 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
           the header so nothing sits above the thread in the page flow. */}
       {classicTaskInterfaceEnabled ? loadOlderButton : null}
       {commentsInitialLoading && commentsWithRunMeta.length === 0 && interactions.length === 0 ? (
-        <IssueChatSkeleton />
+        classicTaskInterfaceEnabled ? (
+          <IssueChatSkeleton />
+        ) : (
+          // Chat shell: center the bubbles at the thread cap (mirrors
+          // TaskChatThreadView) and dock a composer placeholder beneath them.
+          <div className="mx-auto flex w-full max-w-(--tc-shell-max-w) flex-col gap-3 px-4 py-4">
+            <IssueChatSkeleton />
+            <IssueChatComposerSkeleton className="mt-3" />
+          </div>
+        )
       ) : (
       <ThreadComponent
         composerRef={composerRef}
@@ -1637,7 +1714,10 @@ export function IssueDetail() {
   // legacy title/description block, sub-tasks table, plan decompositions and
   // Documents section are gated off (plan lives in the properties-pane Plan
   // tab). Flag ON restores the legacy page.
-  const { enabled: classicTaskInterfaceEnabled } = useClassicTaskInterfaceEnabled();
+  const {
+    enabled: classicTaskInterfaceEnabled,
+    loaded: classicTaskInterfaceLoaded,
+  } = useClassicTaskInterfaceEnabled();
   const taskChatShellEnabled = !classicTaskInterfaceEnabled;
   // Chat-style: the page wrapper spans the full center pane so the thread's
   // scroll viewport (and its scrollbar) reaches the properties-pane border;
@@ -1657,6 +1737,9 @@ export function IssueDetail() {
   const [moreOpen, setMoreOpen] = useState(false);
   const [copied, setCopied] = useState(false);
   const [mobilePropsOpen, setMobilePropsOpen] = useState(false);
+  const [documentDeepLink, setDocumentDeepLink] = useState<
+    (IssuePropertiesDocumentDeepLink & { issueId: string }) | null
+  >(null);
   const [fileViewerPromptOpen, setFileViewerPromptOpen] = useState(false);
   const [detailTab, setDetailTab] = useState("chat");
   // Redesign: the center tab strip is hidden, so chat is the only surface —
@@ -1704,12 +1787,16 @@ export function IssueDetail() {
   });
   const resolvedCompanyId = issue?.companyId ?? selectedCompanyId;
   const externalObjectsState = useIssueExternalObjects(issue?.id ?? null);
-  const commentComposerDisabledReason = useMemo(() => {
-    if (!issue?.currentExecutionWorkspace || !isClosedIsolatedExecutionWorkspace(issue.currentExecutionWorkspace)) {
-      return null;
-    }
-    return getClosedIsolatedExecutionWorkspaceMessage(issue.currentExecutionWorkspace);
-  }, [issue?.currentExecutionWorkspace]);
+  // A closed isolated workspace no longer blocks the composer. The server reopens
+  // the workspace when the next comment or resume arrives, so the composer stays
+  // enabled and a hint tells the user what happens.
+  const closedIsolatedWorkspaceReopenPending = useMemo(
+    () => Boolean(
+      issue?.currentExecutionWorkspace
+      && isClosedIsolatedExecutionWorkspace(issue.currentExecutionWorkspace),
+    ),
+    [issue?.currentExecutionWorkspace],
+  );
 
   const {
     data: commentPages,
@@ -1817,7 +1904,7 @@ export function IssueDetail() {
     [issueId, location.state, location.search],
   );
 
-  const { data: rawChildIssues = [], isLoading: childIssuesLoading } = useQuery({
+  const { data: rawChildIssuesData, isLoading: childIssuesLoading } = useQuery({
     queryKey:
       issue?.id && resolvedCompanyId
         ? queryKeys.issues.listByDescendantRoot(resolvedCompanyId, issue.id)
@@ -1826,8 +1913,9 @@ export function IssueDetail() {
     enabled: !!resolvedCompanyId && !!issue?.id,
     placeholderData: keepPreviousDataForSameQueryTail<Issue[]>(issue?.id ?? "pending"),
   });
+  const rawChildIssues: Issue[] = rawChildIssuesData ?? EMPTY_ISSUES;
   const {
-    data: rawSiblingIssues = [],
+    data: rawSiblingIssuesData,
     isLoading: siblingIssuesLoading,
     isError: siblingIssuesError,
   } = useQuery({
@@ -1838,6 +1926,7 @@ export function IssueDetail() {
     queryFn: () => issuesApi.list(resolvedCompanyId!, { parentId: issue!.parentId!, includeBlockedBy: true }),
     enabled: !!resolvedCompanyId && !!issue?.parentId,
   });
+  const rawSiblingIssues: Issue[] = rawSiblingIssuesData ?? EMPTY_ISSUES;
   const companyLiveRunsQueryKey = resolvedCompanyId ? queryKeys.liveRuns(resolvedCompanyId) : ["live-runs", "pending"] as const;
   const sharedCompanyLiveRuns = useSharedPollingQuery<LiveRunForIssue[]>({
     companyId: resolvedCompanyId,
@@ -2561,7 +2650,49 @@ export function IssueDetail() {
   });
   const handleChildIssueUpdate = useCallback((id: string, data: Record<string, unknown>) => {
     updateChildIssue.mutate({ id, data });
-  }, [updateChildIssue]);
+  }, [updateChildIssue.mutate]);
+
+  // PAP-496: the chat shell keeps the full sub-task tree directly below the
+  // title in the center column. This is the tree's single chat-shell home; the
+  // Properties pane does not duplicate it. Classic mode keeps its existing
+  // center-column section below the header.
+  const subTasksTree = useMemo(
+    () =>
+      taskChatShellEnabled && issue && showRichSubIssuesSection ? (
+        <IssuesList
+          issues={childIssues}
+          isLoading={childIssuesLoading}
+          agents={agents}
+          projects={projects}
+          liveIssueIds={liveIssueIds}
+          projectId={issue.projectId ?? undefined}
+          viewStateKey={`paperclip:issue-detail:${issue.id}:subissues-view`}
+          issueLinkState={resolvedIssueDetailState ?? location.state}
+          searchFilters={{ descendantOf: issue.id, includeBlockedBy: true }}
+          searchWithinLoadedIssues
+          baseCreateIssueDefaults={buildSubIssueDefaultsForViewer(issue, currentUserId)}
+          createIssueLabel="Sub-task"
+          defaultSortField="workflow"
+          showProgressSummary
+          parentIssueIdForCostSummary={issue.id}
+          onUpdateIssue={handleChildIssueUpdate}
+        />
+      ) : null,
+    [
+      taskChatShellEnabled,
+      issue,
+      showRichSubIssuesSection,
+      childIssues,
+      childIssuesLoading,
+      agents,
+      projects,
+      liveIssueIds,
+      resolvedIssueDetailState,
+      location.state,
+      currentUserId,
+      handleChildIssueUpdate,
+    ],
+  );
 
   const checkIssueMonitorNow = useMutation({
     mutationFn: () => issuesApi.checkMonitorNow(issueId!),
@@ -3400,6 +3531,7 @@ export function IssueDetail() {
         onRetryExternalObjects={externalObjectsState.isEnabled ? externalObjectsState.refetch : undefined}
         onCheckMonitorNow={() => checkIssueMonitorNow.mutate()}
         checkingMonitorNow={checkIssueMonitorNow.isPending}
+        documentDeepLink={documentDeepLink?.issueId === panelIssue.id ? documentDeepLink : null}
       />
     );
     return () => closePanel();
@@ -3420,6 +3552,7 @@ export function IssueDetail() {
     externalObjectsState.isLoading,
     externalObjectsState.isError,
     externalObjectsState.refetch,
+    documentDeepLink,
   ]);
 
   const goToInboxShortcutArmedRef = useRef(false);
@@ -3547,14 +3680,81 @@ export function IssueDetail() {
     };
   }, [fileViewerEnabled, keyboardShortcutsEnabled, navigate, sourceBreadcrumb.href]);
 
+  const routeIssueDocumentDeepLink = useCallback((hash: string) => {
+    const route = resolveIssueDocumentDeepLink(hash);
+    if (!route) return false;
+
+    if (route.kind === "continuation-summary") {
+      setDocumentDeepLink(null);
+      setDetailTab("activity");
+      setHandoffFocusSignal((current) => current + 1);
+      return true;
+    }
+
+    // The classic interface owns document links in its center-column
+    // Documents section. Do not open its tab-less properties panel.
+    if (!classicTaskInterfaceLoaded || !taskChatShellEnabled) return false;
+
+    if (isMobile) {
+      setMobilePropsOpen(true);
+    } else {
+      if (suppressPanelForFirstTask && issue?.id) {
+        setFirstTaskPanelOverrideIssueId(issue.id);
+      }
+      setPanelVisible(true);
+    }
+    const targetIssueId = issue?.id ?? issueId ?? "";
+    setDocumentDeepLink((current) => ({
+      issueId: targetIssueId,
+      tab: route.tab,
+      documentKey: route.documentKey,
+      requestId: current?.issueId === targetIssueId ? current.requestId + 1 : 1,
+    }));
+    return true;
+  }, [
+    classicTaskInterfaceLoaded,
+    isMobile,
+    issue?.id,
+    issueId,
+    setPanelVisible,
+    suppressPanelForFirstTask,
+    taskChatShellEnabled,
+  ]);
+
   useEffect(() => {
-    const hash = location.hash;
-    if (!hash.startsWith("#document-")) return;
-    const documentKey = decodeURIComponent(hash.slice("#document-".length));
-    if (documentKey !== ISSUE_CONTINUATION_SUMMARY_DOCUMENT_KEY) return;
-    setDetailTab("activity");
-    setHandoffFocusSignal((current) => current + 1);
-  }, [location.hash]);
+    if (!routeIssueDocumentDeepLink(location.hash)) {
+      setDocumentDeepLink(null);
+    }
+  }, [issueId, location.hash, routeIssueDocumentDeepLink]);
+
+  // React Router does not emit a location update when the user clicks a link
+  // whose hash is already current. Capture that repeated intent so a manually
+  // collapsed document reopens and scrolls back into view.
+  useEffect(() => {
+    const handleSameHashDocumentClick = (event: MouseEvent) => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      const anchor = target.closest<HTMLAnchorElement>("a[href]");
+      if (!anchor) return;
+      const rawHref = anchor.getAttribute("href");
+      if (!rawHref) return;
+
+      let targetUrl: URL;
+      try {
+        targetUrl = new URL(rawHref, window.location.href);
+      } catch {
+        return;
+      }
+      const sameIssue = rawHref.startsWith("#")
+        || (targetUrl.pathname === location.pathname && targetUrl.search === location.search);
+      if (!sameIssue || targetUrl.hash !== location.hash) return;
+      routeIssueDocumentDeepLink(targetUrl.hash);
+    };
+
+    document.addEventListener("click", handleSameHashDocumentClick, true);
+    return () => document.removeEventListener("click", handleSameHashDocumentClick, true);
+  }, [location.hash, location.pathname, location.search, routeIssueDocumentDeepLink]);
 
   // Scroll + briefly highlight work-product / direct-attachment anchors so the
   // company Artifacts page (PAP-10359) can deep-link to a specific artifact in
@@ -4244,7 +4444,10 @@ export function IssueDetail() {
         : "Assign an agent to wake them for triage while the subtree remains paused."
     )
     : null;
-  const composerHint = pausedComposerHint;
+  const reopenComposerHint = closedIsolatedWorkspaceReopenPending
+    ? "This issue's isolated workspace was archived. Your next comment or resume reopens it and rebuilds the worktree."
+    : null;
+  const composerHint = pausedComposerHint ?? reopenComposerHint;
   const queuedCommentReason: "hold" | "active_run" | "other" = activePauseHold ? "hold" : "active_run";
   const canApplyTreeControl =
     Boolean(treeControlPreview)
@@ -4660,6 +4863,8 @@ export function IssueDetail() {
           className={taskChatShellEnabled ? "text-base font-semibold" : "text-xl font-bold"}
         />
 
+        {taskChatShellEnabled ? subTasksTree : null}
+
         <IssueMonitorBanner
           issue={issue}
           onCheckNow={() => checkIssueMonitorNow.mutate()}
@@ -4745,6 +4950,7 @@ export function IssueDetail() {
   return (
     <FileViewerProvider issueId={issue.id} enabled={fileViewerEnabled}>
     <div
+      data-task-chat-shell={taskChatShellEnabled ? "" : undefined}
       className={
         taskChatShellEnabled
           ? isMobile
@@ -5156,7 +5362,7 @@ export function IssueDetail() {
               currentAssigneeValue={actualAssigneeValue}
               suggestedAssigneeValue={suggestedAssigneeValue}
               mentions={mentionOptions}
-              composerDisabledReason={commentComposerDisabledReason}
+              composerDisabledReason={null}
               composerHint={composerHint}
               queuedCommentReason={queuedCommentReason}
               onVote={handleCommentVote}
@@ -5422,6 +5628,7 @@ export function IssueDetail() {
                 onRetryExternalObjects={externalObjectsState.isEnabled ? externalObjectsState.refetch : undefined}
                 onCheckMonitorNow={() => checkIssueMonitorNow.mutate()}
                 checkingMonitorNow={checkIssueMonitorNow.isPending}
+                documentDeepLink={documentDeepLink?.issueId === issue.id ? documentDeepLink : null}
               />
             </div>
           </ScrollArea>

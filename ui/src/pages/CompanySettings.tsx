@@ -1,12 +1,10 @@
-import { ChangeEvent, Fragment, useEffect, useState } from "react";
+import { ChangeEvent, useEffect, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   DEFAULT_COMPANY_ATTACHMENT_MAX_BYTES,
   MAX_COMPANY_ATTACHMENT_MAX_BYTES,
-  ISSUE_THREAD_INTERACTION_KINDS,
   type InteractionResolverGovernance,
   type IssueThreadInteractionKind,
-  type IssueThreadInteractionResolverPolicy,
 } from "@paperclipai/shared";
 import { useCompany } from "../context/CompanyContext";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
@@ -15,14 +13,13 @@ import { assetsApi } from "../api/assets";
 import { queryKeys } from "../lib/queryKeys";
 import { Link } from "@/lib/router";
 import { Button } from "@/components/ui/button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { Settings, Download, Upload } from "lucide-react";
+import {
+  InteractionGovernancePanel,
+  applyGovernanceChange,
+  type GovernanceField,
+  type GovernanceSelectValue,
+} from "../components/InteractionGovernancePanel";
 import { CompanyPatternIcon } from "../components/CompanyPatternIcon";
 import {
   Field,
@@ -198,7 +195,7 @@ export function CompanySettings() {
 
   function handleGovernanceChange(
     kind: IssueThreadInteractionKind,
-    field: "defaultPolicy" | "cap",
+    field: GovernanceField,
     value: GovernanceSelectValue,
   ) {
     const next = applyGovernanceChange(governance, kind, field, value);

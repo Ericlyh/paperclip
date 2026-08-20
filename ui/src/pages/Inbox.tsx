@@ -59,7 +59,7 @@ import {
   issueTrailingColumns,
 } from "../components/IssueColumns";
 import { IssueFiltersPopover } from "../components/IssueFiltersPopover";
-import { IssueRow } from "../components/IssueRow";
+import { InboxArchiveButton, IssueRow } from "../components/IssueRow";
 import { BlockedInboxView } from "../components/BlockedInboxView";
 import { SwipeToArchive } from "../components/SwipeToArchive";
 
@@ -345,6 +345,9 @@ export function FailedRunInboxRow({
           </span>
         </Link>
         <div className="hidden shrink-0 items-center gap-2 sm:flex">
+          {onArchive ? (
+            <InboxArchiveButton onArchive={onArchive} disabled={archiveDisabled} />
+          ) : null}
           <Button
             type="button"
             variant="outline"
@@ -491,25 +494,32 @@ function ApprovalInboxRow({
             </span>
           </span>
         </Link>
-        {showResolutionButtons ? (
+        {(onArchive || showResolutionButtons) ? (
           <div className="hidden shrink-0 items-center gap-2 sm:flex">
-            <Button
-              size="sm"
-              className="h-8 bg-green-700 px-3 text-white hover:bg-green-600"
-              onClick={onApprove}
-              disabled={isPending}
-            >
-              Approve
-            </Button>
-            <Button
-              variant="destructive"
-              size="sm"
-              className="h-8 px-3"
-              onClick={onReject}
-              disabled={isPending}
-            >
-              Reject
-            </Button>
+            {onArchive ? (
+              <InboxArchiveButton onArchive={onArchive} disabled={archiveDisabled} />
+            ) : null}
+            {showResolutionButtons ? (
+              <>
+                <Button
+                  size="sm"
+                  className="h-8 bg-green-700 px-3 text-white hover:bg-green-600"
+                  onClick={onApprove}
+                  disabled={isPending}
+                >
+                  Approve
+                </Button>
+                <Button
+                  variant="destructive"
+                  size="sm"
+                  className="h-8 px-3"
+                  onClick={onReject}
+                  disabled={isPending}
+                >
+                  Reject
+                </Button>
+              </>
+            ) : null}
           </div>
         ) : null}
       </div>
@@ -622,6 +632,9 @@ function JoinRequestInboxRow({
           </span>
         </div>
         <div className="hidden shrink-0 items-center gap-2 sm:flex">
+          {onArchive ? (
+            <InboxArchiveButton onArchive={onArchive} disabled={archiveDisabled} />
+          ) : null}
           <Button
             size="sm"
             className="h-8 bg-green-700 px-3 text-white hover:bg-green-600"
