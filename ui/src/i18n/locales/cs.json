@@ -2363,7 +2363,15 @@
         "duplicateKeyBatch": "Another row in this batch already uses this key."
       }
     },
-    "title": "Secrets"
+    "title": "Secrets",
+    "Breadcrumb": "Breadcrumb",
+    "Disabled": "Disabled",
+    "Inactive": "Inactive",
+    "Loading_provider_vaults": "Loading provider vaults",
+    "MY_SECRET": "MY_SECRET",
+    "Operation": "Operation",
+    "Proposals": "Proposals",
+    "Secrets": "Secrets"
   },
   "settings": {
     "action": {
@@ -2913,7 +2921,8 @@
     "Will_import_from_source": "Will import from source",
     "Will_install_from_catalog": "Will install from catalog",
     "metadata_paperclip_catalogTeam": "metadata.paperclip.catalogTeam",
-    "root_agent": "root agent"
+    "root_agent": "root agent",
+    "title": "Teams"
   },
   "themeToggle": {
     "switchToDark": "Switch to dark theme",

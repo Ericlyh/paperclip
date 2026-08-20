@@ -2095,6 +2095,7 @@
     "All_secrets": "All secrets",
     "All_sources": "All sources",
     "All_statuses": "All statuses",
+    "Breadcrumb": "Breadcrumb",
     "Change_reference": "Change reference",
     "Coming_soon": "Coming soon",
     "Configure_an_AWS_provider_vault_to_enabl": "Configure an AWS provider vault to enable remote import",
@@ -2117,6 +2118,7 @@
     "Delete_user_provided_secret": "Delete user-provided secret",
     "Deployment_default": "Deployment default",
     "Disable_failed": "Disable failed",
+    "Disabled": "Disabled",
     "Discovery_needs_secretsmanager_ListSecre": "Discovery needs secretsmanager:ListSecrets in the selected region for the Paperclip server runtime/provider credential path.",
     "Display_name": "Display name",
     "Each_user": "Each user",
@@ -2135,6 +2137,7 @@
     "Health_checked": "Health checked",
     "Health_not_checked": "Health not checked",
     "If_you_already_know_the_exact_AWS_Secret": "If you already know the exact AWS Secrets Manager ARN, paste/link that ARN instead of using discovery. Exact-resource DescribeSecret and runtime read permissions are still required.",
+    "Inactive": "Inactive",
     "KMS_key_id": "KMS key id",
     "Last_resolved": "Last resolved",
     "Last_rotated": "Last rotated",
@@ -2144,11 +2147,14 @@
     "Linked_external": "Linked external",
     "Loading": "Loading…",
     "Loading_agents": "Loading agents…",
+    "Loading_provider_vaults": "Loading provider vaults",
+    "MY_SECRET": "MY_SECRET",
     "Managed_value": "Managed value",
     "Member_guidance": "Member guidance",
     "Member_owned_values": "Member-owned values",
     "Mount_path": "Mount path",
     "My_secrets": "My secrets",
+    "New_folder": "New folder",
     "New_secret": "New secret",
     "New_secret_here": "New secret here",
     "New_value": "New value",
@@ -2161,6 +2167,7 @@
     "No_secrets_yet_Create_a_shared_company_s": "No secrets yet. Create a shared company secret or one that each user supplies.",
     "No_stable_namespace_or_prefix_detected": "No stable namespace or prefix detected",
     "Not_yet_supported": "Not yet supported.",
+    "Operation": "Operation",
     "Owner_tag": "Owner tag",
     "Paperclip_owns_create_and_rotation_write": "Paperclip owns create and rotation writes for this provider secret.",
     "Paperclip_resolves_this_provider_referen": "Paperclip resolves this provider reference and can write new values to it via Update value.",
@@ -2169,6 +2176,7 @@
     "Personal_GitHub_token": "Personal GitHub token",
     "Production_local_vault": "Production local vault",
     "Project_id": "Project id",
+    "Proposals": "Proposals",
     "Provided_by": "Provided by",
     "Provider_vault": "Provider vault",
     "Provider_vault_created": "Provider vault created",
@@ -2194,6 +2202,7 @@
     "Secret_name_prefix": "Secret name prefix",
     "Secret_path_prefix": "Secret path prefix",
     "Secret_references": "Secret references",
+    "Secrets": "Secrets",
     "Select_a_company_to_manage_secrets": "Select a company to manage secrets.",
     "Select_a_provider": "Select a provider.",
     "Select_a_secret_first": "Select a secret first",
@@ -2238,14 +2247,10 @@
     "Writes_a_new_version_of_the_referenced_p": "Writes a new version of the referenced provider secret. The new value becomes current for every consumer of that secret, in and outside Paperclip.",
     "alias_paperclip_secrets": "alias/paperclip-secrets",
     "arn_aws_secretsmanager": "arn:aws:secretsmanager:...",
-    "https_vault_example_com": "https://vault.example.com",
-    "optional": "(optional)",
-    "paperclip_prod": "paperclip/prod",
-    "title": "Secrets",
-    "New_folder": "New folder",
     "filterTitle": "Filter",
-    "filtersTitle": "Filters: {{count}}",
     "filtersHeader": "Filters",
+    "filtersTitle": "Filters: {{count}}",
+    "https_vault_example_com": "https://vault.example.com",
     "import": {
       "title": "Import from AWS Secrets Manager",
       "description": "Bring AWS-managed secrets into Paperclip as external references.",
@@ -2371,7 +2376,10 @@
         "duplicateNameBatch": "Another row in this batch already uses this name.",
         "duplicateKeyBatch": "Another row in this batch already uses this key."
       }
-    }
+    },
+    "optional": "(optional)",
+    "paperclip_prod": "paperclip/prod",
+    "title": "Secrets"
   },
   "settings": {
     "action": {
@@ -2921,7 +2929,8 @@
     "Will_import_from_source": "Will import from source",
     "Will_install_from_catalog": "Will install from catalog",
     "metadata_paperclip_catalogTeam": "metadata.paperclip.catalogTeam",
-    "root_agent": "root agent"
+    "root_agent": "root agent",
+    "title": "Teams"
   },
   "themeToggle": {
     "switchToDark": "Switch to dark theme",
