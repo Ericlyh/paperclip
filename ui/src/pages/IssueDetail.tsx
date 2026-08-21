@@ -4479,7 +4479,7 @@ export function IssueDetail() {
         <Paperclip className="h-3.5 w-3.5 mr-1.5" />
         {uploadAttachment.isPending || importMarkdownDocument.isPending ? "Uploading..." : (
           <>
-            <span className="hidden sm:inline">Upload attachment</span>
+            <span className="hidden sm:inline">{t("issueDetail.uploadAttachment")}</span>
             <span className="sm:hidden">{t("issueDetail.action.uploadAttachment")}</span>
           </>
         )}
@@ -5583,7 +5583,7 @@ export function IssueDetail() {
                             </span>
                             <span className="min-w-0 flex-1 truncate">{candidate.title}</span>
                             {candidate.skipped && candidate.skipReason === "terminal_status" ? (
-                              <span className="shrink-0 text-xs text-muted-foreground">Complete</span>
+                              <span className="shrink-0 text-xs text-muted-foreground">{t("issueDetail.complete")}</span>
                             ) : null}
                           </Link>
                         </div>
@@ -5592,7 +5592,7 @@ export function IssueDetail() {
                   ) : null}
                 </div>
               ) : (
-                <p className="text-xs text-muted-foreground">Preview unavailable.</p>
+                <p className="text-xs text-muted-foreground">{t("issueDetail.previewUnavailable")}</p>
               )}
             </div>
           </div>

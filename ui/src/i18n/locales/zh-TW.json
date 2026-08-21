@@ -758,7 +758,17 @@
     "successRate": "Success Rate",
     "last14Days": "Last 14 days",
     "workspaceLabel": "Workspace",
-    "workingDirLabel": "Working dir:"
+    "workingDirLabel": "Working dir:",
+    "stderrExcerptLabel": "stderr 摘錄",
+    "stdoutExcerptLabel": "stdout 摘錄",
+    "metrics": {
+      "input": "輸入",
+      "output": "輸出",
+      "cached": "快取",
+      "cost": "成本"
+    },
+    "failureErrorLabel": "錯誤：",
+    "adapterResultJsonLabel": "配接器回傳 JSON"
   },
   "agentMultiSelect": {
     "agentsSelected_one": "已選擇 {{count}} 個代理",
@@ -4974,7 +4984,10 @@
       "unableToTriggerMonitor": "目前無法觸發監控",
       "unableToUpdateApproval": "無法更新審核",
       "unknownError": "未知錯誤"
-    }
+    },
+    "uploadAttachment": "上傳附件",
+    "complete": "完成",
+    "previewUnavailable": "無法顯示預覽。"
   },
   "issueMonitor": {
     "afterAttempt": "第 {{count}} 次嘗試後",
@@ -6878,7 +6891,17 @@
     "close": "Close",
     "restoreRevAsNew": "Restore rev ${left} as new revision",
     "compareWithCurrent": "Compare with current",
-    "restoreThisRevision": "Restore this revision"
+    "restoreThisRevision": "Restore this revision",
+    "couldNotLoadRevisions": "無法載入修訂版本",
+    "unknownErrorLoadingRevisions": "載入修訂版本時發生未知的錯誤。",
+    "compare": {
+      "field": "欄位",
+      "oldValue": "舊值",
+      "newValue": "新值",
+      "content": "內容",
+      "noDescriptionOnEither": "兩個修訂版本皆無說明。",
+      "descriptionsIdentical": "說明內容完全相同。"
+    }
   },
   "routineVariablesEditor": {
     "booleanFalse": "False",
@@ -7013,7 +7036,17 @@
     "unfiled": "未分類",
     "unknownAgent": "未知代理",
     "unknownFolder": "未知資料夾",
-    "unknownProject": "未知專案"
+    "unknownProject": "未知專案",
+    "draft": {
+      "newTitle": "新增例行性工作",
+      "responsible": "負責人",
+      "project": "專案",
+      "filedIn": "歸屬於",
+      "advancedDeliveryTitle": "進階遞送設定",
+      "advancedDeliveryHint": "將策略控制權限保留在工作定義之下。",
+      "concurrency": "並行",
+      "catchUp": "補執行"
+    }
   },
   "run": {
     "failed": "失敗",
@@ -9188,5 +9221,121 @@
     "expires": "Expires",
     "cancel": "Cancel",
     "minting": "Minting…"
+  },
+  "recoveryAction": {
+    "branchFacet": {
+      "detached": "分離 / 未知"
+    },
+    "breakGlass": {
+      "withoutAncestryProof": "無血緣證明",
+      "dirtyChanges": "未提交的變更",
+      "liveBranch": "目前分支",
+      "rescueBranch": "救援分支",
+      "restoreTo": "還原至"
+    },
+    "divergence": {
+      "ancestryVerdict": "血緣裁決"
+    },
+    "owner": {
+      "recovery": "復原：",
+      "board": "委員會",
+      "system": "系統"
+    },
+    "resolve": {
+      "ariaLabel": "處理復原動作",
+      "label": "處理復原"
+    },
+    "reissue": {
+      "baseRef": "基準參照",
+      "recorded": "已記錄",
+      "ancestry": "血緣"
+    }
+  },
+  "companyImport": {
+    "adapters": {
+      "title": "配接器"
+    },
+    "result": {
+      "completedTitle": "匯入已完成",
+      "completeTitle": "匯入完成",
+      "skillResults": "技能匯入結果"
+    },
+    "activation": {
+      "title": "啟用已匯入的代理與例行性工作",
+      "importedPaused": "匯入後已暫停",
+      "statusActivated": "已啟用",
+      "statusPaused": "已暫停"
+    },
+    "watcher": {
+      "resumeTitle": "繼續監看匯入"
+    },
+    "source": {
+      "title": "匯入來源",
+      "urlPlaceholder": "https://github.com/owner/repo/tree/main/company",
+      "companyPlaceholder": "已匯入的公司"
+    },
+    "conflictMode": {
+      "createNew": "建立新公司",
+      "rename": "衝突時重新命名",
+      "skip": "衝突時略過",
+      "replace": "取代既有項目"
+    },
+    "packageFiles": {
+      "title": "套件檔案"
+    }
+  },
+  "statusCardDetailDrawer": {
+    "tabs": {
+      "summary": "摘要",
+      "settings": "設定",
+      "watched": "監看中的議題",
+      "history": "歷史"
+    },
+    "banner": {
+      "headsUp": "請注意",
+      "workingOnIt": "處理中"
+    },
+    "history": {
+      "empty": "目前尚無更新紀錄。"
+    },
+    "settings": {
+      "cardName": "卡片名稱",
+      "cardNamePlaceholder": "由查詢自動命名",
+      "interest": "本卡片監看與回報的內容",
+      "agent": "代理"
+    },
+    "watched": {
+      "mentioned": "於最新更新中提及"
+    }
+  },
+  "issueDocumentsSection": {
+    "newDocument": "新增文件",
+    "newShort": "新增",
+    "documentsHeading": "文件",
+    "outOfDate": "已過時",
+    "documentKeyPlaceholder": "文件鍵值",
+    "optionalTitlePlaceholder": "選填標題",
+    "markdownBodyPlaceholder": "Markdown 內文",
+    "lockedDocument": "已鎖定文件",
+    "documentActions": "文件動作"
+  },
+  "caseDetail": {
+    "relationships": {
+      "ariaLabel": "個案關聯",
+      "parent": "上層"
+    },
+    "labels": {
+      "empty": "尚無標籤。",
+      "noneLabel": "無"
+    },
+    "properties": {
+      "empty": "尚無內容"
+    },
+    "notFound": "找不到個案。",
+    "tabs": {
+      "overview": "總覽",
+      "properties": "屬性"
+    },
+    "description": "說明"
   }
 }

@@ -212,6 +212,7 @@ function ImportPreviewPane({
   action: string | null;
   renamedTo: string | null;
 }) {
+  const { t } = useTranslation();
   if (!selectedFile || content === null) {
     return (
       <EmptyState icon={Package} message="Select a file to preview its contents." />
@@ -595,13 +596,14 @@ function AdapterPickerList({
   onToggleExpand: (slug: string) => void;
   onChangeConfig: (slug: string, patch: Partial<CreateConfigValues>) => void;
 }) {
+  const { t } = useTranslation();
   if (agents.length === 0) return null;
 
   return (
     <div className="mx-5 mt-3">
       <div className="rounded-md border border-border">
         <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
-          <h3 className="text-sm font-medium">Adapters</h3>
+          <h3 className="text-sm font-medium">{t("companyImport.adapters.title")}</h3>
           <span className="text-xs text-muted-foreground">
             {agents.length} agent{agents.length === 1 ? "" : "s"}
           </span>
@@ -1625,7 +1627,7 @@ export function CompanyImport() {
     return (
       <div className="px-5 py-5 space-y-4">
         <div>
-          <h2 className="text-base font-semibold">Import completed</h2>
+          <h2 className="text-base font-semibold">{t("companyImport.result.completedTitle")}</h2>
           <p className="text-xs text-muted-foreground mt-1">
             The import finished and your company is ready. Its detailed summary is no
             longer available, but the company has been added — open it to view it.
@@ -1645,7 +1647,7 @@ export function CompanyImport() {
     return (
       <div className="px-5 py-5 space-y-4">
         <div>
-          <h2 className="text-base font-semibold">Import complete</h2>
+          <h2 className="text-base font-semibold">{t("companyImport.result.completeTitle")}</h2>
           <p className="text-xs text-muted-foreground mt-1">
             {result.company.name}: {result.agents.length} agent{result.agents.length === 1 ? "" : "s"},{" "}
             {skillResults.length} skill{skillResults.length === 1 ? "" : "s"},{" "}
@@ -1657,7 +1659,7 @@ export function CompanyImport() {
         {skillResults.length > 0 && (
           <div className="rounded-md border border-border">
             <div className="border-b border-border px-4 py-2.5">
-              <h3 className="text-sm font-medium">Skill import results</h3>
+              <h3 className="text-sm font-medium">{t("companyImport.result.skillResults")}</h3>
             </div>
             <div className="divide-y divide-border">
               {skillResults.map((skill) => (
@@ -1684,8 +1686,8 @@ export function CompanyImport() {
         {activationItems.length > 0 && (
           <div className="rounded-md border border-border">
             <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
-              <h3 className="text-sm font-medium">Activate imported agents and routines</h3>
-              <span className="text-xs text-muted-foreground">imported paused</span>
+              <h3 className="text-sm font-medium">{t("companyImport.activation.title")}</h3>
+              <span className="text-xs text-muted-foreground">{t("companyImport.activation.importedPaused")}</span>
             </div>
             <div className="divide-y divide-border">
               {activationItems.map((item) => {
@@ -1710,11 +1712,11 @@ export function CompanyImport() {
                     </Badge>
                     <span className="min-w-0 flex-1 truncate">{item.name}</span>
                     {isActivated ? (
-                      <span className="shrink-0 text-xs text-emerald-500">activated</span>
+                      <span className="shrink-0 text-xs text-emerald-500">{t("companyImport.activation.statusActivated")}</span>
                     ) : failure ? (
                       <span className="shrink-0 text-xs text-destructive">failed: {failure}</span>
                     ) : (
-                      <span className="shrink-0 text-xs text-muted-foreground">paused</span>
+                      <span className="shrink-0 text-xs text-muted-foreground">{t("companyImport.activation.statusPaused")}</span>
                     )}
                   </label>
                 );
@@ -1753,7 +1755,7 @@ export function CompanyImport() {
     return (
       <div className="px-5 py-5 space-y-4">
         <div>
-          <h2 className="text-base font-semibold">Resume watching import</h2>
+          <h2 className="text-base font-semibold">{t("companyImport.watcher.resumeTitle")}</h2>
           <p className="text-xs text-muted-foreground mt-1">
             An import you started earlier is still running on the server.
           </p>
@@ -1777,7 +1779,7 @@ export function CompanyImport() {
       {/* Source form section */}
       <div className="border-b border-border px-5 py-5 space-y-4">
         <div>
-          <h2 className="text-base font-semibold">Import source</h2>
+          <h2 className="text-base font-semibold">{t("companyImport.source.title")}</h2>
           <p className="text-xs text-muted-foreground mt-1">
             Choose a GitHub repo or upload a local Paperclip zip package.
           </p>
@@ -1856,7 +1858,7 @@ export function CompanyImport() {
               className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
               type="text"
               value={importUrl}
-              placeholder="https://github.com/owner/repo/tree/main/company"
+              placeholder={t("companyImport.source.urlPlaceholder")}
               disabled={importMutation.isPending}
               onChange={(e) => {
                 setImportUrl(e.target.value);
@@ -1876,7 +1878,7 @@ export function CompanyImport() {
               resetImportFlowState();
             }}
           >
-            <option value="new">Create new company</option>
+            <option value="new">{t("companyImport.conflictMode.createNew")}</option>
             <option value="existing">
               Existing company: {selectedCompany?.name}
             </option>
@@ -1896,7 +1898,7 @@ export function CompanyImport() {
                 setNewCompanyName(e.target.value);
                 resetMutationState();
               }}
-              placeholder="Imported Company"
+              placeholder={t("companyImport.source.companyPlaceholder")}
             />
           </Field>
         )}
@@ -1914,9 +1916,9 @@ export function CompanyImport() {
               resetImportFlowState();
             }}
           >
-            <option value="rename">Rename on conflict</option>
-            <option value="skip">Skip on conflict</option>
-            <option value="replace">Replace existing</option>
+            <option value="rename">{t("companyImport.conflictMode.rename")}</option>
+            <option value="skip">{t("companyImport.conflictMode.skip")}</option>
+            <option value="replace">{t("companyImport.conflictMode.replace")}</option>
           </select>
         </Field>
 
@@ -2086,7 +2088,7 @@ export function CompanyImport() {
           <div className="grid gap-4 xl:h-(--sz-calc-31) xl:grid-cols-(--gtc-25) xl:gap-0">
             <aside className="flex max-h-(--sz-24rem) flex-col overflow-hidden border-b border-border xl:max-h-none xl:border-b-0 xl:border-r">
               <div className="border-b border-border px-4 py-3 shrink-0">
-                <h2 className="text-base font-semibold">Package files</h2>
+                <h2 className="text-base font-semibold">{t("companyImport.packageFiles.title")}</h2>
               </div>
               <div className="flex-1 overflow-y-auto">
                 <FileTree

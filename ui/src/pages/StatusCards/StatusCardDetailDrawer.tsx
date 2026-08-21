@@ -254,19 +254,19 @@ export function StatusCardDetailDrawer({
 
         <Tabs value={tab} onValueChange={setTab} className="flex min-h-0 flex-1 flex-col gap-0">
           <TabsList variant="line" className="w-full justify-start gap-4 border-b border-border px-4">
-            <TabsTrigger value="summary">Summary</TabsTrigger>
-            <TabsTrigger value="settings">Settings</TabsTrigger>
-            <TabsTrigger value="watched">Watched issues</TabsTrigger>
-            <TabsTrigger value="history">History</TabsTrigger>
+            <TabsTrigger value="summary">{t("statusCardDetailDrawer.tabs.summary")}</TabsTrigger>
+            <TabsTrigger value="settings">{t("statusCardDetailDrawer.tabs.settings")}</TabsTrigger>
+            <TabsTrigger value="watched">{t("statusCardDetailDrawer.tabs.watched")}</TabsTrigger>
+            <TabsTrigger value="history">{t("statusCardDetailDrawer.tabs.history")}</TabsTrigger>
           </TabsList>
 
           {actionError ? (
             <div className="px-4 pt-3">
-              <InlineBanner tone="warning" title="Heads up">{actionError}</InlineBanner>
+              <InlineBanner tone="warning" title={t("statusCardDetailDrawer.banner.headsUp")}>{actionError}</InlineBanner>
             </div>
           ) : actionNote ? (
             <div className="px-4 pt-3">
-              <InlineBanner tone="info" title="Working on it">{actionNote}</InlineBanner>
+              <InlineBanner tone="info" title={t("statusCardDetailDrawer.banner.workingOnIt")}>{actionNote}</InlineBanner>
             </div>
           ) : null}
 
@@ -386,7 +386,7 @@ export function StatusCardDetailDrawer({
                   <Loader2 className="h-4 w-4 animate-spin" /> Loading history…
                 </div>
               ) : updates.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No updates recorded yet.</p>
+                <p className="text-sm text-muted-foreground">{t("statusCardDetailDrawer.history.empty")}</p>
               ) : (
                 <>
                   <div className="text-xs text-muted-foreground">
@@ -445,24 +445,24 @@ export function StatusCardDetailDrawer({
 
             <TabsContent value="settings" className="mt-0 space-y-6">
               <section className="space-y-2">
-                <h3 className="text-sm font-semibold">Card name</h3>
+                <h3 className="text-sm font-semibold">{t("statusCardDetailDrawer.settings.cardName")}</h3>
                 <Input
                   value={title}
                   onChange={(event) => setTitle(event.target.value)}
-                  placeholder="Auto-named from the query"
+                  placeholder={t("statusCardDetailDrawer.settings.cardNamePlaceholder")}
                   className="text-sm"
-                  aria-label="Card name"
+                  aria-label={t("statusCardDetailDrawer.settings.cardName")}
                 />
               </section>
 
               <section className="space-y-2">
-                <h3 className="text-sm font-semibold">What this card watches & reports</h3>
+                <h3 className="text-sm font-semibold">{t("statusCardDetailDrawer.settings.interest")}</h3>
                 <Textarea
                   value={interest}
                   onChange={(event) => setInterest(event.target.value)}
                   rows={3}
                   className="text-sm"
-                  aria-label="What this card watches & reports"
+                  aria-label={t("statusCardDetailDrawer.settings.interest")}
                 />
                 <p className="text-xs text-muted-foreground">
                   This one message drives the whole card: the agent compiles the watch query from it
@@ -471,7 +471,7 @@ export function StatusCardDetailDrawer({
               </section>
 
               <section className="space-y-2">
-                <h3 className="text-sm font-semibold">Agent</h3>
+                <h3 className="text-sm font-semibold">{t("statusCardDetailDrawer.settings.agent")}</h3>
                 <SummarizerAgentSelect
                   companyId={card.companyId}
                   value={summarizerAgentId}
@@ -541,6 +541,7 @@ function QueryDebugSection({ card }: { card: StatusCardView }) {
  * join the watched set too and render as their own group below the matches.
  */
 function MatchedIssueList({ queries, mentioned }: { queries: StatusCardDryRun["queries"]; mentioned: CompanySearchIssueSummary[] }) {
+  const { t } = useTranslation();
   const seen = new Set<string>();
   const matched: CompanySearchIssueSummary[] = [];
   for (const { result } of queries) {
@@ -569,7 +570,7 @@ function MatchedIssueList({ queries, mentioned }: { queries: StatusCardDryRun["q
       ) : null}
       {mentionedOnly.length > 0 ? (
         <div className="space-y-1.5">
-          <p className="text-xs font-medium text-muted-foreground">Mentioned in the latest update</p>
+          <p className="text-xs font-medium text-muted-foreground">{t("statusCardDetailDrawer.watched.mentioned")}</p>
           {mentionedOnly.map((issue) => (
             <WatchedIssueRow key={issue.id} issue={issue} />
           ))}

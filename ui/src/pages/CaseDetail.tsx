@@ -124,13 +124,14 @@ function CaseRelationshipsSection({
   parent: CaseParentRef | null;
   children: CaseSummary[];
 }) {
+  const { t } = useTranslation();
   if (!parent && children.length === 0) return null;
 
   return (
-    <section className="space-y-3" aria-label="Case relationships">
+    <section className="space-y-3" aria-label={t("caseDetail.relationships.ariaLabel")}>
       {parent ? (
         <div className="space-y-1">
-          <h2 className="text-xs font-medium text-muted-foreground">Parent</h2>
+          <h2 className="text-xs font-medium text-muted-foreground">{t("caseDetail.relationships.parent")}</h2>
           <CaseChildrenTree children={[parent]} />
         </div>
       ) : null}
@@ -239,6 +240,7 @@ function CaseLabelsPicker({
   selected: IssueLabel[];
   onChange: (labelIds: string[]) => void;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
   const [newColor, setNewColor] = useState<string>(PROJECT_COLORS[0]);
@@ -300,7 +302,7 @@ function CaseLabelsPicker({
             </button>
           ))}
           {filtered.length === 0 && !search.trim() && (
-            <p className="px-2 py-1 text-xs text-muted-foreground">No labels yet.</p>
+            <p className="px-2 py-1 text-xs text-muted-foreground">{t("caseDetail.labels.empty")}</p>
           )}
         </div>
         {search.trim() && !all.some((l) => l.name.toLowerCase() === search.trim().toLowerCase()) && (
@@ -344,6 +346,7 @@ function CasePropertiesContent({
   onLabelIdsChange: (labelIds: string[]) => void;
   mode: CasePropertyDisplayMode;
 }) {
+  const { t } = useTranslation();
   const propertyRows = casePropertyRows(caseData);
   const isFull = mode === "full";
 
@@ -375,7 +378,7 @@ function CasePropertiesContent({
               </PropertyChip>
             ))
           ) : (
-            <span className="text-xs text-muted-foreground">None</span>
+            <span className="text-xs text-muted-foreground">{t("caseDetail.labels.noneLabel")}</span>
           )}
           {companyId ? (
             <CaseLabelsPicker
@@ -408,7 +411,7 @@ function CasePropertiesContent({
       <PropertySection title="Linked tasks">
         {caseData.issueLinks.length === 0 ? (
           <CasePropertyRow label="Tasks" mode={mode}>
-            <span className="text-xs text-muted-foreground">None yet</span>
+            <span className="text-xs text-muted-foreground">{t("caseDetail.properties.empty")}</span>
           </CasePropertyRow>
         ) : (
           <CasePropertyRow label="Tasks" wrap mode={mode}>
@@ -590,7 +593,7 @@ export function CaseDetail() {
   if (caseQuery.isError || !caseData) {
     return (
       <div className="mx-auto max-w-md py-16 text-center">
-        <p className="text-sm text-muted-foreground">Case not found.</p>
+        <p className="text-sm text-muted-foreground">{t("caseDetail.notFound")}</p>
         <Link to={caseHref()} className="mt-2 inline-block text-sm text-primary hover:underline">
           ← Back to cases
         </Link>
@@ -668,8 +671,8 @@ export function CaseDetail() {
 
       <Tabs defaultValue="overview" className="space-y-4">
         <TabsList variant="line" className="w-full justify-start gap-1">
-          <TabsTrigger value="overview">Overview</TabsTrigger>
-          <TabsTrigger value="properties">Properties</TabsTrigger>
+          <TabsTrigger value="overview">{t("caseDetail.tabs.overview")}</TabsTrigger>
+          <TabsTrigger value="properties">{t("caseDetail.tabs.properties")}</TabsTrigger>
           <TabsTrigger value="activity">
             Activity{events.length > 0 && <span className="ml-1 text-muted-foreground">{events.length}</span>}
           </TabsTrigger>
@@ -686,7 +689,7 @@ export function CaseDetail() {
 
           {description ? (
             <section className="space-y-2">
-              <h2 className="text-sm font-semibold">Description</h2>
+              <h2 className="text-sm font-semibold">{t("caseDetail.description")}</h2>
               <Card className="px-4 py-3">
                 <CaseFieldValue value={description} />
               </Card>

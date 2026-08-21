@@ -758,7 +758,17 @@
     "successRate": "Success Rate",
     "last14Days": "Last 14 days",
     "workspaceLabel": "Workspace",
-    "workingDirLabel": "Working dir:"
+    "workingDirLabel": "Working dir:",
+    "stderrExcerptLabel": "stderr excerpt",
+    "stdoutExcerptLabel": "stdout excerpt",
+    "metrics": {
+      "input": "Input",
+      "output": "Output",
+      "cached": "Cached",
+      "cost": "Cost"
+    },
+    "failureErrorLabel": "Error:",
+    "adapterResultJsonLabel": "adapter result JSON"
   },
   "agentMultiSelect": {
     "agentsSelected_one": "已选择 {{count}} 个代理",
@@ -4974,7 +4984,10 @@
       "unableToTriggerMonitor": "目前无法触发监控",
       "unableToUpdateApproval": "无法更新审核",
       "unknownError": "未知错误"
-    }
+    },
+    "uploadAttachment": "Upload attachment",
+    "complete": "Complete",
+    "previewUnavailable": "Preview unavailable."
   },
   "issueMonitor": {
     "afterAttempt": "第 {{count}} 次尝试后",
@@ -6878,7 +6891,17 @@
     "close": "Close",
     "restoreRevAsNew": "Restore rev ${left} as new revision",
     "compareWithCurrent": "Compare with current",
-    "restoreThisRevision": "Restore this revision"
+    "restoreThisRevision": "Restore this revision",
+    "couldNotLoadRevisions": "Could not load revisions",
+    "unknownErrorLoadingRevisions": "Unknown error loading revisions.",
+    "compare": {
+      "field": "Field",
+      "oldValue": "Old value",
+      "newValue": "New value",
+      "content": "Content",
+      "noDescriptionOnEither": "No description on either revision.",
+      "descriptionsIdentical": "Descriptions are identical."
+    }
   },
   "routineVariablesEditor": {
     "booleanFalse": "False",
@@ -7013,7 +7036,17 @@
     "unfiled": "未分类",
     "unknownAgent": "未知代理",
     "unknownFolder": "未知文件夹",
-    "unknownProject": "未知项目"
+    "unknownProject": "未知项目",
+    "draft": {
+      "newTitle": "New routine",
+      "responsible": "Responsible",
+      "project": "Project",
+      "filedIn": "filed in",
+      "advancedDeliveryTitle": "Advanced delivery settings",
+      "advancedDeliveryHint": "Keep policy controls secondary to the work definition.",
+      "concurrency": "Concurrency",
+      "catchUp": "Catch-up"
+    }
   },
   "run": {
     "failed": "失败",
@@ -9188,5 +9221,121 @@
     "expires": "Expires",
     "cancel": "Cancel",
     "minting": "Minting…"
+  },
+  "recoveryAction": {
+    "branchFacet": {
+      "detached": "detached / unknown"
+    },
+    "breakGlass": {
+      "withoutAncestryProof": "without an ancestry proof",
+      "dirtyChanges": "Dirty changes",
+      "liveBranch": "Live branch",
+      "rescueBranch": "Rescue branch",
+      "restoreTo": "Restore to"
+    },
+    "divergence": {
+      "ancestryVerdict": "Ancestry verdict"
+    },
+    "owner": {
+      "recovery": "Recovery:",
+      "board": "Board",
+      "system": "System"
+    },
+    "resolve": {
+      "ariaLabel": "Resolve recovery",
+      "label": "Resolve recovery"
+    },
+    "reissue": {
+      "baseRef": "Base ref",
+      "recorded": "Recorded",
+      "ancestry": "Ancestry"
+    }
+  },
+  "companyImport": {
+    "adapters": {
+      "title": "Adapters"
+    },
+    "result": {
+      "completedTitle": "Import completed",
+      "completeTitle": "Import complete",
+      "skillResults": "Skill import results"
+    },
+    "activation": {
+      "title": "Activate imported agents and routines",
+      "importedPaused": "imported paused",
+      "statusActivated": "activated",
+      "statusPaused": "paused"
+    },
+    "watcher": {
+      "resumeTitle": "Resume watching import"
+    },
+    "source": {
+      "title": "Import source",
+      "urlPlaceholder": "https://github.com/owner/repo/tree/main/company",
+      "companyPlaceholder": "Imported Company"
+    },
+    "conflictMode": {
+      "createNew": "Create new company",
+      "rename": "Rename on conflict",
+      "skip": "Skip on conflict",
+      "replace": "Replace existing"
+    },
+    "packageFiles": {
+      "title": "Package files"
+    }
+  },
+  "statusCardDetailDrawer": {
+    "tabs": {
+      "summary": "Summary",
+      "settings": "Settings",
+      "watched": "Watched issues",
+      "history": "History"
+    },
+    "banner": {
+      "headsUp": "Heads up",
+      "workingOnIt": "Working on it"
+    },
+    "history": {
+      "empty": "No updates recorded yet."
+    },
+    "settings": {
+      "cardName": "Card name",
+      "cardNamePlaceholder": "Auto-named from the query",
+      "interest": "What this card watches & reports",
+      "agent": "Agent"
+    },
+    "watched": {
+      "mentioned": "Mentioned in the latest update"
+    }
+  },
+  "issueDocumentsSection": {
+    "newDocument": "New document",
+    "newShort": "New",
+    "documentsHeading": "Documents",
+    "outOfDate": "Out of date",
+    "documentKeyPlaceholder": "Document key",
+    "optionalTitlePlaceholder": "Optional title",
+    "markdownBodyPlaceholder": "Markdown body",
+    "lockedDocument": "Locked document",
+    "documentActions": "Document actions"
+  },
+  "caseDetail": {
+    "relationships": {
+      "ariaLabel": "Case relationships",
+      "parent": "Parent"
+    },
+    "labels": {
+      "empty": "No labels yet.",
+      "noneLabel": "None"
+    },
+    "properties": {
+      "empty": "None yet"
+    },
+    "notFound": "Case not found.",
+    "tabs": {
+      "overview": "Overview",
+      "properties": "Properties"
+    },
+    "description": "Description"
   }
 }
