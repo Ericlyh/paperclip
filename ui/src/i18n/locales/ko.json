@@ -892,9 +892,9 @@
   },
   "app": {
     "noCompanies": {
-      "description": "Get started by creating a company.",
-      "newCompany": "New Company",
-      "title": "Create your first company"
+      "description": "회사를 만들어 시작하세요.",
+      "newCompany": "새 회사",
+      "title": "첫 회사를 만드세요"
     }
   },
   "appPermissions": {
