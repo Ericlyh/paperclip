@@ -29,6 +29,13 @@ T_START = re.compile(r"""\bt\(\s*["']([A-Za-z0-9_.\-]+)["']""")
 OPT_KEY = re.compile(r"(?:^|[,{])\s*(?:\.\.\.)?([A-Za-z_][A-Za-z0-9_]*)\s*(?=[:,}])")
 PH = re.compile(r"\{\{\s*-?\s*([A-Za-z0-9_.\-]+)\s*(?:,[^}]*)?\}\}")
 
+# Calls like `t("priority." + p)` build the key at runtime — the literal text
+# between the quotes is only a prefix, so the audit can't statically resolve it.
+# Skip matches whose closing quote is immediately followed by `+` (concatenation)
+# or template-string interpolation. This filters out the last class of false
+# positives after the literal-dot lookup fix.
+_DYNAMIC_AFTER = re.compile(r"""\s*(?:\+\s*[A-Za-z_]|\$\{)""")
+
 
 def lookup(dotted):
     # en.json ships mixed style: nested dicts (e.g. agentConfigPrimitives.choosePathButton.choose)
@@ -134,6 +141,9 @@ def main():
         for m in T_START.finditer(text):
             key = m.group(1)
             if "." not in key:
+                continue
+            if _DYNAMIC_AFTER.match(text, m.end()):
+                # Runtime-built key (e.g. "priority." + p) — skip static audit.
                 continue
             line = text[: m.start()].count("\n") + 1
             val, form = resolve(key)
