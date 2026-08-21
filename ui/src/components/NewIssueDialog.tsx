@@ -176,31 +176,34 @@ import {
 
 const STAGED_FILE_ACCEPT = "image/*,application/pdf,text/plain,text/markdown,application/json,text/csv,text/html,.md,.markdown";
 
-const ISSUE_THINKING_EFFORT_OPTIONS = {
+const ISSUE_THINKING_EFFORT_OPTIONS: Record<
+  "claude_local" | "codex_local" | "opencode_local",
+  ReadonlyArray<{ value: string; labelKey: string }>
+> = {
   claude_local: [
-    { value: "", label: "Default" },
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
+    { value: "", labelKey: "newIssueDialog.thinkingEffort.default" },
+    { value: "low", labelKey: "newIssueDialog.thinkingEffort.low" },
+    { value: "medium", labelKey: "newIssueDialog.thinkingEffort.medium" },
+    { value: "high", labelKey: "newIssueDialog.thinkingEffort.high" },
   ],
   codex_local: [
-    { value: "", label: "Default" },
-    { value: "minimal", label: "Minimal" },
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
-    { value: "xhigh", label: "X-High" },
+    { value: "", labelKey: "newIssueDialog.thinkingEffort.default" },
+    { value: "minimal", labelKey: "newIssueDialog.thinkingEffort.minimal" },
+    { value: "low", labelKey: "newIssueDialog.thinkingEffort.low" },
+    { value: "medium", labelKey: "newIssueDialog.thinkingEffort.medium" },
+    { value: "high", labelKey: "newIssueDialog.thinkingEffort.high" },
+    { value: "xhigh", labelKey: "newIssueDialog.thinkingEffort.xhigh" },
   ],
   opencode_local: [
-    { value: "", label: "Default" },
-    { value: "minimal", label: "Minimal" },
-    { value: "low", label: "Low" },
-    { value: "medium", label: "Medium" },
-    { value: "high", label: "High" },
-    { value: "xhigh", label: "X-High" },
-    { value: "max", label: "Max" },
+    { value: "", labelKey: "newIssueDialog.thinkingEffort.default" },
+    { value: "minimal", labelKey: "newIssueDialog.thinkingEffort.minimal" },
+    { value: "low", labelKey: "newIssueDialog.thinkingEffort.low" },
+    { value: "medium", labelKey: "newIssueDialog.thinkingEffort.medium" },
+    { value: "high", labelKey: "newIssueDialog.thinkingEffort.high" },
+    { value: "xhigh", labelKey: "newIssueDialog.thinkingEffort.xhigh" },
+    { value: "max", labelKey: "newIssueDialog.thinkingEffort.max" },
   ],
-} as const;
+};
 
 function loadDraft(): IssueDraft | null {
   try {
@@ -1213,12 +1216,12 @@ export function NewIssueDialog() {
     && !isUsingParentExecutionWorkspace;
   const assigneeOptionsTitle =
     assigneeAdapterType === "claude_local"
-      ? "Claude options"
+      ? t("newIssueDialog.adapterOptions.claude")
       : assigneeAdapterType === "codex_local"
-        ? "Codex options"
+        ? t("newIssueDialog.adapterOptions.codex")
         : assigneeAdapterType === "opencode_local"
-          ? "OpenCode options"
-        : "Agent options";
+          ? t("newIssueDialog.adapterOptions.opencode")
+        : t("newIssueDialog.adapterOptions.agent");
   const thinkingEffortOptions =
     assigneeAdapterType === "codex_local"
       ? ISSUE_THINKING_EFFORT_OPTIONS.codex_local
@@ -1468,7 +1471,7 @@ export function NewIssueDialog() {
               </PopoverContent>
             </Popover>
             <span className="text-muted-foreground/60">&rsaquo;</span>
-            <span>{isSubIssueMode ? "New sub-task" : "New task"}</span>
+            <span>{isSubIssueMode ? t("newIssueDialog.header.newSubTask") : t("newIssueDialog.header.newTask")}</span>
           </div>
           <div className="flex items-center gap-1">
             <Button
@@ -1574,7 +1577,7 @@ export function NewIssueDialog() {
                       {assignee ? <AgentIcon icon={assignee.icon} className="h-3.5 w-3.5 shrink-0 text-muted-foreground" /> : null}
                       <span className="truncate">{option.label}</span>
                       {assignee && getTrustPreset(assignee.permissions) === "low_trust_review" ? (
-                        <ShieldAlert className="ml-auto h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" aria-label="Low-trust review agent" />
+                        <ShieldAlert className="ml-auto h-3.5 w-3.5 shrink-0 text-amber-600 dark:text-amber-300" aria-label={t("newIssueDialog.aria.lowTrustReviewAgent")} />
                       ) : null}
                     </>
                   );
@@ -1790,7 +1793,7 @@ export function NewIssueDialog() {
                     <button
                       type="button"
                       className="inline-flex max-w-full items-center gap-1.5 rounded-md border border-border px-2 py-1 text-xs hover:bg-accent/50 transition-colors min-w-0"
-                      title="Configure watchdog"
+                      title={t("newIssueDialog.title.configureWatchdog")}
                     >
                       {selectedWatchdogAgent ? (
                         <>
@@ -1952,7 +1955,7 @@ export function NewIssueDialog() {
                   <div
                     className="flex w-full overflow-hidden rounded-md border border-border"
                     role="radiogroup"
-                    aria-label="Model lane"
+                    aria-label={t("newIssueDialog.aria.modelLane")}
                   >
                     {(["primary", ...(assigneeSupportsCheapLane ? (["cheap"] as const) : ([] as const)), "custom"] as const).map((lane) => (
                       <button
@@ -2014,7 +2017,7 @@ export function NewIssueDialog() {
                           )}
                           onClick={() => setAssigneeThinkingEffort(option.value)}
                         >
-                          {option.label}
+                          {option.labelKey ? t(option.labelKey) : option.value}
                         </button>
                       ))}
                     </div>
@@ -2085,7 +2088,7 @@ export function NewIssueDialog() {
                           className="shrink-0 text-muted-foreground"
                           onClick={() => removeStagedFile(file.id)}
                           disabled={createIssue.isPending}
-                          title="Remove document"
+                          title={t("newIssueDialog.title.removeDocument")}
                         >
                           <X className="h-3.5 w-3.5" />
                         </Button>
@@ -2116,7 +2119,7 @@ export function NewIssueDialog() {
                           className="shrink-0 text-muted-foreground"
                           onClick={() => removeStagedFile(file.id)}
                           disabled={createIssue.isPending}
-                          title="Remove attachment"
+                          title={t("newIssueDialog.title.removeAttachment")}
                         >
                           <X className="h-3.5 w-3.5" />
                         </Button>

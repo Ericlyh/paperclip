@@ -9994,5 +9994,64 @@
     "noIconsMatch": "No icons match",
     "colorLabel": "Color",
     "loadingWorkspaces": "Loading workspaces..."
+  },
+  "taskChatComposer": {
+    "unassigned": "Unassigned",
+    "theAgent": "the agent",
+    "uploadFailed": "Upload failed",
+    "uploadNoUrl": "Upload did not return a file URL",
+    "fileTypeNotSupported": "This file type cannot be attached here",
+    "composerDisabled": "Composer disabled",
+    "uploading": "Uploading…",
+    "removeAttachment": "Remove {{name}}",
+    "attachFile": "Attach file",
+    "assigneePlaceholder": "Assignee",
+    "noAssignee": "No assignee",
+    "searchAssignees": "Search assignees…",
+    "noMatches": "No matches.",
+    "send": "Send",
+    "sendShortcut": "Send (⌘+Enter)",
+    "waitingForUpload": "Waiting for upload to finish",
+    "removeFailedToSend": "Remove the failed attachment to send",
+    "modeDescriptions": {
+      "standard": "Make changes and run work",
+      "planning": "Draft a plan before acting",
+      "ask": "Answer questions only, no changes"
+    },
+    "modePlaceholders": {
+      "standard": "Message {{agent}} — describe what you want done…",
+      "planning": "Plan with {{agent}} — shapes the plan doc, no code changes…",
+      "ask": "Ask {{agent}} a question — read-only, nothing runs…"
+    }
+  },
+  "newIssueDialog": {
+    "thinkingEffort": {
+      "default": "Default",
+      "minimal": "Minimal",
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High",
+      "xhigh": "X-High",
+      "max": "Max"
+    },
+    "adapterOptions": {
+      "claude": "Claude options",
+      "codex": "Codex options",
+      "opencode": "OpenCode options",
+      "agent": "Agent options"
+    },
+    "header": {
+      "newTask": "New task",
+      "newSubTask": "New sub-task"
+    },
+    "aria": {
+      "lowTrustReviewAgent": "Low-trust review agent",
+      "modelLane": "Model lane"
+    },
+    "title": {
+      "configureWatchdog": "Configure watchdog",
+      "removeDocument": "Remove document",
+      "removeAttachment": "Remove attachment"
+    }
   }
 }
