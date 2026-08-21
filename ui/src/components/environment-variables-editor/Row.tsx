@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import { useTranslation } from "react-i18next";
 import {
   ChevronDown,
   KeyRound,
@@ -87,6 +88,7 @@ export function EnvironmentVariableRow({
   focusRequest,
   onFocusConsumed,
 }: EnvironmentVariableRowProps) {
+  const { t } = useTranslation();
   const nameInputRef = useRef<HTMLInputElement | null>(null);
   const valueInputRef = useRef<HTMLInputElement | null>(null);
   const valueCellRef = useRef<HTMLDivElement | null>(null);
@@ -184,10 +186,10 @@ export function EnvironmentVariableRow({
 
   const sourceLabel =
     row.source === "text"
-      ? "Text value"
+      ? t("envVarRow.textValue")
       : row.source === "secret"
-        ? "Company secret reference"
-        : "User secret reference";
+        ? t("envVarRow.companySecretRef")
+        : t("envVarRow.userSecretRef");
   const nameErrorId = `${row.id}-name-error`;
   const healthId = `${row.id}-health`;
   const isDirty = dirtyFields.name || dirtyFields.value;
@@ -280,17 +282,17 @@ export function EnvironmentVariableRow({
                 </Tooltip>
                 <DropdownMenuContent align="start" className="w-56">
                   <DropdownMenuItem className="flex-col items-start gap-0.5" onSelect={() => switchSource("text")}>
-                    <span className="text-sm">Text value</span>
-                    <span className="text-(length:--text-micro) text-muted-foreground">Store the value inline as plain text.</span>
+                    <span className="text-sm">{t("envVarRow.textValue")}</span>
+                    <span className="text-(length:--text-micro) text-muted-foreground">{t("envVarRow.textValueDesc")}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="flex-col items-start gap-0.5" onSelect={() => switchSource("secret")}>
-                    <span className="text-sm">Company secret</span>
-                    <span className="text-(length:--text-micro) text-muted-foreground">Resolve a stored company secret at run start.</span>
+                    <span className="text-sm">{t("envVarRow.companySecret")}</span>
+                    <span className="text-(length:--text-micro) text-muted-foreground">{t("envVarRow.companySecretDesc")}</span>
                   </DropdownMenuItem>
                   <DropdownMenuItem className="flex-col items-start gap-0.5" onSelect={() => switchSource("user_secret")}>
-                    <span className="text-sm">User secret</span>
+                    <span className="text-sm">{t("envVarRow.userSecret")}</span>
                     <span className="text-(length:--text-micro) text-muted-foreground">
-                      Resolve the responsible user&apos;s own value at run start.
+                      {t("envVarRow.userSecretDesc")}
                     </span>
                   </DropdownMenuItem>
                 </DropdownMenuContent>
@@ -325,7 +327,7 @@ export function EnvironmentVariableRow({
                         title="This value looks sensitive — store it as a secret"
                       >
                         <ShieldAlert className="size-3.5" />
-                        <span className="hidden @[30rem]/env:inline">Store as secret</span>
+                        <span className="hidden @[30rem]/env:inline">{t("envVarRow.storeAsSecret")}</span>
                       </button>
                       <button
                         type="button"
@@ -435,7 +437,7 @@ export function EnvironmentVariableRow({
                       }}
                       className="min-w-0 bg-transparent px-2 py-1.5 text-sm font-mono outline-none disabled:pointer-events-none"
                     >
-                      <option value="">Select user secret...</option>
+                      <option value="">{t("envVarRow.selectUserSecret")}</option>
                       {row.userSecretKey && !userSecretDefinitions?.some((definition) => definition.key === row.userSecretKey) ? (
                         <option value={row.userSecretKey}>Unknown ({row.userSecretKey})</option>
                       ) : null}
@@ -464,8 +466,8 @@ export function EnvironmentVariableRow({
                     onChange={(event) => onPatch({ required: event.target.value === "required" })}
                     className="border-l border-border bg-transparent px-2 py-1.5 text-xs font-medium text-muted-foreground outline-none disabled:pointer-events-none"
                   >
-                    <option value="required">Required</option>
-                    <option value="optional">Optional</option>
+                    <option value="required">{t("envVarRow.required")}</option>
+                    <option value="optional">{t("envVarRow.optional")}</option>
                   </select>
                 </div>
               )}

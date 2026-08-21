@@ -605,6 +605,7 @@ function IssueAttributionByline({
   userProfileMap: ReadonlyMap<string, import("../lib/company-members").CompanyUserProfile>;
   userLabelMap: ReadonlyMap<string, string>;
 }) {
+  const { t } = useTranslation();
   const assignee: AttributionActor | null = issue.assigneeAgentId
     ? {
         kind: "agent",
@@ -646,7 +647,7 @@ function IssueAttributionByline({
 
   return (
     <TooltipProvider>
-      <AvatarGroup className="-space-x-1.5" aria-label="Task people" data-testid="issue-attribution-avatar-stack">
+      <AvatarGroup className="-space-x-1.5" aria-label={t("issueDetail.attribution.taskPeople")} data-testid="issue-attribution-avatar-stack">
         {assignee ? <AttributionAvatar label="Assignee" actor={assignee} /> : null}
         {originator ? <AttributionAvatar label="Originating" actor={originator} via={originatorVia} /> : null}
       </AvatarGroup>
@@ -888,6 +889,7 @@ function InboxMobileToolbar({
   labels,
 }: InboxMobileToolbarProps) {
   const navigate = useNavigate();
+  const { t } = useTranslation();
   const [menuOpen, setMenuOpen] = useState(false);
 
   return (
@@ -917,7 +919,7 @@ function InboxMobileToolbar({
             size="icon-sm"
             onClick={onArchive}
             disabled={archivePending}
-            aria-label="Archive from inbox"
+            aria-label={t("issueDetail.inbox.archiveFromInbox")}
           >
             <Archive className="h-5 w-5" />
           </Button>
@@ -4567,7 +4569,7 @@ export function IssueDetail() {
           {issue.originKind === "issue_productivity_review" ? (
             <Badge variant="outline"
               className="border-amber-500/40 bg-amber-500/10 text-(length:--text-nano) text-amber-700 dark:text-amber-300"
-              title="This task is a productivity review."
+              title={t("issueDetail.activityTab.productivityReviewTitle")}
             >
               <Eye className="h-3 w-3" />
               Productivity review
@@ -4881,7 +4883,7 @@ export function IssueDetail() {
             onSave={(description) => updateIssue.mutateAsync({ description })}
             as="p"
             className="text-sm leading-7 text-foreground"
-            placeholder="Add a description..."
+            placeholder={t("issueDetail.activityTab.addDescriptionPlaceholder")}
             multiline
             foldable
             mentions={mentionOptions}
@@ -5479,7 +5481,7 @@ export function IssueDetail() {
               <Textarea
                 value={treeControlReason}
                 onChange={(event) => setTreeControlReason(event.target.value)}
-                placeholder="Explain why this subtree control is being applied..."
+                placeholder={t("issueDetail.activityTab.subtreeControlReasonPlaceholder")}
                 className="min-h-(--sz-88px)"
               />
             </div>
