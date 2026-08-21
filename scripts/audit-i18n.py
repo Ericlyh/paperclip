@@ -36,12 +36,28 @@ PH = re.compile(r"\{\{\s*-?\s*([A-Za-z0-9_.\-]+)\s*(?:,[^}]*)?\}\}")
 # positives after the literal-dot lookup fix.
 _DYNAMIC_AFTER = re.compile(r"""\s*(?:\+\s*[A-Za-z_]|\$\{)""")
 
+# Literal-prop pass: surface JSX attrs whose value is a static human-readable
+# string starting with a capital letter (heuristic for "is this user-facing
+# text?"). The 5 attrs we care about are the ones that ship visible copy
+# without going through t() — placeholder, aria-label, aria-labelledby, title,
+# alt. Other attrs (className, role, key, data-*, cy-*) are infrastructure
+# and would generate noise; the regex itself restricts to these 5 attrs only,
+# so no separate filter step is needed.
+_LITERAL_PROP = re.compile(
+    r"""\b(?P<attr>placeholder|aria-label|aria-labelledby|title|alt)\s*=\s*"""
+    r"""(?:"(?P<dq>[A-Z][^"]+)"|'(?P<sq>[A-Z][^']+)')"""
+)
+
 
 def lookup(dotted):
-    # en.json ships mixed style: nested dicts (e.g. agentConfigPrimitives.choosePathButton.choose)
-    # AND flat top-level keys with literal dots (e.g. "newIssueDialog.addReviewerApprover").
-    # Try the literal-dot key first, then walk any top-level namespace, then fall back to
-    # the original nested-default-namespace walk for backwards compatibility.
+    # en.json ships mixed style: nested dicts (e.g. agentConfigPrimitives.choosePathButton.choose),
+    # flat top-level keys with literal dots (e.g. "newIssueDialog.addReviewerApprover"), AND a
+    # uxLab namespace that itself is a flat-dot dict (used when the React code does
+    # `useTranslation("uxLab")` then `t("bootstrapSetupUxLab.cliFallback.preferHost")` —
+    # i18next joins namespace + key, so the JSON lookup is
+    # en["uxLab"]["bootstrapSetupUxLab.cliFallback.preferHost"]).
+    # Try literal-dot top-level, walk any top-level namespace, fall back to the original
+    # nested-default-namespace walk, finally try the uxLab flat-dot namespace.
     if dotted in en and isinstance(en[dotted], str):
         return en[dotted]
     for k, v in en.items():
@@ -60,9 +76,15 @@ def lookup(dotted):
     node = en
     for part in dotted.split("."):
         if not isinstance(node, dict) or part not in node:
-            return None
+            break
         node = node[part]
-    return node if isinstance(node, str) else None
+    else:
+        if isinstance(node, str):
+            return node
+    uxLab = en.get("uxLab")
+    if isinstance(uxLab, dict) and dotted in uxLab and isinstance(uxLab[dotted], str):
+        return uxLab[dotted]
+    return None
 
 
 def resolve(key):
@@ -130,6 +152,8 @@ def changed_files():
 def main():
     scope = changed_files() if "--changed" in sys.argv else sorted(UI.rglob("*.ts*"))
     undefined, mismatch, ok = [], [], 0
+    literal_props = []
+    scan_literal_props = "--literal-props" in sys.argv or "--all" in sys.argv
     for f in scope:
         if f.name.endswith((".test.ts", ".test.tsx", ".stories.tsx")):
             continue
@@ -162,12 +186,27 @@ def main():
                 )
             else:
                 ok += 1
+        if scan_literal_props:
+            for m in _LITERAL_PROP.finditer(text):
+                # The same heuristic the rest of the audit uses: a capital first
+                # letter indicates user-facing text. Lowercase / all-numeric /
+                # punctuation-only strings are infra (placeholders for input
+                # format hints like "yyyy-mm-dd", CSS-only values, etc.).
+                attr = m.group("attr")
+                val = m.group("dq") or m.group("sq")
+                line = text[: m.start()].count("\n") + 1
+                literal_props.append({"file": rel, "line": line, "attr": attr, "value": val})
     print(f"scanned {len(scope)} files — {ok} calls OK, {len(undefined)} undefined key(s), {len(mismatch)} placeholder mismatch(es)")
     for u in undefined[:25]:
         print(f"  UNDEFINED {u['file']}:{u['line']}  {u['key']}")
     for m in mismatch[:25]:
         print(f"  MISMATCH  {m['file']}:{m['line']}  {m['key']} needs {m['needs']} passes {m['passes'] or 'nothing'}")
-    json.dump({"undefined": undefined, "mismatch": mismatch},
+    if scan_literal_props:
+        print(f"  LITERAL-PROP pass: {len(literal_props)} match(es) across {len({lp['file'] for lp in literal_props})} file(s)")
+        for lp in literal_props[:205]:
+            print(f"  LITERAL-PROP {lp['file']}:{lp['line']}  [{lp['attr']}] {lp['value']}")
+    json.dump({"undefined": undefined, "mismatch": mismatch,
+               **({"literal_props": literal_props} if scan_literal_props else {})},
               open("/Users/molt/.paperclip/run-scratch/oop-3438-sweep/audit.json", "w"), indent=1)
     return 1 if (undefined or mismatch) else 0
 
