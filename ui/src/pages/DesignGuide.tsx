@@ -820,7 +820,7 @@ export function DesignGuide() {
                   onSave={setInlineDesc}
                   as="p"
                   className="text-sm text-muted-foreground"
-                  placeholder="Add a description..."
+                  placeholder={t("designGuide.placeholder.addADescription")}
                   multiline
                 />
               </div>

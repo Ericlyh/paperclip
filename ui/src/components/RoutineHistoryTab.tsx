@@ -718,6 +718,7 @@ function RestoreConfirmDialog({
   recreatedWebhookLabels: string[];
   envDiffCounts: EnvDiffCounts;
 }) {
+  const { t } = useTranslation();
   const newRevisionNumber = currentRevisionNumber + 1;
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
@@ -760,7 +761,7 @@ function RestoreConfirmDialog({
           <Input
             id="restore-change-summary"
             value={changeSummary}
-            placeholder="Why are you restoring? Visible in history."
+            placeholder={t("routineHistory.changeSummaryPlaceholder")}
             onChange={(event) => onChangeSummaryChange(event.target.value)}
           />
         </div>

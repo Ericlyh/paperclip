@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useTranslation } from "../i18n";
 import type { FeedbackDataSharingPreference, FeedbackVoteValue } from "@paperclipai/shared";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,6 +36,7 @@ export function OutputFeedbackButtons({
     reason?: string;
     keepReasonPromptOpen?: boolean;
   } | null>(null);
+  const { t } = useTranslation();
   const [isSaving, setIsSaving] = useState(false);
   const [downvoteReason, setDownvoteReason] = useState("");
   const [collectingDownvoteReason, setCollectingDownvoteReason] = useState(false);
@@ -145,7 +147,7 @@ export function OutputFeedbackButtons({
           <Textarea
             value={downvoteReason}
             onChange={(event) => setDownvoteReason(event.target.value)}
-            placeholder="Add a short note"
+            placeholder={t("outputFeedbackButtons.placeholder.addAShortNote")}
             className="min-h-20 resize-y bg-background"
             disabled={disabled || isSaving}
           />

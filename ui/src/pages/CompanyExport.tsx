@@ -1032,7 +1032,7 @@ export function CompanyExport() {
           </div>
           <div className="border-b border-border px-4 py-3 shrink-0">
             <h3 className="mb-2 text-xs font-medium text-muted-foreground">What to include</h3>
-            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5" role="group" aria-label="What to include">
+            <div className="grid grid-cols-2 gap-x-4 gap-y-1.5" role="group" aria-label={t("companyExport.aria.whatToInclude")}>
               {EXPORT_CATEGORY_ORDER.map((key) => {
                 const isAttachments = key === "attachments";
                 const disabled = isAttachments && !isAttachmentsCategoryEnabled(categories);
@@ -1073,7 +1073,7 @@ export function CompanyExport() {
                 type="text"
                 value={treeSearch}
                 onChange={(e) => handleSearchChange(e.target.value)}
-                placeholder="Search files..."
+                placeholder={t("companyExport.placeholder.searchFiles")}
                 className="w-full bg-transparent text-sm outline-none placeholder:text-muted-foreground"
                 data-page-search-target="true"
               />

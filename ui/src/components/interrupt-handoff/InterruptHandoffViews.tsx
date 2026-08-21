@@ -1,4 +1,5 @@
 import { AlertTriangle, Info, PauseCircle, User, X } from "lucide-react";
+import { useTranslation } from "../../i18n";
 import { cn } from "../../lib/utils";
 import { AgentIcon } from "../AgentIconPicker";
 import {
@@ -162,6 +163,7 @@ export function ComposerHandoffPreviewRow({
   preview: ComposerHandoffPreview;
   resolvers: HandoffChipResolvers;
 }) {
+  const { t } = useTranslation();
   if (preview.kind === "none") return null;
   return (
     <div
@@ -194,6 +196,7 @@ export function ComposerMentionCoach({
   onInsert: () => void;
   onDismiss: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div
       className="flex items-center gap-2 rounded-md border border-amber-300/40 bg-amber-50/70 px-2 py-1.5 text-xs text-amber-700 dark:bg-amber-500/10 dark:text-amber-300"
@@ -218,7 +221,7 @@ export function ComposerMentionCoach({
         type="button"
         onClick={onDismiss}
         className="shrink-0 rounded p-0.5 hover:bg-amber-100/60 dark:hover:bg-amber-500/20"
-        aria-label="Dismiss suggestion"
+        aria-label={t("interruptHandoffViews.aria.dismissSuggestion")}
       >
         <X className="h-3.5 w-3.5" aria-hidden />
       </button>

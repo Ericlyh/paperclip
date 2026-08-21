@@ -431,6 +431,7 @@ function QueueItemRow({
   onSnooze: (item: AttentionItem, snoozedUntil: string) => void;
   onExcluded: () => void;
 }) {
+  const { t } = useTranslation();
   const { pushToast } = useToastActions();
   const [open, setOpen] = useState(false);
   const [reason, setReason] = useState("");
@@ -473,7 +474,7 @@ function QueueItemRow({
             <textarea
               value={reason}
               onChange={(event) => setReason(event.target.value)}
-              placeholder="Reason (optional)…"
+              placeholder={t("decisionQueuePage.placeholder.reasonOptional")}
               className="min-h-16 w-full rounded-sm border border-border bg-background px-2 py-1 text-xs"
             />
             <div className="flex justify-end gap-1">

@@ -1,4 +1,5 @@
 import { useRef } from "react";
+import { useTranslation } from "../i18n";
 import {
   Activity as ActivityIcon,
   Circle,
@@ -74,6 +75,7 @@ export function RoutineSubSidebar({
   hasLiveRun: boolean;
   onNavigate: (section: RoutineSectionKey) => void;
 }) {
+  const { t } = useTranslation();
   const itemRefs = useRef<Array<HTMLAnchorElement | null>>([]);
 
   const focusItem = (index: number) => {
@@ -109,7 +111,7 @@ export function RoutineSubSidebar({
 
   return (
     <nav
-      aria-label="Routine sections"
+      aria-label={t("routineSubSidebar.aria.routineSections")}
       className="hidden h-full w-52 shrink-0 flex-col gap-4 overflow-y-auto border-r border-border bg-background px-3 py-4 md:flex"
     >
       {NAV_GROUPS.map((group) => (
@@ -152,7 +154,7 @@ export function RoutineSubSidebar({
                   <span className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-blue-500 motion-safe:animate-pulse" />
                 ) : dirty ? (
                   <span
-                    aria-label="Unsaved changes"
+                    aria-label={t("routineSubSidebar.aria.unsavedChanges")}
                     className="ml-auto h-1.5 w-1.5 shrink-0 rounded-full bg-amber-500 ring-2 ring-background"
                   />
                 ) : null}
@@ -175,6 +177,7 @@ export function RoutineSectionPicker({
   onNavigate: (section: RoutineSectionKey) => void;
   isSectionDirty: (section: RoutineSectionKey) => boolean;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="sticky top-0 z-10 border-b border-border bg-background px-4 py-2 md:hidden">
       <Select
@@ -185,7 +188,7 @@ export function RoutineSectionPicker({
           }
         }}
       >
-        <SelectTrigger className="h-11 w-full" aria-label="Routine section">
+        <SelectTrigger className="h-11 w-full" aria-label={t("routineSubSidebar.aria.routineSection")}>
           <SelectValue />
         </SelectTrigger>
         <SelectContent>

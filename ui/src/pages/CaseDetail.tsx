@@ -196,6 +196,7 @@ function CaseStatusPicker({
   onChange: (next: CaseStatus) => void;
   disabled?: boolean;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   return (
     <Popover open={open} onOpenChange={setOpen}>
@@ -204,7 +205,7 @@ function CaseStatusPicker({
           type="button"
           disabled={disabled}
           className="inline-flex items-center gap-1 rounded-md hover:bg-accent/50 disabled:opacity-50"
-          aria-label="Change case status"
+          aria-label={t("caseDetail.aria.changeCaseStatus")}
         >
           <StatusBadge status={status} />
           <ChevronDown className="h-3.5 w-3.5 text-muted-foreground" />
@@ -285,7 +286,7 @@ function CaseLabelsPicker({
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Search labels…"
+          placeholder={t("caseDetail.placeholder.searchLabels")}
           className="mb-2 h-7 text-xs"
         />
         <div className="max-h-52 space-y-0.5 overflow-y-auto">
@@ -312,7 +313,7 @@ function CaseLabelsPicker({
               value={newColor}
               onChange={(e) => setNewColor(e.target.value)}
               className="h-6 w-6 shrink-0 cursor-pointer rounded border border-border bg-transparent"
-              aria-label="New label color"
+              aria-label={t("caseDetail.aria.newLabelColor")}
             />
             <Button
               size="sm"
@@ -634,7 +635,7 @@ export function CaseDetail() {
             />
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon-xs" aria-label="More case actions" title="More case actions">
+                <Button variant="ghost" size="icon-xs" aria-label={t("caseDetail.aria.moreCaseActions")} title="More case actions">
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>

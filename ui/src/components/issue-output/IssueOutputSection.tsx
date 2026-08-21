@@ -1,4 +1,5 @@
 import { Play } from "lucide-react";
+import { useTranslation } from "../../i18n";
 import type { IssueWorkProduct } from "@paperclipai/shared";
 import {
   formatBytes,
@@ -111,6 +112,7 @@ function OutputMediaPreview({
  * permanent empty card.
  */
 export function IssueOutputSection({ workProducts, resolveCreatorName, onMediaClick }: IssueOutputSectionProps) {
+  const { t } = useTranslation();
   const { primary, rest, count } = getIssueOutputs(workProducts);
 
   if (!primary) return null;
@@ -120,7 +122,7 @@ export function IssueOutputSection({ workProducts, resolveCreatorName, onMediaCl
   const fileRest = rest.filter((item) => !isMediaOutput(item));
 
   return (
-    <section className="space-y-3" aria-label="Task outputs">
+    <section className="space-y-3" aria-label={t("issueOutputSection.aria.taskOutputs")}>
       <div className="flex items-center gap-2">
         <Play className="h-3.5 w-3.5 text-muted-foreground" aria-hidden="true" />
         <h3 className="text-sm font-medium text-muted-foreground">Output</h3>

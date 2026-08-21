@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { useTranslation } from "@/i18n";
 import type { AdapterConfigFieldsProps, CreateConfigValues } from "../types";
 import {
   DraftInput,
@@ -104,6 +105,7 @@ export function HermesGatewayConfigFields({
   eff,
   mark,
 }: AdapterConfigFieldsProps) {
+  const { t } = useTranslation();
   const storedApiKey = config.apiKey;
   const hasStoredApiKey = isSecretRef(storedApiKey) || typeof storedApiKey === "string";
   const editApiKeyValue = typeof storedApiKey === "string" ? String(eff("adapterConfig", "apiKey", storedApiKey)) : "";
@@ -157,7 +159,7 @@ export function HermesGatewayConfigFields({
         label="API key"
         value={isCreate ? String(readCreateValue(values, "apiKey", "") ?? "") : editApiKeyValue}
         onCommit={(v) => writeValue("apiKey", v || undefined)}
-        placeholder="Hermes API_SERVER_KEY, not PAPERCLIP_API_KEY"
+        placeholder={t("hermesGateway.placeholder.apiServerKey")}
         stored={!isCreate && hasStoredApiKey && !editApiKeyValue}
       />
 

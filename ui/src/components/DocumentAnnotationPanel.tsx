@@ -1,4 +1,5 @@
 import { useMemo, useRef, useState, useEffect } from "react";
+import { useTranslation } from "../i18n";
 import type {
   DocumentAnnotationComment,
   DocumentAnnotationThreadWithComments,
@@ -65,6 +66,7 @@ export interface AnnotationPanelProps {
 }
 
 export function DocumentAnnotationPanel(props: AnnotationPanelProps) {
+  const { t } = useTranslation();
   if (props.isMobile) {
     return (
       <Sheet open={props.open} onOpenChange={props.onOpenChange}>
@@ -103,6 +105,7 @@ export function DocumentAnnotationPanel(props: AnnotationPanelProps) {
 }
 
 export function AnnotationPanelBody(props: AnnotationPanelProps) {
+  const { t } = useTranslation();
   const [composerValue, setComposerValue] = useState("");
   const [replyDrafts, setReplyDrafts] = useState<Record<string, string>>({});
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
@@ -188,7 +191,7 @@ export function AnnotationPanelBody(props: AnnotationPanelProps) {
             props.onFocusThread(null);
             props.onOpenChange(false);
           }}
-          aria-label="Close annotation panel"
+          aria-label={t("documentAnnotationPanel.aria.closeAnnotationPanel")}
         >
           <X className="h-4 w-4" />
         </Button>
@@ -278,7 +281,7 @@ export function AnnotationPanelBody(props: AnnotationPanelProps) {
                 }
               }
             }}
-            placeholder="Write a comment…"
+            placeholder={t("documentAnnotationPanel.placeholder.writeAComment")}
             disabled={props.newCommentDisabled}
             className="resize-y rounded-none text-sm"
           />
@@ -329,6 +332,7 @@ export function ThreadCard(props: {
   agentMap?: ReadonlyMap<string, Pick<Agent, "id" | "name"> & Partial<Pick<Agent, "icon">>>;
   userProfileMap?: ReadonlyMap<string, CompanyUserProfile>;
 }) {
+  const { t } = useTranslation();
   const { thread } = props;
   const latestComment = thread.comments[thread.comments.length - 1];
 
@@ -382,7 +386,7 @@ export function ThreadCard(props: {
                   }
                 }
               }}
-              placeholder="Reply…"
+              placeholder={t("documentAnnotationPanel.placeholder.reply")}
               className="resize-y rounded-none text-sm"
               disabled={props.pendingReply}
             />
@@ -421,7 +425,7 @@ export function ThreadCard(props: {
                     size="icon-xs"
                     className="text-muted-foreground"
                     title="More actions"
-                    aria-label="More thread actions"
+                    aria-label={t("documentAnnotationPanel.aria.moreThreadActions")}
                   >
                     <MoreHorizontal className="h-3.5 w-3.5" />
                   </Button>

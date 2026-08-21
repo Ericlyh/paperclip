@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "../../i18n";
 import { Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -35,6 +36,7 @@ export function SecretPopoverForm({
   onCancel,
   onSubmit,
 }: SecretPopoverFormProps) {
+  const { t } = useTranslation();
   const [name, setName] = useState(initialName);
   const [value, setValue] = useState(initialValue);
   const [reveal, setReveal] = useState(false);
@@ -90,7 +92,7 @@ export function SecretPopoverForm({
           autoFocus
           spellCheck={false}
           placeholder="secret_name"
-          aria-label="Secret name"
+          aria-label={t("createSecretPopover.aria.secretName")}
           aria-invalid={nameError ? true : undefined}
           onChange={(event) => setName(event.target.value)}
           onBlur={() => setTouched(true)}
@@ -114,7 +116,7 @@ export function SecretPopoverForm({
             readOnly={mode === "store"}
             spellCheck={false}
             placeholder={mode === "create" ? "value" : undefined}
-            aria-label="Secret value"
+            aria-label={t("createSecretPopover.aria.secretValue")}
             aria-invalid={valueError ? true : undefined}
             onChange={mode === "create" ? (event) => setValue(event.target.value) : undefined}
           />

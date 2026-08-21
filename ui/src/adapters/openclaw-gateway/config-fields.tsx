@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import { Eye, EyeOff } from "lucide-react";
+import { useTranslation } from "@/i18n";
 import type { AdapterConfigFieldsProps } from "../types";
 import {
   Field,
@@ -108,6 +109,7 @@ export function OpenClawGatewayConfigFields({
   eff,
   mark,
 }: AdapterConfigFieldsProps) {
+  const { t } = useTranslation();
   const configuredHeaders =
     config.headers && typeof config.headers === "object" && !Array.isArray(config.headers)
       ? (config.headers as Record<string, unknown>)
@@ -181,7 +183,7 @@ export function OpenClawGatewayConfigFields({
             ? set!({ authToken: v })
             : commitGatewayToken(v)
         }
-        placeholder="OpenClaw gateway token"
+        placeholder={t("openclawGateway.placeholder.gatewayToken")}
       />
 
       <Field label="Agent ID">
@@ -254,7 +256,7 @@ export function OpenClawGatewayConfigFields({
             ? set!({ password: v })
             : mark("adapterConfig", "password", v || undefined)
         }
-        placeholder="Gateway shared password"
+        placeholder={t("openclawGateway.placeholder.sharedPassword")}
       />
 
       <Field label="Role">

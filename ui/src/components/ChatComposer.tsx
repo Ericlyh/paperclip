@@ -9,6 +9,7 @@ import {
   type KeyboardEvent as ReactKeyboardEvent,
   type ReactNode,
 } from "react";
+import { useTranslation } from "../i18n";
 import { AlertTriangle, Check, Loader2, Paperclip, Send } from "lucide-react";
 import { cn } from "../lib/utils";
 
@@ -113,7 +114,7 @@ export const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(fu
     value,
     onChange,
     onSubmit,
-    placeholder = "Message…",
+    placeholder,
     disabled = false,
     submitting = false,
     submitKey = "mod-enter",
@@ -135,6 +136,8 @@ export const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(fu
   },
   forwardedRef,
 ) {
+  const { t } = useTranslation();
+  const resolvedPlaceholder = placeholder ?? t("chatComposer.placeholder.message");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const dragDepthRef = useRef(0);
@@ -265,7 +268,7 @@ export const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(fu
         value={value}
         onChange={handleChange}
         onKeyDown={handleKeyDown}
-        placeholder={placeholder}
+        placeholder={resolvedPlaceholder}
         disabled={disabled}
         autoFocus={autoFocus}
         rows={1}
@@ -342,7 +345,7 @@ export const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(fu
               type="button"
               onClick={triggerFilePicker}
               disabled={disabled || attaching}
-              aria-label="Attach files"
+              aria-label={t("chatComposer.aria.attachFiles")}
               title="Attach files"
               className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >

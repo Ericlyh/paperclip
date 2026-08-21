@@ -1,4 +1,5 @@
 import { Sparkles } from "lucide-react";
+import { useTranslation } from "../i18n";
 import { Link } from "@/lib/router";
 import { cn, relativeTime } from "@/lib/utils";
 import {
@@ -48,6 +49,7 @@ export function SourceResolvedFoldCallout({
   finalizedAt,
   className,
 }: SourceResolvedFoldCalloutProps) {
+  const { t } = useTranslation();
   const sourceLabel = fold.sourceIssueIdentifier ?? fold.sourceIssueId.slice(0, 8);
   const evidenceShort = shortenEvidenceId(fold.sameRunEvidenceId);
   const evidenceAt = isoOrLocaleString(fold.sameRunEvidenceAt);
@@ -60,7 +62,7 @@ export function SourceResolvedFoldCallout({
   return (
     <section
       role="status"
-      aria-label="Source-resolved watchdog fold"
+      aria-label={t("sourceResolvedFoldCallout.aria.sourceResolvedWatchdogFold")}
       data-source-resolved-fold
       className={cn(
         "relative w-full overflow-hidden rounded-lg border text-sm shadow-(--shadow-extract-8)",

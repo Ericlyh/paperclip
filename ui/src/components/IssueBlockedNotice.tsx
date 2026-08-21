@@ -240,6 +240,7 @@ function WaitingOnLiveWorkNotice({
   parkedBlockers: IssueRelationIssueSummary[];
   renderParkedChip: (blocker: IssueRelationIssueSummary) => ReactNode;
 }) {
+  const { t } = useTranslation();
   const steps = orderWaitingBlockers(chainBlockers, liveIds);
   const total = steps.length;
   const doneCount = steps.filter((step) => step.status === "done").length;
@@ -287,7 +288,7 @@ function WaitingOnLiveWorkNotice({
             </div>
             <div
               role="progressbar"
-              aria-label="Blocker chain progress"
+              aria-label={t("issueBlockedNotice.aria.blockerChainProgress")}
               aria-valuemin={0}
               aria-valuenow={doneCount}
               aria-valuemax={total}

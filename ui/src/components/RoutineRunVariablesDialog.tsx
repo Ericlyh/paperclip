@@ -360,7 +360,7 @@ export function RoutineRunVariablesDialog({
                 value={selection.assigneeAgentId}
                 options={assigneeOptions}
                 recentOptionIds={recentAssigneeIds}
-                placeholder="Agent"
+                placeholder={t("routineRunVariables.placeholder.agent")}
                 noneLabel="Select an agent"
                 searchPlaceholder="Search agents..."
                 emptyMessage="No agents found."
@@ -402,7 +402,7 @@ export function RoutineRunVariablesDialog({
                 value={selection.projectId}
                 options={projectOptions}
                 recentOptionIds={recentProjectIds}
-                placeholder="Project"
+                placeholder={t("routineRunVariables.placeholder.project")}
                 noneLabel={t("routines.noProject")}
                 searchPlaceholder="Search projects..."
                 emptyMessage="No projects found."
@@ -494,7 +494,7 @@ export function RoutineRunVariablesDialog({
                   }))}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Choose a value" />
+                    <SelectValue placeholder={t("routineRunVariables.placeholder.chooseValue")} />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="__unset__">No value</SelectItem>

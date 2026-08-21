@@ -121,7 +121,7 @@ export function InstanceAccess() {
               className="w-full rounded-md border border-border bg-background px-3 py-2"
               value={search}
               onChange={(event) => setSearch(event.target.value)}
-              placeholder="Search by name or email"
+              placeholder={t("instanceAccess.placeholder.searchByNameOrEmail")}
             />
           </label>
           <div className="space-y-2">

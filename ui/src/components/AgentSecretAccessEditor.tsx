@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "@/i18n";
 import { KeyRound, Plus, ServerCog, Trash2, Variable } from "lucide-react";
 import type {
   CompanySecret,
@@ -201,6 +202,7 @@ export function AgentSecretAccessEditor({
   onApproveProposal,
   onRejectProposal,
 }: AgentSecretAccessEditorProps) {
+  const { t } = useTranslation();
   const bindingProposals = useMemo(
     () => (proposals ?? []).filter((proposal) => proposal.kind === "binding"),
     [proposals],
@@ -356,8 +358,8 @@ export function AgentSecretAccessEditor({
                             if (suggested && suggested !== next) patchRow(row.id, { alias: suggested });
                           }
                         }}
-                        placeholder="ALIAS"
-                        aria-label="Access alias"
+                        placeholder={t("agentSecretAccessEditor.placeholder.alias")}
+                        aria-label={t("agentSecretAccessEditor.aria.accessAlias")}
                         disabled={disabled}
                         className={cn(
                           "h-9 font-mono text-sm",
@@ -450,7 +452,7 @@ export function AgentSecretAccessEditor({
                           });
                         }}
                         disabled={disabled || !selectedSecret}
-                        aria-label="Version"
+                        aria-label={t("agentSecretAccessEditor.aria.version")}
                       >
                         <option value="latest">latest</option>
                         {selectedSecret
@@ -470,7 +472,7 @@ export function AgentSecretAccessEditor({
                       type="button"
                       onClick={() => removeRow(row.id)}
                       disabled={disabled}
-                      aria-label="Remove API access"
+                      aria-label={t("agentSecretAccessEditor.aria.removeApiAccess")}
                       className="mt-1 inline-flex size-7 shrink-0 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground disabled:pointer-events-none disabled:opacity-50"
                     >
                       <Trash2 className="size-3.5" />

@@ -1,4 +1,5 @@
 import { Profiler, useCallback, useEffect, useId, useLayoutEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "../i18n";
 import { AlertTriangle, MessageSquarePlus } from "lucide-react";
 import type {
   DocumentAnnotationAnchorState,
@@ -255,6 +256,7 @@ export function DocumentAnnotationLayer({
   const [highlightRects, setHighlightRects] = useState<HighlightRect[]>([]);
   const [hoveredThreadId, setHoveredThreadId] = useState<string | null>(null);
   const [toolbarPosition, setToolbarPosition] = useState<ToolbarPosition | null>(null);
+  const { t } = useTranslation();
   const overlayRef = useRef<HTMLDivElement | null>(null);
   const lastCaptureSelectionRequestIdRef = useRef<number>(0);
   const lastSelectionRectRef = useRef<AnnotationAnchorRect | null>(null);
@@ -558,7 +560,7 @@ export function DocumentAnnotationLayer({
                 data-status={rect.status}
                 data-focused={isFocused || undefined}
                 data-hovered={isHovered || undefined}
-                aria-label="Open annotation thread"
+                aria-label={t("documentAnnotationLayer.aria.openAnnotationThread")}
                 className={cn(
                   "paperclip-doc-annotation-hit-target pointer-events-auto absolute cursor-pointer rounded-none bg-transparent transition-colors",
                   // Tint the run on hover so it's obvious which highlight you're over.
@@ -610,7 +612,7 @@ export function DocumentAnnotationLayer({
             <div
               data-testid="document-annotation-selection-toolbar"
               role="toolbar"
-              aria-label="Selection actions"
+              aria-label={t("documentAnnotationLayer.aria.selectionActions")}
               className="paperclip-doc-annotation-selection-toolbar pointer-events-auto absolute z-10 flex items-center gap-1 rounded-md border border-border bg-popover px-1 py-1 shadow-md"
               style={{ top: toolbarPosition.top, left: toolbarPosition.left }}
               onMouseDown={(event) => event.preventDefault()}

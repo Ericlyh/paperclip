@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useLayoutEffect, useRef, useState, type ReactNode } from "react";
+import { useTranslation } from "../../i18n";
 import { cn } from "@/lib/utils";
 import { ArrowDown } from "lucide-react";
 
@@ -41,6 +42,7 @@ interface TaskMessageScrollerProps {
  * while pinned stays instant, so no reflow/jump happens during streaming.
  */
 export function TaskMessageScroller({ children, contentKey, className }: TaskMessageScrollerProps) {
+  const { t } = useTranslation();
   const ref = useRef<HTMLDivElement>(null);
   const pinnedRef = useRef(true);
   const easingRef = useRef(false);
@@ -151,7 +153,7 @@ export function TaskMessageScroller({ children, contentKey, className }: TaskMes
       {pillPhase !== "hidden" ? (
         <button
           type="button"
-          aria-label="Scroll to latest"
+          aria-label={t("taskMessageScroller.aria.scrollToLatest")}
           onClick={handleJumpToLatest}
           onAnimationEnd={() => {
             if (pillPhase === "out") setPillPhase("hidden");

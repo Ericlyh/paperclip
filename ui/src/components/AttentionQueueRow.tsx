@@ -1,4 +1,5 @@
 import { memo, useState, type KeyboardEvent, type ReactNode } from "react";
+import { useTranslation } from "../i18n";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   AlarmClock,
@@ -127,6 +128,7 @@ export const AttentionQueueRow = memo(function AttentionQueueRow({
   // blocking decision reads exactly like a blocked task (DESIGN.md principle 5).
   const status = attentionStatus(item);
   // The task this row belongs to, whichever field the feed put it in.
+  const { t } = useTranslation();
   const taskRef = attentionTaskRef(item);
   const isHidden = variant === "hidden";
   const inline = !isHidden && isInlineResolvable(item);
@@ -307,7 +309,7 @@ export const AttentionQueueRow = memo(function AttentionQueueRow({
                   variant="ghost"
                   size="icon-xs"
                   className="text-muted-foreground"
-                  aria-label="Row actions"
+                  aria-label={t("attentionQueueRow.aria.rowActions")}
                 >
                   <MoreHorizontal className="h-4 w-4" />
                 </Button>
@@ -484,6 +486,7 @@ function CompactDecisionActions({
   audience: InteractionAudienceDescription | null;
   onOpen: () => void;
 }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { pushToast } = useToastActions();
   const actions = collectCompactActions(item);
@@ -534,7 +537,7 @@ function CompactDecisionActions({
   if (actions.length === 0) return null;
 
   return (
-    <div className="flex w-full flex-wrap items-center gap-2 @xl:w-auto @xl:justify-end @xl:gap-1" aria-label="Decision actions">
+    <div className="flex w-full flex-wrap items-center gap-2 @xl:w-auto @xl:justify-end @xl:gap-1" aria-label={t("attentionQueueRow.aria.decisionActions")}>
       {actions.map(({ action, id, label, description }) => (
         <Button
           key={id}
@@ -829,6 +832,7 @@ function ResolverFooter({ toggle, children }: { toggle: ReactNode; children: Rea
 }
 
 function ApprovalResolver({ item, companyId, toggle }: { item: AttentionItem; companyId: string; toggle: ReactNode }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [note, setNote] = useState("");
   const invalidate = () => {
@@ -856,7 +860,7 @@ function ApprovalResolver({ item, companyId, toggle }: { item: AttentionItem; co
       <Textarea
         value={note}
         onChange={(e) => setNote(e.target.value)}
-        placeholder="Optional decision note…"
+        placeholder={t("attentionQueueRow.placeholder.optionalDecisionNote")}
         className="min-h-16 text-sm"
       />
       <ResolverFooter toggle={toggle}>

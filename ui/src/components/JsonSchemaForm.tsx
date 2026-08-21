@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
+import { useTranslation } from "../i18n";
 import {
   ChevronDown,
   ChevronRight,
@@ -487,6 +488,7 @@ const EnumField = React.memo(({
   error?: string;
   options: unknown[];
 }) => {
+  const { t } = useTranslation();
   // Optional enums get a leading blank row so the user can express "not
   // configured"; it is also the selected row when no value is set.
   const showUnsetOption = !isRequired;
@@ -525,7 +527,7 @@ const EnumField = React.memo(({
         disabled={disabled}
       >
         <SelectTrigger className="w-full">
-          <SelectValue placeholder="Select an option" />
+          <SelectValue placeholder={t("jsonSchemaForm.placeholder.selectAnOption")} />
         </SelectTrigger>
         <SelectContent>
           {showUnsetOption && (
@@ -573,6 +575,7 @@ const SecretField = React.memo(({
   defaultValue?: unknown;
   maxLength?: number;
 }) => {
+  const { t } = useTranslation();
   const [isVisible, setIsVisible] = useState(false);
   const isTextArea = maxLength != null && maxLength > TEXTAREA_THRESHOLD;
 
@@ -710,7 +713,7 @@ const SecretField = React.memo(({
           value={bindingValue}
           onChange={handlePickerChange}
           label=""
-          placeholder="Select an existing secret"
+          placeholder={t("jsonSchemaForm.placeholder.selectAnExistingSecret")}
           allowVersionSelector={false}
           emptyHint="No active secrets yet. Create one or paste a raw value below."
           disabled={disabled}

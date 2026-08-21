@@ -1,3 +1,4 @@
+import { useTranslation } from "../../i18n";
 import type {
   IssueBlockerAttentionIssueSummary,
   IssueRelationIssueSummary,
@@ -171,9 +172,10 @@ export function TaskChatBlockerLinks({
   ultimateBlocker: IssueRelationIssueSummary | IssueBlockerAttentionIssueSummary | null;
   placement: "top" | "bottom";
 }) {
+  const { t } = useTranslation();
   return (
     <div
-      aria-label="Task blockers"
+      aria-label={t("taskChatBlockerLinks.aria.taskBlockers")}
       data-placement={placement}
       data-testid="task-chat-blocker-links"
       className="flex min-w-0 flex-col gap-1 overflow-hidden text-(length:--text-micro) leading-4 text-amber-700 dark:text-amber-300"
@@ -193,9 +195,10 @@ export function TaskChatLiveWorkLinks({
   liveWork: ResolvedTaskChatLiveWork;
   placement: "top" | "bottom";
 }) {
+  const { t } = useTranslation();
   return (
     <div
-      aria-label="Tasks waiting on live work"
+      aria-label={t("taskChatBlockerLinks.aria.tasksWaitingOnLiveWork")}
       data-placement={placement}
       data-testid="task-chat-live-work-links"
       className="flex min-w-0 flex-col gap-1.5 overflow-hidden text-(length:--text-micro) leading-4 text-blue-700 dark:text-blue-300"

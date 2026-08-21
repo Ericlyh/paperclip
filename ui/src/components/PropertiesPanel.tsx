@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from "react";
+import { useTranslation } from "../i18n";
 import { Maximize2, Minimize2, X } from "lucide-react";
 import { usePanel } from "../context/PanelContext";
 import { useClassicTaskInterfaceEnabled } from "../hooks/useClassicTaskInterfaceEnabled";
@@ -138,6 +139,7 @@ function ResizablePropertiesPanel({
   panelVisible,
   setPanelVisible,
 }: ResizablePropertiesPanelProps) {
+  const { t } = useTranslation();
   const [width, setWidth] = useState(() => clampPaneWidth(readStoredPaneWidth()));
   const [dragging, setDragging] = useState(false);
   const [maximized, setMaximized] = useState(false);
@@ -330,7 +332,7 @@ function ResizablePropertiesPanel({
           <div
             role="separator"
             aria-orientation="vertical"
-            aria-label="Resize panel"
+            aria-label={t("propertiesPanel.aria.resizePanel")}
             data-dragging={dragging ? "" : undefined}
             className="group absolute inset-y-0 z-10 cursor-col-resize touch-none"
             style={{ left: -4, width: 8 }}

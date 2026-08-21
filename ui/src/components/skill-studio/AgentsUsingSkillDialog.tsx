@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "../../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { Loader2, Plus, Trash2, Users } from "lucide-react";
 import type {
@@ -421,6 +422,7 @@ function AddAgentPicker({
   disabled: boolean;
   onSelect: (agent: Agent) => void;
 }) {
+  const { t } = useTranslation();
   type AgentOption = SearchableSelectOption<string> & { agent: Agent };
   const groups = useMemo<readonly SearchableSelectGroup<string, AgentOption>[]>(() => {
     const options: AgentOption[] = agents.map((agent) => ({
@@ -440,7 +442,7 @@ function AddAgentPicker({
       groups={groups}
       loading={loading}
       loadingMessage="Loading agents..."
-      placeholder="Add agent…"
+      placeholder={t("agentsUsingSkillDialog.placeholder.addAgent")}
       searchPlaceholder="Search agents..."
       emptyMessage="All eligible agents already have this skill."
       disabled={disabled}

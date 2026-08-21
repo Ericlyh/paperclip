@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlarmClock, CalendarClock, ChevronDown, Loader2, Plus, UserPlus, X } from "lucide-react";
 import { buildAgentMentionHref, type Agent, type AttentionItem, type AttentionSourceKind } from "@paperclipai/shared";
@@ -77,6 +78,7 @@ interface DecisionTriageStripProps {
  * expiry chip surfaces the underlying decision's TTL read-only.
  */
 export function DecisionTriageStrip({ item, companyId, agents }: DecisionTriageStripProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { pushToast } = useToastActions();
   const sourceKind = item.sourceKind;
@@ -164,7 +166,7 @@ export function DecisionTriageStrip({ item, companyId, agents }: DecisionTriageS
       {/* When to decide — the importance signal that drives desk ordering. */}
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-medium text-muted-foreground">When to decide</span>
-        <div className="flex flex-wrap items-center gap-1" role="group" aria-label="When to decide">
+        <div className="flex flex-wrap items-center gap-1" role="group" aria-label={t("decisionTriageStrip.aria.whenToDecide")}>
           {DECIDE_BY_OPTIONS.map(([value, label]) => (
             <SegmentButton
               key={value}
@@ -313,6 +315,7 @@ function QueuePicker({
   disabled?: boolean;
   onAdd: (key: string) => void;
 }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { pushToast } = useToastActions();
   const [open, setOpen] = useState(false);
@@ -362,7 +365,7 @@ function QueuePicker({
                 if (event.key === "Enter" && title.trim()) create.mutate(title);
                 if (event.key === "Escape") setCreating(false);
               }}
-              placeholder="New queue name…"
+              placeholder={t("decisionTriageStrip.placeholder.newQueueName")}
               className="w-full rounded-sm border border-border bg-background px-2 py-1 text-xs"
             />
             <div className="flex justify-end gap-1">

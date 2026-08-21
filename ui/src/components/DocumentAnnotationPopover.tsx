@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useTranslation } from "../i18n";
 import type { Agent, DocumentAnnotationThreadWithComments } from "@paperclipai/shared";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -27,6 +28,7 @@ export interface DocumentAnnotationPopoverProps {
 }
 
 export function DocumentAnnotationPopover(props: DocumentAnnotationPopoverProps) {
+  const { t } = useTranslation();
   const cardRef = useRef<HTMLDivElement | null>(null);
   const composerRef = useRef<HTMLTextAreaElement | null>(null);
   const [composer, setComposer] = useState("");
@@ -101,7 +103,7 @@ export function DocumentAnnotationPopover(props: DocumentAnnotationPopoverProps)
                 submitComposer();
               }
             }}
-            placeholder="Write a comment…"
+            placeholder={t("documentAnnotationPopover.placeholder.writeAComment")}
             disabled={props.newCommentDisabled || createThread.isPending}
             className="resize-y text-sm"
           />

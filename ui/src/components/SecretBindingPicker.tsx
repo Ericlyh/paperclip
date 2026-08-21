@@ -1,4 +1,5 @@
 import { createContext, useContext, useMemo, useState } from "react";
+import { useTranslation } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { AlertCircle, KeyRound, Loader2, Plus, X } from "lucide-react";
 import type { CompanySecret, SecretVersionSelector } from "@paperclipai/shared";
@@ -87,13 +88,14 @@ export function SecretBindingPicker({
   value,
   onChange,
   label = "Secret",
-  placeholder = "Select secret",
+  placeholder,
   allowVersionSelector = true,
   emptyHint = "No matching secrets. Create one to bind it here.",
   className,
   disabled,
   statusFilter = ["active"],
 }: SecretBindingPickerProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { selectedCompanyId } = useCompany();
   const [createOpen, setCreateOpen] = useState(false);
@@ -193,7 +195,7 @@ export function SecretBindingPicker({
             }}
             disabled={disabled || secretsQuery.isPending}
           >
-            <option value="">{secretsQuery.isPending ? "Loading…" : placeholder}</option>
+            <option value="">{secretsQuery.isPending ? "Loading…" : (placeholder ?? t("secretBindingPicker.placeholder.selectSecret"))}</option>
             {selectedMissing && value ? (
               <option value={value.secretId}>
                 {missingHint
@@ -221,7 +223,7 @@ export function SecretBindingPicker({
               onChange({ ...value, version: next });
             }}
             disabled={disabled || !value || !selectedSecret}
-            aria-label="Version"
+            aria-label={t("secretBindingPicker.aria.version")}
           >
             <option value={VERSION_LATEST}>latest</option>
             {selectedSecret
@@ -243,7 +245,7 @@ export function SecretBindingPicker({
           size="sm"
           onClick={() => setCreateOpen(true)}
           disabled={disabled || !selectedCompanyId}
-          aria-label="Create secret"
+          aria-label={t("secretBindingPicker.aria.createSecret")}
         >
           <Plus className="h-3.5 w-3.5" />
         </Button>
@@ -294,7 +296,7 @@ export function SecretBindingPicker({
                 id="secret-name"
                 value={createName}
                 onChange={(event) => setCreateName(event.target.value)}
-                placeholder="OPENAI_API_KEY"
+                placeholder={t("secretBindingPicker.placeholder.openaiApiKey")}
                 autoFocus
               />
             </div>
@@ -305,7 +307,7 @@ export function SecretBindingPicker({
                 value={createValue}
                 onChange={(event) => setCreateValue(event.target.value)}
                 rows={3}
-                placeholder="Paste the secret value"
+                placeholder={t("secretBindingPicker.placeholder.pasteTheSecretValue")}
                 className="font-mono text-xs"
               />
               <p className="text-(length:--text-micro) text-muted-foreground mt-1">
@@ -318,7 +320,7 @@ export function SecretBindingPicker({
                 id="secret-description"
                 value={createDescription}
                 onChange={(event) => setCreateDescription(event.target.value)}
-                placeholder="Optional notes (no values)"
+                placeholder={t("secretBindingPicker.placeholder.optionalNotesNoValues")}
               />
             </div>
             {createError ? <p className="text-xs text-destructive">{createError}</p> : null}

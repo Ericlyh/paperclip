@@ -3612,6 +3612,9 @@
       "sectionTitle": "Section Title — text-lg font-semibold",
       "tinyLabel": "Tiny label — text-xs text-muted-foreground",
       "title": "Typography"
+    },
+    "placeholder": {
+      "addADescription": "Add a description..."
     }
   },
   "devRestart": {
@@ -4106,7 +4109,12 @@
     "sheetTitle": "{{itemLabelPlural}} folders",
     "system": "System",
     "unfiled": "Unfiled",
-    "useFolderColor": "Use folder color {{color}}"
+    "useFolderColor": "Use folder color {{color}}",
+    "aria": {
+      "skillFolders": "Skill folders",
+      "resizeSkillFolders": "Resize skill folders",
+      "folderPath": "Folder path"
+    }
   },
   "gatewaysTab": {
     "allowedTools": {
@@ -4799,6 +4807,9 @@
       "dueNow": "due now",
       "scheduled": "scheduled",
       "scheduledRelative": "scheduled {{relative}}"
+    },
+    "aria": {
+      "blockerChainProgress": "Blocker chain progress"
     }
   },
   "issueDetail": {
@@ -8052,7 +8063,10 @@
     "seeAllAgents": "See all agents",
     "sortAlphabetical": "Alphabetical",
     "sortRecent": "Recent",
-    "starAgent": "Star agent"
+    "starAgent": "Star agent",
+    "aria": {
+      "invalidReportingChain": "h-3.5 w-3.5 shrink-0 text-amber-500"
+    }
   },
   "skillStudio": {
     "A_README_md_seed_file_is_created_so_the_": "A README.md seed file is created so the folder appears in the file tree.",
@@ -8508,7 +8522,10 @@
     "viewUpdateTask": "View update task"
   },
   "summarySlot": {
-    "updatedAgo": "Updated {{value}}"
+    "updatedAgo": "Updated {{value}}",
+    "aria": {
+      "selectSummaryRevision": "Select summary revision"
+    }
   },
   "teamCatalog": {
     "Adapter_selection_with_count": "Adapter selection · {{count}}",
@@ -9446,7 +9463,15 @@
       "overview": "Overview",
       "properties": "Properties"
     },
-    "description": "Description"
+    "description": "Description",
+    "aria": {
+      "changeCaseStatus": "Change case status",
+      "newLabelColor": "New label color",
+      "moreCaseActions": "ghost"
+    },
+    "placeholder": {
+      "searchLabels": "Search labels…"
+    }
   },
   "boardClaim": {
     "invalidUrl": "Invalid board claim URL.",
@@ -10052,6 +10077,366 @@
       "configureWatchdog": "Configure watchdog",
       "removeDocument": "Remove document",
       "removeAttachment": "Remove attachment"
+    }
+  },
+  "hermesGateway": {
+    "placeholder": {
+      "apiServerKey": "Hermes API_SERVER_KEY, not PAPERCLIP_API_KEY"
+    }
+  },
+  "openclawGateway": {
+    "placeholder": {
+      "gatewayToken": "OpenClaw gateway token",
+      "sharedPassword": "Gateway shared password"
+    }
+  },
+  "agentActionButtons": {
+    "aria": {
+      "clearErrorAndReturnAgentToIdle": "Clear error and return agent to idle"
+    }
+  },
+  "agentIconPicker": {
+    "placeholder": {
+      "searchIcons": "Search icons..."
+    }
+  },
+  "agentSecretAccessEditor": {
+    "placeholder": {
+      "alias": "Access alias"
+    },
+    "aria": {
+      "accessAlias": "Access alias",
+      "version": "Version",
+      "removeApiAccess": "Remove API access"
+    }
+  },
+  "attentionQueueRow": {
+    "aria": {
+      "rowActions": "Row actions",
+      "decisionActions": "flex w-full flex-wrap items-center gap-2 @xl:w-auto @xl:justify-end @xl:gap-1"
+    },
+    "placeholder": {
+      "optionalDecisionNote": "Optional decision note…"
+    }
+  },
+  "breadcrumbBar": {
+    "aria": {
+      "openSidebar": "Open sidebar"
+    }
+  },
+  "builtInBundlePanel": {
+    "aria": {
+      "bundleStatus": "space-y-2"
+    }
+  },
+  "chatComposer": {
+    "placeholder": {
+      "message": "Message…"
+    },
+    "aria": {
+      "attachFiles": "Attach files"
+    }
+  },
+  "decisionQueueRail": {
+    "aria": {
+      "decisionQueues": "flex flex-wrap items-center gap-1.5",
+      "recentActivity": "h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+    }
+  },
+  "decisionTriageStrip": {
+    "aria": {
+      "whenToDecide": "flex flex-wrap items-center gap-1"
+    },
+    "placeholder": {
+      "newQueueName": "New queue name…"
+    }
+  },
+  "documentAnnotationLayer": {
+    "aria": {
+      "openAnnotationThread": "Open annotation thread",
+      "selectionActions": "Selection actions"
+    }
+  },
+  "documentAnnotationPanel": {
+    "aria": {
+      "closeAnnotationPanel": "Close annotation panel",
+      "moreThreadActions": "More thread actions"
+    },
+    "placeholder": {
+      "writeAComment": "Write a comment…",
+      "reply": "Reply…"
+    }
+  },
+  "documentAnnotationPopover": {
+    "placeholder": {
+      "writeAComment": "Write a comment…"
+    }
+  },
+  "fileViewerSheet": {
+    "aria": {
+      "loadingFileDetails": "h-3 w-28 rounded bg-muted animate-pulse",
+      "markdownPreviewMode": "Markdown preview mode",
+      "showRenderedMarkdown": "Show rendered Markdown",
+      "showRawMarkdown": "Show raw Markdown",
+      "backToFiles": "Back to files",
+      "downloadFile": "Download file",
+      "closeFileViewer": "Close file viewer",
+      "resizeFileTree": "Resize file tree"
+    }
+  },
+  "frontmatterPanel": {
+    "placeholder": {
+      "addATool": "Add a tool…"
+    },
+    "aria": {
+      "addTool": "Add tool",
+      "frontmatterYaml": "Frontmatter YAML"
+    }
+  },
+  "inboxAgentPolicyControl": {
+    "aria": {
+      "letAgentsTidyMyInbox": "space-y-4"
+    }
+  },
+  "inlineEditor": {
+    "placeholder": {
+      "clickToEdit": "Click to edit..."
+    }
+  },
+  "issueRow": {
+    "aria": {
+      "archive": "Archive",
+      "markAsRead": "Mark as read"
+    }
+  },
+  "issueSiblingNavigation": {
+    "aria": {
+      "subTaskNavigation": "Sub-task navigation"
+    }
+  },
+  "jsonSchemaForm": {
+    "placeholder": {
+      "selectAnOption": "Select an option",
+      "selectAnExistingSecret": "Select an existing secret"
+    }
+  },
+  "layout": {
+    "aria": {
+      "closeSidebar": "Close sidebar"
+    }
+  },
+  "markdownBody": {
+    "aria": {
+      "copyCode": "Copy code",
+      "scrollableTable": "paperclip-markdown-table-scroll"
+    }
+  },
+  "newAgentDialog": {
+    "placeholder": {
+      "addOnboardingContext": "Add onboarding context, expected role, or first instructions."
+    }
+  },
+  "newGoalDialog": {
+    "placeholder": {
+      "goalTitle": "Goal title",
+      "addDescription": "Add description..."
+    }
+  },
+  "outputFeedbackButtons": {
+    "placeholder": {
+      "addAShortNote": "Add a short note"
+    }
+  },
+  "pageTabBar": {
+    "aria": {
+      "pageSection": "Page section"
+    }
+  },
+  "pipelineItemBodyDocument": {
+    "placeholder": {
+      "writeTheItemBodyInMarkdown": "Write the item body in Markdown…"
+    },
+    "aria": {
+      "itemBody": "Item body"
+    }
+  },
+  "propertiesPanel": {
+    "aria": {
+      "resizePanel": "Resize panel"
+    }
+  },
+  "reusableExecutionWorkspaceSelect": {
+    "placeholder": {
+      "chooseAnExistingWorkspace": "Choose an existing workspace"
+    }
+  },
+  "routineRunVariables": {
+    "placeholder": {
+      "agent": "Agent",
+      "project": "Project",
+      "chooseValue": "Choose a value"
+    }
+  },
+  "routineSubSidebar": {
+    "aria": {
+      "routineSections": "Routine sections",
+      "unsavedChanges": "Unsaved changes",
+      "routineSection": "h-11 w-full"
+    }
+  },
+  "scheduleEditor": {
+    "aria": {
+      "scheduleFrequency": "Choose frequency...",
+      "cronExpression": "Cron expression"
+    },
+    "placeholder": {
+      "chooseFrequency": "Choose frequency..."
+    }
+  },
+  "scrollToBottom": {
+    "aria": {
+      "scrollToBottom": "Scroll to bottom"
+    }
+  },
+  "secretBindingPicker": {
+    "placeholder": {
+      "selectSecret": ">{secretsQuery.isPending ? ",
+      "openaiApiKey": "OPENAI_API_KEY",
+      "pasteTheSecretValue": "Paste the secret value",
+      "optionalNotesNoValues": "Optional notes (no values)"
+    },
+    "aria": {
+      "version": "Version",
+      "createSecret": "Create secret"
+    }
+  },
+  "sidebarShell": {
+    "aria": {
+      "resizeSidebar": "Resize sidebar"
+    }
+  },
+  "sidebarStarredProjects": {
+    "aria": {
+      "starredProjects": "flex flex-col gap-0.5"
+    }
+  },
+  "sourceResolvedFoldBadge": {
+    "aria": {
+      "sourceResolvedWatchdogFold": "Source-resolved watchdog fold"
+    }
+  },
+  "sourceResolvedFoldCallout": {
+    "aria": {
+      "sourceResolvedWatchdogFold": "Source-resolved watchdog fold"
+    }
+  },
+  "stalledReviewActions": {
+    "placeholder": {
+      "addANoteRequired": "Add a note — required to request changes, optional otherwise…"
+    }
+  },
+  "toastViewport": {
+    "aria": {
+      "dismissNotification": "Dismiss notification"
+    }
+  },
+  "workspaceFileBrowser": {
+    "aria": {
+      "currentFolder": "Current folder",
+      "workspaceFiles": "tree",
+      "searchWorkspaceFiles": "Search workspace files",
+      "refreshWorkspaceFiles": "Refresh workspace files"
+    },
+    "placeholder": {
+      "searchFilesByNameOrPath": "Search workspace files"
+    }
+  },
+  "createSecretPopover": {
+    "aria": {
+      "secretName": "Secret name",
+      "secretValue": "Secret value"
+    }
+  },
+  "secretPicker": {
+    "placeholder": {
+      "selectSecret": "Select secret…"
+    }
+  },
+  "interruptHandoffViews": {
+    "aria": {
+      "dismissSuggestion": "Dismiss suggestion"
+    }
+  },
+  "issueOutputSection": {
+    "aria": {
+      "taskOutputs": "space-y-3"
+    }
+  },
+  "routineSections": {
+    "placeholder": {
+      "addInstructions": "Add instructions..."
+    }
+  },
+  "agentsUsingSkillDialog": {
+    "placeholder": {
+      "addAgent": "Add agent…"
+    }
+  },
+  "forkSkillDialog": {
+    "aria": {
+      "switchTheseAgentsToTheCopy": "Switch these agents to the copy"
+    }
+  },
+  "taskChatBlockerLinks": {
+    "aria": {
+      "taskBlockers": "Task blockers",
+      "tasksWaitingOnLiveWork": "Tasks waiting on live work"
+    }
+  },
+  "taskChatBubbleActions": {
+    "aria": {
+      "copyMessage": "Copy message"
+    }
+  },
+  "taskChatDescriptionBubble": {
+    "placeholder": {
+      "addADescription": "Add a description..."
+    },
+    "aria": {
+      "editDescription": "Edit description"
+    }
+  },
+  "taskMessageScroller": {
+    "aria": {
+      "scrollToLatest": "Scroll to latest"
+    }
+  },
+  "boardChat": {
+    "aria": {
+      "jumpToLatestMessages": "Jump to latest messages",
+      "resizeBoardChatAndAgentFeed": "Resize board chat and agent feed",
+      "openAgentFeed": "Open agent feed"
+    },
+    "placeholder": {
+      "askAnything": "Ask anything about your company..."
+    }
+  },
+  "companyExport": {
+    "aria": {
+      "whatToInclude": "grid grid-cols-2 gap-x-4 gap-y-1.5"
+    },
+    "placeholder": {
+      "searchFiles": "Search files..."
+    }
+  },
+  "decisionQueuePage": {
+    "placeholder": {
+      "reasonOptional": "Reason (optional)…"
+    }
+  },
+  "instanceAccess": {
+    "placeholder": {
+      "searchByNameOrEmail": "Search by name or email"
     }
   }
 }

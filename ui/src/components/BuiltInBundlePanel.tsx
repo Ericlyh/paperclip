@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 
+import { useTranslation } from "../i18n";
 import { Link } from "@/lib/router";
 import { Button } from "@/components/ui/button";
 import {
@@ -251,6 +252,7 @@ export function BuiltInBundlePanel({
   routineActionPending = null,
   className,
 }: BuiltInBundlePanelProps) {
+  const { t } = useTranslation();
   const { status, definition, resources } = state;
   const bundle = definition.bundle;
   if (!bundle) return null;
@@ -317,7 +319,7 @@ export function BuiltInBundlePanel({
   };
 
   return (
-    <section className={cn("space-y-2", className)} aria-label="Bundle status">
+    <section className={cn("space-y-2", className)} aria-label={t("builtInBundlePanel.aria.bundleStatus")}>
       <h3 className="text-sm font-medium">Bundle status</h3>
 
       <div className="divide-y rounded-lg border px-4">

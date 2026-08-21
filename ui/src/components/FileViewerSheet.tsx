@@ -8,6 +8,7 @@ import {
   type PointerEvent as ReactPointerEvent,
   type ReactNode,
 } from "react";
+import { useTranslation } from "../i18n";
 import { useQuery, type UseQueryResult } from "@tanstack/react-query";
 import {
   AlertTriangle,
@@ -202,6 +203,7 @@ export function FileViewerMetadataRow({
   resolvedResource?: ResolvedWorkspaceResource;
   state: FileViewerUrlState | null;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="flex min-h-(--sz-18px) flex-wrap items-center gap-x-2 gap-y-0.5 text-xs text-muted-foreground">
       {resolvedResource ? (
@@ -224,7 +226,7 @@ export function FileViewerMetadataRow({
           ) : null}
         </>
       ) : state ? (
-        <span className="h-3 w-28 rounded bg-muted animate-pulse" aria-label="Loading file details" />
+        <span className="h-3 w-28 rounded bg-muted animate-pulse" aria-label={t("fileViewerSheet.aria.loadingFileDetails")} />
       ) : null}
     </div>
   );
@@ -239,6 +241,7 @@ interface FileContentViewerProps {
 type MarkdownPreviewMode = "raw" | "rendered";
 
 export function FileContentViewer({ content, highlightedLine, onLoaded }: FileContentViewerProps) {
+  const { t } = useTranslation();
   const { resource } = content;
   const isMarkdown = resource.previewKind === "text" && content.content.encoding === "utf8" && isMarkdownResource(resource);
   const [markdownMode, setMarkdownMode] = useState<MarkdownPreviewMode>("rendered");
@@ -382,14 +385,14 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
       <div className="absolute right-3 top-3 z-20">
         <div
           role="group"
-          aria-label="Markdown preview mode"
+          aria-label={t("fileViewerSheet.aria.markdownPreviewMode")}
           className="inline-flex rounded-md border border-border bg-background/95 p-0.5 shadow-sm backdrop-blur"
         >
           <Button
             type="button"
             variant={markdownMode === "rendered" ? "secondary" : "ghost"}
             size="icon-sm"
-            aria-label="Show rendered Markdown"
+            aria-label={t("fileViewerSheet.aria.showRenderedMarkdown")}
             title="Rendered Markdown"
             aria-pressed={markdownMode === "rendered"}
             onClick={() => setMarkdownMode("rendered")}
@@ -404,7 +407,7 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
             type="button"
             variant={markdownMode === "raw" ? "secondary" : "ghost"}
             size="icon-sm"
-            aria-label="Show raw Markdown"
+            aria-label={t("fileViewerSheet.aria.showRawMarkdown")}
             title="Raw Markdown"
             aria-pressed={markdownMode === "raw"}
             onClick={() => setMarkdownMode("raw")}
@@ -483,6 +486,7 @@ export function FileViewerSheet({
   open: openProp,
   onOpenChange,
 }: FileViewerSheetProps) {
+  const { t } = useTranslation();
   const viewer = useRequiredFileViewer();
   const state = typeof stateProp !== "undefined" ? stateProp : viewer.state;
   // Browse mode: no file selected, but the sheet was opened to browse/search.
@@ -761,7 +765,7 @@ export function FileViewerSheet({
                   size="sm"
                   onClick={() => viewer.backToFiles()}
                   className="h-7 gap-1 px-2 text-xs"
-                  aria-label="Back to files"
+                  aria-label={t("fileViewerSheet.aria.backToFiles")}
                 >
                   <ArrowLeft className="h-3.5 w-3.5" />
                   Back to files
@@ -778,7 +782,7 @@ export function FileViewerSheet({
                     <a
                       href={downloadUrl}
                       download={resolvedResource?.title ?? basename(state.path)}
-                      aria-label="Download file"
+                      aria-label={t("fileViewerSheet.aria.downloadFile")}
                       title="Download file"
                     >
                       <Download className="h-4 w-4" />
@@ -830,7 +834,7 @@ export function FileViewerSheet({
                 size="icon-sm"
                 onClick={() => handleOpenChange(false)}
                 className="h-7 w-7"
-                aria-label="Close file viewer"
+                aria-label={t("fileViewerSheet.aria.closeFileViewer")}
                 title="Close"
               >
                 <X className="h-4 w-4" />
@@ -871,7 +875,7 @@ export function FileViewerSheet({
               <div
                 role="separator"
                 aria-orientation="vertical"
-                aria-label="Resize file tree"
+                aria-label={t("fileViewerSheet.aria.resizeFileTree")}
                 aria-valuemin={MIN_FILE_TREE_WIDTH}
                 aria-valuemax={MAX_FILE_TREE_WIDTH}
                 aria-valuenow={fileTreeWidth}

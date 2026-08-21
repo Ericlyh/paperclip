@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "../../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { GitFork, Loader2, Users } from "lucide-react";
 import type {
@@ -47,6 +48,7 @@ export function ForkSkillDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const toast = useOptionalToastActions();
@@ -214,7 +216,7 @@ export function ForkSkillDialog({
                   checked={reassign}
                   onCheckedChange={setReassign}
                   disabled={busy}
-                  aria-label="Switch these agents to the copy"
+                  aria-label={t("forkSkillDialog.aria.switchTheseAgentsToTheCopy")}
                 />
               </label>
             </>

@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTranslation } from "../../i18n";
 import type {
   FeedbackDataSharingPreference,
   FeedbackVoteValue,
@@ -33,6 +34,7 @@ export function TaskChatBubbleActions({
   copyText: string;
   feedback?: TaskChatBubbleFeedback | null;
 }) {
+  const { t } = useTranslation();
   const [copied, setCopied] = useState(false);
 
   return (
@@ -41,7 +43,7 @@ export function TaskChatBubbleActions({
         type="button"
         className="inline-flex h-7 w-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-accent hover:text-foreground"
         title="Copy message"
-        aria-label="Copy message"
+        aria-label={t("taskChatBubbleActions.aria.copyMessage")}
         onClick={() => {
           void copyTextToClipboard(copyText)
             .then(() => {

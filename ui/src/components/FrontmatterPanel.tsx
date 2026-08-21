@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useState } from "react";
+import { useTranslation } from "../i18n";
 import {
   analyzeFrontmatterBlock,
   asStringArray,
@@ -225,6 +226,7 @@ export function FrontmatterPanel({
   onChange,
   className,
 }: FrontmatterPanelProps) {
+  const { t } = useTranslation();
   const isSkillFile = isSkillMarkdown(fileName);
 
   // `yamlText` is the canonical raw block — always equal to whatever we've last
@@ -466,6 +468,7 @@ function FieldsForm({
   readOnly: boolean;
   onCommit: (form: FormModel) => void;
 }) {
+  const { t } = useTranslation();
   const nameWarning = fieldWarning(validation, "name");
   const descriptionWarning = fieldWarning(validation, "description");
   const toolsWarning = fieldWarning(validation, "allowed-tools");
@@ -517,7 +520,7 @@ function FieldsForm({
             <ChipInput
               values={form.allowedTools}
               readOnly={readOnly}
-              placeholder="Add a tool…"
+              placeholder={t("frontmatterPanel.placeholder.addATool")}
               onChange={(next) => onCommit({ ...form, allowedTools: next })}
             />
           )}
@@ -577,6 +580,7 @@ function MetadataRows({
   readOnly: boolean;
   onChange: (rows: ScalarRow[]) => void;
 }) {
+  const { t } = useTranslation();
   const update = (index: number, patch: Partial<ScalarRow>) => {
     const next = rows.slice();
     next[index] = { ...next[index]!, ...patch, edited: true };
@@ -646,6 +650,7 @@ function ChipInput({
   placeholder?: string;
   onChange: (values: string[]) => void;
 }) {
+  const { t } = useTranslation();
   const [draft, setDraft] = useState("");
 
   const commit = () => {
@@ -686,7 +691,7 @@ function ChipInput({
             }
           }}
           onBlur={commit}
-          aria-label="Add tool"
+          aria-label={t("frontmatterPanel.aria.addTool")}
           className="min-w-24 flex-1 bg-transparent text-xs outline-none"
         />
       ) : null}
@@ -707,6 +712,7 @@ function YamlEditor({
   parseError: boolean;
   onChange: (value: string) => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="pt-1">
       {!canReturnToFields && !parseError ? (
@@ -722,7 +728,7 @@ function YamlEditor({
         rows={Math.min(12, Math.max(3, value.split("\n").length))}
         onChange={(event) => onChange(event.target.value)}
         className="font-mono text-xs"
-        aria-label="Frontmatter YAML"
+        aria-label={t("frontmatterPanel.aria.frontmatterYaml")}
       />
       <p className="mt-1 text-xs text-muted-foreground">
         Raw YAML is the source of truth in this mode.

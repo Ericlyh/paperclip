@@ -477,7 +477,7 @@ export function SummarySlotCard({
                 <SelectTrigger
                   size="sm"
                   className="h-auto border-0 bg-transparent p-0 text-xs shadow-none hover:text-foreground focus-visible:ring-0"
-                  aria-label="Select summary revision"
+                  aria-label={t("summarySlot.aria.selectSummaryRevision")}
                   title={historicalRevision ? revisionOptionLabel(historicalRevision) : latestSelectLabel}
                 >
                   <SelectValue>

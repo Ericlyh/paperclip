@@ -1,4 +1,5 @@
 import { useCallback, useMemo, useRef, useState } from "react";
+import { useTranslation } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   PIPELINE_CASE_BODY_DOCUMENT_KEY,
@@ -101,6 +102,7 @@ export function PipelineItemBodyDocument({
   onStartConversation,
   onAfterChange,
 }: PipelineItemBodyDocumentProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { pushToast } = useToastActions();
 
@@ -294,7 +296,7 @@ export function PipelineItemBodyDocument({
           <MarkdownEditor
             value={draftBody}
             onChange={setDraftBody}
-            placeholder="Write the item body in Markdown…"
+            placeholder={t("pipelineItemBodyDocument.placeholder.writeTheItemBodyInMarkdown")}
             bordered={false}
             className="min-h-(--sz-220px) bg-transparent"
             contentClassName={bodyContentClassName}
@@ -406,7 +408,7 @@ export function PipelineItemBodyDocument({
 
   return (
     <section
-      aria-label="Item body"
+      aria-label={t("pipelineItemBodyDocument.aria.itemBody")}
       id="pipeline-item-body-document"
       data-testid="pipeline-item-body-document"
       className="rounded-lg border border-border p-3"

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
+import { useTranslation } from "../i18n";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "@/lib/router";
 import { useDialog } from "../context/DialogContext";
@@ -43,6 +44,7 @@ function isAgentAdapterType(type: string): boolean {
 }
 
 export function NewAgentDialog() {
+  const { t } = useTranslation();
   const { newAgentOpen, closeNewAgent, openNewIssue } = useDialog();
   const { selectedCompanyId } = useCompany();
   const { pushToast } = useToast();
@@ -346,7 +348,7 @@ export function NewAgentDialog() {
                   value={agentMessage}
                   onChange={(event) => setAgentMessage(event.target.value)}
                   className="min-h-24 resize-y"
-                  placeholder="Add onboarding context, expected role, or first instructions."
+                  placeholder={t("newAgentDialog.placeholder.addOnboardingContext")}
                   maxLength={4000}
                 />
               </label>
