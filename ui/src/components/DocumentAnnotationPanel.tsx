@@ -424,7 +424,7 @@ export function ThreadCard(props: {
                     variant="ghost"
                     size="icon-xs"
                     className="text-muted-foreground"
-                    title="More actions"
+                    title={t("documentAnnotationPanel.title.moreactions")}
                     aria-label={t("documentAnnotationPanel.aria.moreThreadActions")}
                   >
                     <MoreHorizontal className="h-3.5 w-3.5" />

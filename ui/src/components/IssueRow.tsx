@@ -192,7 +192,7 @@ export function IssueRow({
     <Badge variant="outline"
       data-testid="issue-row-parked-blocker"
       className="[&>svg]:size-2.5 ml-1.5 gap-0.5 border-amber-500/60 bg-amber-500/15 text-(length:--text-nano) text-amber-700 dark:text-amber-300"
-      title="Blocked by parked work — at least one assigned blocker is in backlog and will not wake its assignee."
+      title={t("issueRow.title.blockedbyparkedworkatleastoneassignedblockerisinba")}
     >
       <Flag className="h-2.5 w-2.5" aria-hidden />
       Blocked by parked work

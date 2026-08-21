@@ -346,7 +346,7 @@ export const ChatComposer = forwardRef<ChatComposerHandle, ChatComposerProps>(fu
               onClick={triggerFilePicker}
               disabled={disabled || attaching}
               aria-label={t("chatComposer.aria.attachFiles")}
-              title="Attach files"
+              title={t("chatComposer.title.attachfiles")}
               className="grid h-7 w-7 shrink-0 place-items-center rounded-md text-muted-foreground transition-colors duration-150 hover:bg-accent hover:text-foreground disabled:cursor-not-allowed disabled:opacity-50"
             >
               {attaching ? <Loader2 className="h-4 w-4 animate-spin" /> : <Paperclip className="h-4 w-4" />}

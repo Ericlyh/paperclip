@@ -4,6 +4,7 @@ import { ExternalObjectPill } from "./ExternalObjectPill";
 import type { IssueExternalObjectGroup } from "../hooks/useIssueExternalObjects";
 import { externalObjectToneSeverity } from "../lib/external-objects";
 import { Badge } from "@/components/ui/badge";
+import { useTranslation } from "../i18n";
 
 type GroupedSource = {
   label: string;
@@ -185,13 +186,14 @@ export function IssueRelatedWorkPanel({
   externalObjectsError?: boolean;
   onRetryExternalObjects?: () => void;
 }) {
+  const { t } = useTranslation();
   const outbound = relatedWork?.outbound ?? [];
   const inbound = relatedWork?.inbound ?? [];
 
   return (
     <div className="space-y-3">
       <Section
-        title="References"
+        title={t("issueRelatedWorkPanel.title.references")}
         description="Other tasks this task currently points at in its title, description, comments, or documents."
         items={outbound}
         emptyLabel="This task does not reference any other tasks yet."
@@ -205,7 +207,7 @@ export function IssueRelatedWorkPanel({
         />
       ) : null}
       <Section
-        title="Referenced by"
+        title={t("issueRelatedWorkPanel.title.referencedby")}
         description="Other tasks that currently point at this task."
         items={inbound}
         emptyLabel="No other tasks reference this task yet."

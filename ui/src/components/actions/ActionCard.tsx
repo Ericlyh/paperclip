@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { EnforcementBanner } from "@/components/EnforcementBanner";
 import { CapabilityBadges, DecisionBadge, RiskBadge } from "@/pages/tools/shared";
+import { useTranslation } from "../../i18n";
 
 /**
  * Action approval card (PAP-10787 / PAP-10778, surfaces 11/12/99).
@@ -131,12 +132,13 @@ function initials(name: string): string {
 }
 
 function bindingRows(binding: ActionCardBinding, isStale: boolean): BindingRow[] {
+  const { t } = useTranslation();
   const catalogValue = isStale && binding.previousCatalogSha256 ? (
     <span className="inline-flex flex-wrap items-center gap-1.5">
-      <span className="text-muted-foreground line-through decoration-amber-500" title="Previous catalog hash">
+      <span className="text-muted-foreground line-through decoration-amber-500" title={t("actionCard.title.previouscataloghash")}>
         {shortSha(binding.previousCatalogSha256)}
       </span>
-      <span className="text-amber-600 dark:text-amber-400" title="Current catalog hash">
+      <span className="text-amber-600 dark:text-amber-400" title={t("actionCard.title.currentcataloghash")}>
         {shortSha(binding.catalogSha256)}
       </span>
     </span>
@@ -190,6 +192,7 @@ export function ActionCard({
   onEditResign,
   className,
 }: ActionCardProps) {
+  const { t } = useTranslation();
   const isStale = variant === "stale";
   const json = typeof input === "string" ? input : JSON.stringify(input, null, 2);
 
@@ -256,7 +259,7 @@ export function ActionCard({
         {isStale ? (
           <EnforcementBanner
             tone="warning"
-            title="Catalog changed since this request was signed."
+            title={t("actionCard.title.catalogchangedsincethisrequestwassigned")}
             body="The application's tool catalog hash no longer matches the one this approval was issued against. Approval is disabled — the agent must edit & re-sign to request again."
           />
         ) : null}

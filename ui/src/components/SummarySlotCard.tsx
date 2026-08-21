@@ -337,7 +337,7 @@ export function SummarySlotCard({
       {!needsSetup && summarizerState?.status === "paused" && summarizerState.agent ? (
         <InlineBanner
           tone="warning"
-          title="Summarizer is paused"
+          title={t("summarySlotCard.title.summarizerispaused")}
           actions={
             <Button
               type="button"
@@ -354,7 +354,7 @@ export function SummarySlotCard({
       ) : null}
 
       {actionError ? (
-        <InlineBanner tone="warning" title="Summary request failed">
+        <InlineBanner tone="warning" title={t("summarySlotCard.title.summaryrequestfailed")}>
           {actionError}
         </InlineBanner>
       ) : null}
@@ -362,7 +362,7 @@ export function SummarySlotCard({
       {slotQuery.isError ? (
         <InlineBanner
           tone="warning"
-          title="Summary could not be loaded"
+          title={t("summarySlotCard.title.summarycouldnotbeloaded")}
           actions={
             <Button type="button" size="sm" variant="outline" onClick={() => void slotQuery.refetch()}>
               Retry
@@ -376,7 +376,7 @@ export function SummarySlotCard({
       {!slotQuery.isError && generationFailed ? (
         <InlineBanner
           tone="danger"
-          title="Summary generation failed"
+          title={t("summarySlotCard.title.summarygenerationfailed")}
           actions={
             <Button
               type="button"

@@ -8,6 +8,7 @@ import { MarkdownBody } from "./MarkdownBody";
 import { OutputFileTile } from "./issue-output/OutputFileTile";
 import { OutputVideoPlayer } from "./issue-output/OutputVideoPlayer";
 import { formatBytes } from "@/lib/issue-output";
+import { useTranslation } from "../i18n";
 import {
   attachmentDownloadPath,
   attachmentFilename,
@@ -55,6 +56,7 @@ function AttachmentActions({
   deletePending?: boolean;
   onPreview?: (attachment: IssueAttachment) => void;
 }) {
+  const { t } = useTranslation();
   const filename = attachmentFilename(attachment);
   return (
     <div className="flex shrink-0 items-center gap-1">
@@ -62,19 +64,19 @@ function AttachmentActions({
         <Button
           variant="ghost"
           size="icon-sm"
-          title="Browse gallery"
+          title={t("issueAttachmentsSection.title.browsegallery")}
           aria-label={`Browse ${filename} in gallery`}
           onClick={() => onPreview(attachment)}
         >
           <Maximize2 className="h-4 w-4" />
         </Button>
       ) : null}
-      <Button asChild variant="ghost" size="icon-sm" title="Open in new tab">
+      <Button asChild variant="ghost" size="icon-sm" title={t("issueAttachmentsSection.title.openinnewtab")}>
         <a href={attachmentOpenPath(attachment)} target="_blank" rel="noreferrer" aria-label={`Open ${filename}`}>
           <ExternalLink className="h-4 w-4" />
         </a>
       </Button>
-      <Button asChild variant="ghost" size="icon-sm" title="Download">
+      <Button asChild variant="ghost" size="icon-sm" title={t("issueAttachmentsSection.title.download")}>
         <a href={attachmentDownloadPath(attachment)} aria-label={`Download ${filename}`}>
           <Download className="h-4 w-4" />
         </a>
@@ -83,7 +85,7 @@ function AttachmentActions({
         <Button
           variant="ghost"
           size="icon-sm"
-          title="Delete attachment"
+          title={t("issueAttachmentsSection.title.deleteattachment")}
           className="text-muted-foreground hover:text-destructive"
           onClick={() => onDelete(attachment.id)}
           disabled={deletePending}
@@ -223,6 +225,7 @@ export function IssueAttachmentsSection({
   onDragLeave,
   onDrop,
 }: IssueAttachmentsSectionProps) {
+  const { t } = useTranslation();
   const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const { imageAttachments, markdownAttachments, videoAttachments, genericAttachments } = useMemo(() => {
     const images: IssueAttachment[] = [];
@@ -330,7 +333,7 @@ export function IssueAttachmentsSection({
                     event.stopPropagation();
                     requestDelete(attachment.id);
                   }}
-                  title="Delete attachment"
+                  title={t("issueAttachmentsSection.title.deleteattachment")}
                 >
                   <Trash2 className="h-3.5 w-3.5" />
                 </button>

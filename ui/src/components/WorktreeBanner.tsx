@@ -1,8 +1,10 @@
 import { useCallback, useState } from "react";
 import { getWorktreeUiBranding } from "../lib/worktree-branding";
 import { copyTextToClipboard } from "../lib/clipboard";
+import { useTranslation } from "../i18n";
 
 export function WorktreeBanner() {
+  const { t } = useTranslation();
   const branding = getWorktreeUiBranding();
   const [copied, setCopied] = useState(false);
 
@@ -35,7 +37,7 @@ export function WorktreeBanner() {
         <button
           type="button"
           onClick={handleCopyName}
-          title="Click to copy worktree name"
+          title={t("worktreeBanner.title.clicktocopyworktreename")}
           className="truncate font-semibold tracking-(--tracking-eyebrow) cursor-pointer hover:opacity-80 transition-opacity bg-transparent border-none p-0 text-current uppercase text-(length:--text-micro)"
         >
           {copied ? "Copied!" : branding.name}

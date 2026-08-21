@@ -10,6 +10,7 @@ import {
   parseCssTimeMs,
   type MotionTokenDef,
 } from "./motion-tokens";
+import { useTranslation } from "../../i18n";
 
 const POS_KEY = "tc-tweak-pos";
 const OVERRIDES_KEY = "tc-tweak-overrides";
@@ -44,6 +45,7 @@ function saveSession(key: string, value: unknown) {
  * one file, one dev guard, trivial to strip out later.
  */
 export function TweakPanel() {
+  const { t } = useTranslation();
   const [pos, setPos] = useState<{ x: number; y: number }>(() =>
     loadSession(POS_KEY, { x: 24, y: 24 }),
   );
@@ -140,7 +142,7 @@ export function TweakPanel() {
         <GripHorizontal className="h-3.5 w-3.5 text-muted-foreground" />
         <span>Motion tweak panel</span>
         <div className="ml-auto flex items-center gap-1">
-          <button type="button" title="Reset all" onClick={resetAll} className="rounded p-0.5 hover:bg-accent">
+          <button type="button" title={t("tweakPanel.title.resetall")} onClick={resetAll} className="rounded p-0.5 hover:bg-accent">
             <RotateCcw className="h-3.5 w-3.5" />
           </button>
           <button

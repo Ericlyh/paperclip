@@ -17,6 +17,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { InlineBanner } from "@/components/InlineBanner";
 import { queryKeys } from "@/lib/queryKeys";
 import { SummarizerAgentSelect } from "./SummarizerAgentSelect";
+import { useTranslation } from "../../i18n";
 
 const EXAMPLES = [
   "issues about evals",
@@ -33,6 +34,7 @@ export function CreateStatusCardDialog({
   open: boolean;
   onOpenChange: (open: boolean) => void;
 }) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [prompt, setPrompt] = useState("");
   // "" → the built-in Summarizer; otherwise the id of the override agent.
@@ -81,7 +83,7 @@ export function CreateStatusCardDialog({
           </DialogDescription>
         </DialogHeader>
 
-        {error ? <InlineBanner tone="danger" title="Create failed">{error}</InlineBanner> : null}
+        {error ? <InlineBanner tone="danger" title={t("createStatusCardDialog.title.createfailed")}>{error}</InlineBanner> : null}
 
         <div className="space-y-3">
           <label htmlFor="status-card-prompt" className="block pb-1 text-sm font-semibold">

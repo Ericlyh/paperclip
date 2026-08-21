@@ -3113,14 +3113,14 @@ function RunDetailView({
 
   if (detailQuery.isLoading) {
     return (
-      <PaneScaffold title="Run" action={<BackButton onBack={onBack} />}>
+      <PaneScaffold title={t("skillStudio.title.run")} action={<BackButton onBack={onBack} />}>
         <div className="p-3 text-xs text-muted-foreground">{t("skillStudio.Loading_run")}</div>
       </PaneScaffold>
     );
   }
   if (!detail) {
     return (
-      <PaneScaffold title="Run" action={<BackButton onBack={onBack} />}>
+      <PaneScaffold title={t("skillStudio.title.run")} action={<BackButton onBack={onBack} />}>
         <div className="p-3 text-xs text-muted-foreground">{t("skillStudio.Run_not_found")}</div>
       </PaneScaffold>
     );
@@ -3135,7 +3135,7 @@ function RunDetailView({
   const taskLink = testTaskLinkState(detail);
 
   return (
-    <PaneScaffold title="Run" action={<BackButton onBack={onBack} />}>
+    <PaneScaffold title={t("skillStudio.title.run")} action={<BackButton onBack={onBack} />}>
       <div className="min-h-0 flex-1 space-y-3 overflow-auto p-3">
         <div className="flex flex-wrap items-center gap-2">
           <StatusBadge status={runBadgeStatus(detail.status)} />

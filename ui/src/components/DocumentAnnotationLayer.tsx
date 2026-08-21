@@ -602,7 +602,7 @@ export function DocumentAnnotationLayer({
                   width: 16,
                   height: 16,
                 }}
-                title="Anchor moved — needs review"
+                title={t("documentAnnotationLayer.title.anchormovedneedsreview")}
               >
                 <AlertTriangle className="h-3 w-3" />
               </span>

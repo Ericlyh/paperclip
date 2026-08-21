@@ -353,7 +353,7 @@ function CasePropertiesContent({
 
   return (
     <div className={cn("space-y-4", isFull && "space-y-6")}>
-      <PropertySection title="Case" first>
+      <PropertySection title={t("caseDetail.title.case")} first>
         <CasePropertyRow label="Type" mode={mode}>
           <PropertyChip>{caseData.caseType}</PropertyChip>
         </CasePropertyRow>
@@ -393,7 +393,7 @@ function CasePropertiesContent({
       </PropertySection>
 
       {propertyRows.length > 0 ? (
-        <PropertySection title="Fields">
+        <PropertySection title={t("caseDetail.title.fields")}>
           {propertyRows.map(({ key, label, value }) => (
             <CasePropertyRow
               key={key}
@@ -409,7 +409,7 @@ function CasePropertiesContent({
         </PropertySection>
       ) : null}
 
-      <PropertySection title="Linked tasks">
+      <PropertySection title={t("caseDetail.title.linkedtasks")}>
         {caseData.issueLinks.length === 0 ? (
           <CasePropertyRow label="Tasks" mode={mode}>
             <span className="text-xs text-muted-foreground">{t("caseDetail.properties.empty")}</span>
@@ -438,7 +438,7 @@ function CasePropertiesContent({
       </PropertySection>
 
       {caseData.attachments.length > 0 ? (
-        <PropertySection title="Attachments">
+        <PropertySection title={t("caseDetail.title.attachments")}>
           <CasePropertyRow label="Files" mode={mode}>
             <span className="text-xs text-muted-foreground">
               {caseData.attachments.length} {caseData.attachments.length === 1 ? "file" : "files"}
@@ -635,7 +635,7 @@ export function CaseDetail() {
             />
             <Popover>
               <PopoverTrigger asChild>
-                <Button variant="ghost" size="icon-xs" aria-label={t("caseDetail.aria.moreCaseActions")} title="More case actions">
+                <Button variant="ghost" size="icon-xs" aria-label={t("caseDetail.aria.moreCaseActions")} title={t("caseDetail.title.morecaseactions")}>
                   <MoreVertical className="h-4 w-4" />
                 </Button>
               </PopoverTrigger>

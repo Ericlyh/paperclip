@@ -203,7 +203,7 @@ function ProjectTilePicker({
                   : ""
               }`}
               aria-label="Reset to neutral gray"
-              title="Neutral (default)"
+              title={t("projectDetail.title.neutraldefault")}
             >
               <ProjectTile color={null} size="sm" />
             </button>
@@ -837,7 +837,7 @@ export function ProjectDetail() {
         companyId={resolvedCompanyId}
         scopeKind="project"
         scopeId={project.id}
-        title="Project summary"
+        title={t("projectDetail.title.projectsummary")}
         description="Summarizer keeps the latest project status, next step, and operator-needed items here."
       />
 

@@ -4579,7 +4579,7 @@ export function IssueDetail() {
           {issue.originKind === "task_watchdog" ? (
             <Badge variant="outline"
               className="border-sky-500/40 bg-sky-500/10 text-(length:--text-nano) text-sky-700 dark:text-sky-300"
-              title="This task is a generated watchdog task. It verifies whether stopped work in the watched task tree is legitimate."
+              title={t("issueDetail.title.thistaskisageneratedwatchdogtaskitverifieswhethers")}
             >
               <ScanEye className="h-3 w-3" />
               Watchdog
@@ -4608,7 +4608,7 @@ export function IssueDetail() {
             <Badge variant="outline"
               data-testid="issue-detail-parked-blocker"
               className="border-amber-500/60 bg-amber-500/15 text-(length:--text-nano) text-amber-700 dark:text-amber-300"
-              title="Blocked by parked work — at least one assigned blocker is in backlog and will not wake its assignee."
+              title={t("issueDetail.title.blockedbyparkedworkatleastoneassignedblockerisinba")}
             >
               <Flag className="h-3 w-3" />
               Blocked by parked work

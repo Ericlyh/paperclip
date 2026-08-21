@@ -278,7 +278,7 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
       return (
         <FileViewerStateView
           icon={<AlertTriangle aria-hidden="true" className="h-6 w-6 text-amber-500" />}
-          title="Image preview unavailable"
+          title={t("fileViewerSheet.title.imagepreviewunavailable")}
         />
       );
     }
@@ -301,7 +301,7 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
       return (
         <FileViewerStateView
           icon={<AlertTriangle aria-hidden="true" className="h-6 w-6 text-amber-500" />}
-          title="Video preview unavailable"
+          title={t("fileViewerSheet.title.videopreviewunavailable")}
         />
       );
     }
@@ -323,7 +323,7 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
     return (
       <FileViewerStateView
         icon={<AlertTriangle aria-hidden="true" className="h-6 w-6 text-amber-500" />}
-        title="Preview not supported for this file type"
+        title={t("fileViewerSheet.title.previewnotsupportedforthisfiletype")}
         body={resource.contentType ? `Content type: ${resource.contentType}` : undefined}
       />
     );
@@ -393,7 +393,7 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
             variant={markdownMode === "rendered" ? "secondary" : "ghost"}
             size="icon-sm"
             aria-label={t("fileViewerSheet.aria.showRenderedMarkdown")}
-            title="Rendered Markdown"
+            title={t("fileViewerSheet.title.renderedmarkdown")}
             aria-pressed={markdownMode === "rendered"}
             onClick={() => setMarkdownMode("rendered")}
             className={cn(
@@ -408,7 +408,7 @@ export function FileContentViewer({ content, highlightedLine, onLoaded }: FileCo
             variant={markdownMode === "raw" ? "secondary" : "ghost"}
             size="icon-sm"
             aria-label={t("fileViewerSheet.aria.showRawMarkdown")}
-            title="Raw Markdown"
+            title={t("fileViewerSheet.title.rawmarkdown")}
             aria-pressed={markdownMode === "raw"}
             onClick={() => setMarkdownMode("raw")}
             className={cn(
@@ -783,7 +783,7 @@ export function FileViewerSheet({
                       href={downloadUrl}
                       download={resolvedResource?.title ?? basename(state.path)}
                       aria-label={t("fileViewerSheet.aria.downloadFile")}
-                      title="Download file"
+                      title={t("fileViewerSheet.title.downloadfile")}
                     >
                       <Download className="h-4 w-4" />
                     </a>
@@ -835,7 +835,7 @@ export function FileViewerSheet({
                 onClick={() => handleOpenChange(false)}
                 className="h-7 w-7"
                 aria-label={t("fileViewerSheet.aria.closeFileViewer")}
-                title="Close"
+                title={t("fileViewerSheet.title.close")}
               >
                 <X className="h-4 w-4" />
               </Button>
@@ -950,6 +950,7 @@ function FileViewerBody({
   onSetAnnouncement,
   onFallbackToProject,
 }: FileViewerBodyProps) {
+  const { t } = useTranslation();
   if (resolveQuery.isFetching && !resolveQuery.data) {
     return <LoadingView elapsedMs={elapsedMs} />;
   }
@@ -960,7 +961,7 @@ function FileViewerBody({
       return (
         <FileViewerStateView
           icon={<FileSearch aria-hidden="true" className="h-6 w-6 text-muted-foreground" />}
-          title="File not found"
+          title={t("fileViewerSheet.title.filenotfound")}
           body="That file was not found in the active workspace."
           actions={
             <>
@@ -981,7 +982,7 @@ function FileViewerBody({
       return (
         <FileViewerStateView
           icon={<FolderOpen aria-hidden="true" className="h-6 w-6 text-muted-foreground" />}
-          title="No workspace available"
+          title={t("fileViewerSheet.title.noworkspaceavailable")}
           body="This issue does not have a workspace that supports preview yet."
         />
       );
@@ -1008,7 +1009,7 @@ function FileViewerBody({
     return (
       <FileViewerStateView
         icon={<Cloud aria-hidden="true" className="h-6 w-6 text-muted-foreground" />}
-        title="Remote workspace preview coming soon"
+        title={t("fileViewerSheet.title.remoteworkspacepreviewcomingsoon")}
         body="This workspace is hosted remotely; inline previews are not supported yet."
       />
     );

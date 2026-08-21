@@ -991,7 +991,7 @@ export function WorkspaceFileBrowser({
     body = (
       <StateMessage
         icon={<FolderOpen aria-hidden="true" className="h-5 w-5 text-muted-foreground" />}
-        title="No company selected"
+        title={t("workspaceFileBrowser.title.nocompanyselected")}
         body="Choose a company before browsing another project workspace."
       />
     );
@@ -999,7 +999,7 @@ export function WorkspaceFileBrowser({
     body = (
       <StateMessage
         icon={<Loader2 aria-hidden="true" className="h-5 w-5 animate-spin text-muted-foreground" />}
-        title="Loading project workspaces"
+        title={t("workspaceFileBrowser.title.loadingprojectworkspaces")}
         body="Registered workspaces will appear here."
       />
     );
@@ -1007,7 +1007,7 @@ export function WorkspaceFileBrowser({
     body = (
       <StateMessage
         icon={<FolderOpen aria-hidden="true" className="h-5 w-5 text-muted-foreground" />}
-        title="No project workspaces"
+        title={t("workspaceFileBrowser.title.noprojectworkspaces")}
         body="No same-company project has a registered workspace to browse."
       />
     );
@@ -1123,7 +1123,7 @@ export function WorkspaceFileBrowser({
           onClick={() => void listQuery.refetch()}
           disabled={!queriesEnabled || listQuery.isFetching}
           aria-label={t("workspaceFileBrowser.aria.refreshWorkspaceFiles")}
-          title="Refresh workspace files"
+          title={t("workspaceFileBrowser.title.refreshworkspacefiles")}
           className="h-8 w-8 shrink-0"
         >
           <RefreshCcw aria-hidden="true" className={cn("h-3.5 w-3.5", listQuery.isFetching && "animate-spin")} />

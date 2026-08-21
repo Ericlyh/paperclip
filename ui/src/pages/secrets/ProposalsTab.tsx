@@ -14,6 +14,7 @@ import type { CompanySecretProviderConfig, SecretProposalView } from "@paperclip
 import { secretsApi } from "../../api/secrets";
 import { queryKeys } from "../../lib/queryKeys";
 import { cn } from "../../lib/utils";
+import { useTranslation } from "../../i18n";
 import { EmptyState } from "../../components/EmptyState";
 import { SecretPathName } from "./SecretPathName";
 import {
@@ -144,6 +145,7 @@ export function ProposalsTab({
   companyId: string;
   providerConfigs: CompanySecretProviderConfig[];
 }) {
+  const { t } = useTranslation();
   const proposalsQuery = useQuery({
     queryKey: queryKeys.secrets.proposals(companyId, "pending"),
     queryFn: () => secretsApi.listProposals(companyId, "pending"),
@@ -184,7 +186,7 @@ export function ProposalsTab({
     return (
       <EmptyState
         icon={Inbox}
-        title="No pending proposals"
+        title={t("proposalsTab.title.nopendingproposals")}
         message="When an agent proposes a secret or an access binding, it shows up here for review."
       />
     );

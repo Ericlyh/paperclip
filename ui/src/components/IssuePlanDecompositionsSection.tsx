@@ -104,7 +104,7 @@ export function IssuePlanDecompositionsSection({
                 {record.status === "completed" && requested > 0 ? (
                   <span
                     className="inline-flex items-center gap-1 rounded-sm border border-sky-500/40 bg-sky-500/10 px-1.5 py-0.5 text-(length:--text-nano) font-medium text-sky-900 dark:text-sky-100"
-                    title="Repeat attempts with this fingerprint reuse this record instead of creating new children"
+                    title={t("issuePlanDecompositionsSection.title.repeatattemptswiththisfingerprintreusethisrecordin")}
                   >
                     <Repeat className="h-3 w-3" />
                     {t("issuePlanDecomposition.idempotentClaim")}
