@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n";
 import type { AdapterConfigFieldsProps } from "../types";
 import {
   DraftInput,
@@ -19,10 +20,11 @@ export function GrokLocalConfigFields({
   mark,
   hideInstructionsFile,
 }: AdapterConfigFieldsProps) {
+  const { t } = useTranslation();
   if (hideInstructionsFile) return null;
   return (
     <>
-      <Field label="Agent instructions file" hint={instructionsFileHint}>
+      <Field label={t("adapterGrok.configFields.instructionsFile")} hint={instructionsFileHint}>
         <div className="flex items-center gap-2">
           <DraftInput
             value={

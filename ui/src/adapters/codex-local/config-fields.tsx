@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n";
 import type { AdapterConfigFieldsProps } from "../types";
 import {
   Field,
@@ -31,6 +32,7 @@ export function CodexLocalConfigFields({
   models,
   hideInstructionsFile,
 }: AdapterConfigFieldsProps) {
+  const { t } = useTranslation();
   const rawEngine = isCreate
     ? values!.codexEngine ?? "auto"
     : eff("adapterConfig", "engine", String(config.engine ?? "auto"));
@@ -55,7 +57,7 @@ export function CodexLocalConfigFields({
 
   return (
     <>
-      <Field label="Execution engine" hint="Auto uses ACP when prerequisites pass and falls back to Codex CLI with diagnostics.">
+      <Field label={t("adapterCx.configFields.executionEngine")} hint="Auto uses ACP when prerequisites pass and falls back to Codex CLI with diagnostics.">
         <select
           className={inputClass}
           value={engine}
@@ -74,7 +76,7 @@ export function CodexLocalConfigFields({
       {acpSelected && (
         <>
           <Field
-            label="ACP server command"
+            label={t("adapterCx.configFields.acpServerCommand")}
             hint="Optional override for the Codex ACP server command. Defaults to the package-local codex-acp binary."
           >
             <DraftInput
@@ -93,7 +95,7 @@ export function CodexLocalConfigFields({
               placeholder="codex-acp"
             />
           </Field>
-          <Field label="ACP session mode" hint="Persistent keeps ACP session state between runs. One-shot starts fresh each run.">
+          <Field label={t("adapterCx.configFields.acpSessionMode")} hint="Persistent keeps ACP session state between runs. One-shot starts fresh each run.">
             <select
               className={inputClass}
               value={
@@ -113,7 +115,7 @@ export function CodexLocalConfigFields({
             </select>
           </Field>
           <Field
-            label="ACP non-interactive permissions"
+            label={t("adapterCx.configFields.acpNonInteractivePermissions")}
             hint="Fallback if the ACP agent asks for input outside an interactive session."
           >
             <select
@@ -135,7 +137,7 @@ export function CodexLocalConfigFields({
             </select>
           </Field>
           <Field
-            label="ACP state directory"
+            label={t("adapterCx.configFields.acpStateDirectory")}
             hint="Optional ACP session state directory. Defaults to Paperclip-managed company/agent scoped storage."
           >
             <div className="flex items-center gap-2">
@@ -158,7 +160,7 @@ export function CodexLocalConfigFields({
             </div>
           </Field>
           <Field
-            label="ACP warm process idle ms"
+            label={t("adapterCx.configFields.acpWarmProcessIdleMs")}
             hint="Defaults to 0, which closes the ACP process after each run while retaining persistent session state."
           >
             {isCreate ? (
@@ -184,7 +186,7 @@ export function CodexLocalConfigFields({
         </>
       )}
       {!hideInstructionsFile && (
-        <Field label="Agent instructions file" hint={instructionsFileHint}>
+        <Field label={t("adapterCx.configFields.instructionsFile")} hint={instructionsFileHint}>
           <div className="flex items-center gap-2">
             <DraftInput
               value={
@@ -210,7 +212,7 @@ export function CodexLocalConfigFields({
         </Field>
       )}
       <ToggleField
-        label="Bypass sandbox"
+        label={t("adapterCx.configFields.bypassSandbox")}
         hint={help.dangerouslyBypassSandbox}
         checked={
           isCreate
@@ -228,7 +230,7 @@ export function CodexLocalConfigFields({
         }
       />
       <ToggleField
-        label="Enable search"
+        label={t("adapterCx.configFields.enableSearch")}
         hint={help.search}
         checked={
           isCreate
@@ -242,7 +244,7 @@ export function CodexLocalConfigFields({
         }
       />
       <ToggleField
-        label="Fast mode"
+        label={t("adapterCx.configFields.fastMode")}
         hint={help.fastMode}
         checked={fastModeEnabled}
         onChange={(v) =>

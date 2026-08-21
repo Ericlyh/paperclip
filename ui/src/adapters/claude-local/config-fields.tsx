@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n";
 import type { AdapterConfigFieldsProps } from "../types";
 import {
   Field,
@@ -27,10 +28,11 @@ export function ClaudeLocalConfigFields({
   models,
   hideInstructionsFile,
 }: AdapterConfigFieldsProps) {
+  const { t } = useTranslation();
   return (
     <>
       {!hideInstructionsFile && (
-        <Field label="Agent instructions file" hint={instructionsFileHint}>
+        <Field label={t("adapterCl.configFields.instructionsFile")} hint={instructionsFileHint}>
           <div className="flex items-center gap-2">
             <DraftInput
               value={
@@ -78,6 +80,7 @@ export function ClaudeLocalAdvancedFields({
   eff,
   mark,
 }: AdapterConfigFieldsProps) {
+  const { t } = useTranslation();
   const rawEngine = isCreate
     ? values!.claudeEngine ?? "auto"
     : eff("adapterConfig", "engine", String(config.engine ?? "auto"));
@@ -86,7 +89,7 @@ export function ClaudeLocalAdvancedFields({
 
   return (
     <>
-      <Field label="Execution engine" hint="Auto uses ACP when prerequisites pass and falls back to Claude CLI with diagnostics.">
+      <Field label={t("adapterCl.configFields.executionEngine")} hint="Auto uses ACP when prerequisites pass and falls back to Claude CLI with diagnostics.">
         <select
           className={inputClass}
           value={engine}
@@ -105,7 +108,7 @@ export function ClaudeLocalAdvancedFields({
       {acpSelected && (
         <>
           <Field
-            label="ACP server command"
+            label={t("adapterCl.configFields.acpServerCommand")}
             hint="Optional override for the Claude ACP server command. Defaults to the package-local claude-agent-acp binary."
           >
             <DraftInput
@@ -124,7 +127,7 @@ export function ClaudeLocalAdvancedFields({
               placeholder="claude-agent-acp"
             />
           </Field>
-          <Field label="ACP session mode" hint="Persistent keeps ACP session state between runs. One-shot starts fresh each run.">
+          <Field label={t("adapterCl.configFields.acpSessionMode")} hint="Persistent keeps ACP session state between runs. One-shot starts fresh each run.">
             <select
               className={inputClass}
               value={
@@ -144,7 +147,7 @@ export function ClaudeLocalAdvancedFields({
             </select>
           </Field>
           <Field
-            label="ACP non-interactive permissions"
+            label={t("adapterCl.configFields.acpNonInteractivePermissions")}
             hint="Fallback if the ACP agent asks for input outside an interactive session."
           >
             <select
@@ -166,7 +169,7 @@ export function ClaudeLocalAdvancedFields({
             </select>
           </Field>
           <Field
-            label="ACP state directory"
+            label={t("adapterCl.configFields.acpStateDirectory")}
             hint="Optional ACP session state directory. Defaults to Paperclip-managed company/agent scoped storage."
           >
             <div className="flex items-center gap-2">
@@ -189,7 +192,7 @@ export function ClaudeLocalAdvancedFields({
             </div>
           </Field>
           <Field
-            label="ACP warm process idle ms"
+            label={t("adapterCl.configFields.acpWarmProcessIdleMs")}
             hint="Defaults to 0, which closes the ACP process after each run while retaining persistent session state."
           >
             {isCreate ? (
@@ -215,7 +218,7 @@ export function ClaudeLocalAdvancedFields({
         </>
       )}
       <ToggleField
-        label="Enable Chrome"
+        label={t("adapterCl.configFields.enableChrome")}
         hint={help.chrome}
         checked={
           isCreate
@@ -229,7 +232,7 @@ export function ClaudeLocalAdvancedFields({
         }
       />
       <ToggleField
-        label="Skip permissions"
+        label={t("adapterCl.configFields.skipPermissions")}
         hint={help.dangerouslySkipPermissions}
         checked={
           isCreate
@@ -246,7 +249,7 @@ export function ClaudeLocalAdvancedFields({
             : mark("adapterConfig", "dangerouslySkipPermissions", v)
         }
       />
-      <Field label="Max turns per run" hint={help.maxTurnsPerRun}>
+      <Field label={t("adapterCl.configFields.maxTurnsPerRun")} hint={help.maxTurnsPerRun}>
         {isCreate ? (
           <input
             type="number"

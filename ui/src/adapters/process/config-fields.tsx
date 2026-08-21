@@ -1,3 +1,4 @@
+import { useTranslation } from "@/i18n";
 import type { AdapterConfigFieldsProps } from "../types";
 import {
   Field,
@@ -32,9 +33,10 @@ export function ProcessConfigFields({
   eff,
   mark,
 }: AdapterConfigFieldsProps) {
+  const { t } = useTranslation();
   return (
     <>
-      <Field label="Command" hint={help.command}>
+      <Field label={t("adapterProcess.configFields.command")} hint={help.command}>
         <DraftInput
           value={
             isCreate
@@ -51,7 +53,7 @@ export function ProcessConfigFields({
           placeholder="e.g. node, python"
         />
       </Field>
-      <Field label="Args (comma-separated)" hint={help.args}>
+      <Field label={t("adapterProcess.configFields.argsCommaSeparated")} hint={help.args}>
         <DraftInput
           value={
             isCreate

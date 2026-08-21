@@ -10123,6 +10123,110 @@
       "sharedPassword": "Gateway shared password"
     }
   },
+  "adapterCl": {
+    "configFields": {
+      "instructionsFile": "Agent instructions file",
+      "executionEngine": "Execution engine",
+      "acpServerCommand": "ACP server command",
+      "acpSessionMode": "ACP session mode",
+      "acpNonInteractivePermissions": "ACP non-interactive permissions",
+      "acpStateDirectory": "ACP state directory",
+      "acpWarmProcessIdleMs": "ACP warm process idle ms",
+      "enableChrome": "Enable Chrome",
+      "skipPermissions": "Skip permissions",
+      "maxTurnsPerRun": "Max turns per run"
+    }
+  },
+  "adapterCx": {
+    "configFields": {
+      "executionEngine": "Execution engine",
+      "acpServerCommand": "ACP server command",
+      "acpSessionMode": "ACP session mode",
+      "acpNonInteractivePermissions": "ACP non-interactive permissions",
+      "acpStateDirectory": "ACP state directory",
+      "acpWarmProcessIdleMs": "ACP warm process idle ms",
+      "instructionsFile": "Agent instructions file",
+      "bypassSandbox": "Bypass sandbox",
+      "enableSearch": "Enable search",
+      "fastMode": "Fast mode"
+    }
+  },
+  "adapterCursor": {
+    "configFields": {
+      "instructionsFile": "Agent instructions file"
+    }
+  },
+  "adapterGemini": {
+    "configFields": {
+      "executionEngine": "Execution engine",
+      "acpServerCommand": "ACP server command",
+      "acpSessionMode": "ACP session mode",
+      "acpNonInteractivePermissions": "ACP non-interactive permissions",
+      "acpStateDirectory": "ACP state directory",
+      "acpWarmProcessIdleMs": "ACP warm process idle ms",
+      "instructionsFile": "Agent instructions file"
+    }
+  },
+  "adapterGrok": {
+    "configFields": {
+      "instructionsFile": "Agent instructions file"
+    }
+  },
+  "adapterHermes": {
+    "configFields": {
+      "apiBaseUrl": "API base URL",
+      "apiKey": "API key",
+      "paperclipApiUrl": "Paperclip API URL",
+      "sessionKeyStrategy": "Session key strategy",
+      "timeoutSeconds": "Timeout seconds",
+      "eventReconnectMs": "Event reconnect ms",
+      "dangerouslyAllowRemoteHttp": "Dangerously allow remote HTTP",
+      "extraHeaders": "Extra headers",
+      "instructions": "Instructions"
+    }
+  },
+  "adapterHttp": {
+    "configFields": {
+      "webhookUrl": "Webhook URL"
+    }
+  },
+  "adapterOpenclaw": {
+    "configFields": {
+      "gatewayUrl": "Gateway URL",
+      "gatewayAuthToken": "Gateway auth token",
+      "agentId": "Agent ID",
+      "sessionStrategy": "Session strategy",
+      "sessionKey": "Session key",
+      "passwordAlternativeAuth": "Password (alternative auth)",
+      "role": "Role",
+      "scopesCommaSeparated": "Scopes (comma-separated)",
+      "paperclipApiUrlOverride": "Paperclip API URL override",
+      "timeoutSeconds": "Timeout (seconds)",
+      "headersJson": "Headers JSON",
+      "claimedApiKeyPath": "Claimed API key path",
+      "waitTimeoutMs": "Wait timeout (ms)",
+      "disableDeviceAuth": "Disable device auth",
+      "autoPairOnFirstConnect": "Auto-pair on first connect",
+      "deviceAuth": "Device auth"
+    }
+  },
+  "adapterOpencode": {
+    "configFields": {
+      "instructionsFile": "Agent instructions file",
+      "skipPermissions": "Skip permissions"
+    }
+  },
+  "adapterPi": {
+    "configFields": {
+      "instructionsFile": "Agent instructions file"
+    }
+  },
+  "adapterProcess": {
+    "configFields": {
+      "command": "Command",
+      "argsCommaSeparated": "Args (comma-separated)"
+    }
+  },
   "agentActionButtons": {
     "aria": {
       "clearErrorAndReturnAgentToIdle": "Clear error and return agent to idle"
