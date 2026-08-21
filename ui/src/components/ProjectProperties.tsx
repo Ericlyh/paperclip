@@ -24,7 +24,7 @@ import { DraftInput } from "./agent-config-primitives";
 import { InlineEditor } from "./InlineEditor";
 import { EnvironmentVariablesEditor } from "./environment-variables-editor";
 import { Badge } from "@/components/ui/badge";
-import { useTranslation } from "../i18n";
+import { useTranslation, type TFunction } from "../i18n";
 
 interface ProjectPropertiesProps {
   project: Project;
@@ -53,27 +53,25 @@ export type ProjectConfigFieldKey =
   | "execution_workspace_runtime_provision_command"
   | "execution_workspace_teardown_command";
 
-const SHARED_WORKSPACE_CONCURRENCY_OPTIONS: {
-  value: SharedWorkspaceConcurrency;
-  label: string;
-  help: string;
-}[] = [
-  {
-    value: "auto",
-    label: "Auto",
-    help: "Concurrent runs on local/SSH runners; runs take turns in cloud sandboxes.",
-  },
-  {
-    value: "serialize",
-    label: "Serialize",
-    help: "Runs always take turns in the shared project workspace.",
-  },
-  {
-    value: "allow",
-    label: "Allow",
-    help: "Runs never wait for the workspace; concurrent edits are possible.",
-  },
-];
+function sharedWorkspaceConcurrencyOptions(t: TFunction) {
+  return [
+    {
+      value: "auto" as SharedWorkspaceConcurrency,
+      label: t("projectProperties.sharedConcurrencyAutoLabel"),
+      help: t("projectProperties.sharedConcurrencyAutoHelp"),
+    },
+    {
+      value: "serialize" as SharedWorkspaceConcurrency,
+      label: t("projectProperties.sharedConcurrencySerializeLabel"),
+      help: t("projectProperties.sharedConcurrencySerializeHelp"),
+    },
+    {
+      value: "allow" as SharedWorkspaceConcurrency,
+      label: t("projectProperties.sharedConcurrencyAllowLabel"),
+      help: t("projectProperties.sharedConcurrencyAllowHelp"),
+    },
+  ];
+}
 
 function SaveIndicator({ state }: { state: ProjectFieldSaveState }) {
   const { t } = useTranslation();
@@ -261,6 +259,7 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
   const [workspaceCwd, setWorkspaceCwd] = useState("");
   const [workspaceRepoUrl, setWorkspaceRepoUrl] = useState("");
   const [workspaceError, setWorkspaceError] = useState<string | null>(null);
+  const sharedWorkspaceConcurrencyOptionsList = sharedWorkspaceConcurrencyOptions(t);
 
   const commitField = (field: ProjectConfigFieldKey, data: Record<string, unknown>) => {
     if (onFieldUpdate) {
@@ -554,21 +553,21 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
   return (
     <div>
       <div className="space-y-1 pb-4">
-        <PropertyRow label={<FieldLabel label="Name" state={fieldState("name")} />}>
+        <PropertyRow label={<FieldLabel label={t("projectProperties.nameLabel")} state={fieldState("name")} />}>
           {onUpdate || onFieldUpdate ? (
             <DraftInput
               value={project.name}
               onCommit={(name) => commitField("name", { name })}
               immediate
               className="w-full rounded border border-border bg-transparent px-2 py-1 text-sm outline-none"
-              placeholder="Project name"
+              placeholder={t("projectProperties.projectNamePlaceholder")}
             />
           ) : (
             <span className="text-sm">{project.name}</span>
           )}
         </PropertyRow>
         <PropertyRow
-          label={<FieldLabel label="Description" state={fieldState("description")} />}
+          label={<FieldLabel label={t("projectProperties.descriptionLabel")} state={fieldState("description")} />}
           alignStart
           valueClassName="space-y-0.5"
         >
@@ -579,16 +578,16 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
               nullable
               as="p"
               className="text-sm text-muted-foreground"
-              placeholder="Add a description..."
+              placeholder={t("projectProperties.addDescriptionPlaceholder")}
               multiline
             />
           ) : (
             <p className="text-sm text-muted-foreground">
-              {project.description?.trim() || "No description"}
+              {project.description?.trim() || t("projectProperties.noDescription")}
             </p>
           )}
         </PropertyRow>
-        <PropertyRow label={<FieldLabel label="Status" state={fieldState("status")} />}>
+        <PropertyRow label={<FieldLabel label={t("projectProperties.statusLabel")} state={fieldState("status")} />}>
           {onUpdate || onFieldUpdate ? (
             <ProjectStatusPicker
               status={project.status}
@@ -599,12 +598,12 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
           )}
         </PropertyRow>
         {project.leadAgentId && (
-          <PropertyRow label="Lead">
+          <PropertyRow label={t("projectProperties.leadLabel")}>
             <span className="text-sm font-mono">{project.leadAgentId.slice(0, 8)}</span>
           </PropertyRow>
         )}
         <PropertyRow
-          label={<FieldLabel label="Goals" state={fieldState("goals")} />}
+          label={<FieldLabel label={t("projectProperties.goalsLabel")} state={fieldState("goals")} />}
           alignStart
           valueClassName="space-y-2"
         >
@@ -623,7 +622,7 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
                       className="text-muted-foreground hover:text-foreground"
                       type="button"
                       onClick={() => removeGoal(goal.id)}
-                      aria-label={`Remove goal ${goal.title}`}
+                      aria-label={t("projectProperties.removeGoal", { title: goal.title })}
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -642,13 +641,13 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
                   disabled={availableGoals.length === 0}
                 >
                   <Plus className="h-3 w-3 mr-1" />
-                  Goal
+                  {t("projectProperties.goalButton")}
                 </Button>
               </PopoverTrigger>
               <PopoverContent className="w-56 p-1" align="start">
                 {availableGoals.length === 0 ? (
                   <div className="px-2 py-1.5 text-xs text-muted-foreground">
-                    All goals linked.
+                    {t("projectProperties.allGoalsLinked")}
                   </div>
                 ) : (
                   availableGoals.map((goal) => (
@@ -666,7 +665,7 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
           )}
         </PropertyRow>
         <PropertyRow
-          label={<FieldLabel label="Env" state={fieldState("env")} />}
+          label={<FieldLabel label={t("projectProperties.envLabel")} state={fieldState("env")} />}
           alignStart
           valueClassName="space-y-2"
         >
@@ -682,18 +681,18 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
               onChange={(env) => commitField("env", { env: env ?? null })}
             />
             <p className="text-(length:--text-micro) text-muted-foreground">
-              Applied to all runs for tasks in this project. Project values override agent env on key conflicts.
+              {t("projectProperties.envHelp")}
             </p>
           </div>
         </PropertyRow>
-        <PropertyRow label={<FieldLabel label="Created" state="idle" />}>
+        <PropertyRow label={<FieldLabel label={t("projectProperties.createdLabel")} state="idle" />}>
           <span className="text-sm">{formatDate(project.createdAt)}</span>
         </PropertyRow>
-        <PropertyRow label={<FieldLabel label="Updated" state="idle" />}>
+        <PropertyRow label={<FieldLabel label={t("projectProperties.updatedLabel")} state="idle" />}>
           <span className="text-sm">{formatDate(project.updatedAt)}</span>
         </PropertyRow>
         {project.targetDate && (
-          <PropertyRow label={<FieldLabel label="Target Date" state="idle" />}>
+          <PropertyRow label={<FieldLabel label={t("projectProperties.targetDateLabel")} state="idle" />}>
             <span className="text-sm">{formatDate(project.targetDate)}</span>
           </PropertyRow>
         )}
@@ -704,25 +703,25 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
       <div className="space-y-1 py-4">
         <div className="space-y-2">
           <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-            <span>Codebase</span>
+            <span>{t("projectProperties.codebase")}</span>
             <Tooltip>
               <TooltipTrigger asChild>
                 <button
                   type="button"
                   className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-border text-(length:--text-nano) text-muted-foreground hover:text-foreground"
-                  aria-label="Codebase help"
+                  aria-label={t("projectProperties.codebaseHelpAria")}
                 >
                   ?
                 </button>
               </TooltipTrigger>
               <TooltipContent side="top">
-                Repo identifies the source of truth. Local folder is the default place agents write code.
+                {t("projectProperties.codebaseHelp")}
               </TooltipContent>
             </Tooltip>
           </div>
           <div className="space-y-2 rounded-md border border-border/70 p-3">
             <div className="space-y-1">
-              <div className="text-(length:--text-micro) uppercase tracking-wide text-muted-foreground">Repo</div>
+              <div className="text-(length:--text-micro) uppercase tracking-wide text-muted-foreground">{t("projectProperties.repo")}</div>
               {codebase.repoUrl ? (
                 <div className="flex items-center justify-between gap-2">
                   {isSafeExternalUrl(codebase.repoUrl) ? (
@@ -759,7 +758,7 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
                       variant="ghost"
                       size="icon-xs"
                       onClick={clearRepoWorkspace}
-                      aria-label="Clear repo"
+                      aria-label={t("projectProperties.clearRepoAria")}
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -813,7 +812,7 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
                       variant="ghost"
                       size="icon-xs"
                       onClick={clearLocalWorkspace}
-                      aria-label="Clear local folder"
+                      aria-label={t("projectProperties.clearLocalFolderAria")}
                     >
                       <Trash2 className="h-3 w-3" />
                     </Button>
@@ -893,7 +892,7 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
                   className="w-full rounded border border-border bg-transparent px-2 py-1 text-xs font-mono outline-none"
                   value={workspaceCwd}
                   onChange={(e) => setWorkspaceCwd(e.target.value)}
-                  placeholder="/absolute/path/to/workspace"
+                  placeholder={t("projectProperties.absolutePathPlaceholder")}
                 />
                 <ChoosePathButton />
               </div>
@@ -928,7 +927,7 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
                 className="w-full rounded border border-border bg-transparent px-2 py-1 text-xs outline-none"
                 value={workspaceRepoUrl}
                 onChange={(e) => setWorkspaceRepoUrl(e.target.value)}
-                placeholder="https://github.com/org/repo"
+                placeholder={t("projectProperties.githubOrgRepoPlaceholder")}
               />
               <div className="flex items-center gap-2">
                 <Button
@@ -981,7 +980,7 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
                     <button
                       type="button"
                       className="inline-flex h-4 w-4 items-center justify-center rounded-full border border-border text-(length:--text-nano) text-muted-foreground hover:text-foreground"
-                      aria-label="Execution workspaces help"
+                      aria-label={t("projectProperties.executionWorkspacesHelpAria")}
                     >
                       ?
                     </button>
@@ -1055,7 +1054,7 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
                       {onUpdate || onFieldUpdate ? (
                         <select
                           className="w-full rounded border border-border bg-transparent px-2 py-1 text-xs outline-none"
-                          aria-label="Shared workspace concurrency"
+                          aria-label={t("projectProperties.sharedWorkspaceConcurrencyAria")}
                           value={executionWorkspaceSharedConcurrency}
                           onChange={(e) =>
                             commitField(
@@ -1065,7 +1064,7 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
                               })!,
                             )}
                         >
-                          {SHARED_WORKSPACE_CONCURRENCY_OPTIONS.map((option) => (
+                          {sharedWorkspaceConcurrencyOptionsList.map((option) => (
                             <option key={option.value} value={option.value}>
                               {option.label}
                             </option>
@@ -1073,13 +1072,13 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
                         </select>
                       ) : (
                         <div className="text-xs">
-                          {SHARED_WORKSPACE_CONCURRENCY_OPTIONS.find(
+                          {sharedWorkspaceConcurrencyOptionsList.find(
                             (option) => option.value === executionWorkspaceSharedConcurrency,
                           )?.label}
                         </div>
                       )}
                       <p className="text-(length:--text-micro) text-muted-foreground">
-                        {SHARED_WORKSPACE_CONCURRENCY_OPTIONS.find(
+                        {sharedWorkspaceConcurrencyOptionsList.find(
                           (option) => option.value === executionWorkspaceSharedConcurrency,
                         )?.help}
                       </p>
@@ -1151,7 +1150,7 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
                               })}
                             immediate
                             className="w-full rounded border border-border bg-transparent px-2 py-1 text-xs font-mono outline-none"
-                            placeholder="origin/main"
+                            placeholder={t("projectProperties.originMainPlaceholder")}
                           />
                         </div>
                         <div>
@@ -1175,7 +1174,7 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
                               })}
                             immediate
                             className="w-full rounded border border-border bg-transparent px-2 py-1 text-xs font-mono outline-none"
-                            placeholder="{{issue.identifier}}-{{slug}}"
+                            placeholder={t("projectProperties.branchTemplatePlaceholder")}
                           />
                         </div>
                         <div>
@@ -1199,7 +1198,7 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
                               })}
                             immediate
                             className="w-full rounded border border-border bg-transparent px-2 py-1 text-xs font-mono outline-none"
-                            placeholder=".paperclip/worktrees"
+                            placeholder={t("projectProperties.worktreeParentDirPlaceholder")}
                           />
                         </div>
                         <div>
@@ -1223,7 +1222,7 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
                               })}
                             immediate
                             className="w-full rounded border border-border bg-transparent px-2 py-1 text-xs font-mono outline-none"
-                            placeholder="bash ./scripts/provision-worktree.sh"
+                            placeholder={t("projectProperties.provisionCommandPlaceholder")}
                           />
                         </div>
                         <div>
@@ -1247,7 +1246,7 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
                               })}
                             immediate
                             className="w-full rounded border border-border bg-transparent px-2 py-1 text-xs font-mono outline-none"
-                            placeholder="bash ./scripts/provision-worktree-runtime.sh"
+                            placeholder={t("projectProperties.runtimeProvisionCommandPlaceholder")}
                           />
                           <p className="mt-1 text-xs text-muted-foreground">
                             {t("projectProperties.runtimeProvisionCommandHelp")}
@@ -1274,7 +1273,7 @@ export function ProjectProperties({ project, onUpdate, onFieldUpdate, getFieldSa
                               })}
                             immediate
                             className="w-full rounded border border-border bg-transparent px-2 py-1 text-xs font-mono outline-none"
-                            placeholder="bash ./scripts/teardown-worktree.sh"
+                            placeholder={t("projectProperties.teardownCommandPlaceholder")}
                           />
                         </div>
                         <p className="text-(length:--text-micro) text-muted-foreground">

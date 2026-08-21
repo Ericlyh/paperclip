@@ -84,7 +84,7 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
-import { useTranslation } from "../i18n";
+import { useTranslation, type TFunction } from "../i18n";
 import { useCompany } from "../context/CompanyContext";
 import { useToastActions } from "../context/ToastContext";
 import { buildCompanyUserInlineOptions, isAgentTaskTarget } from "../lib/company-members";
@@ -162,34 +162,38 @@ type StageConfig = {
 
 type EditorRoutineVariable = RoutineVariable & { source?: "manual" };
 
-const STAGE_NAV_GROUPS: Array<{
+function stageNavGroups(t: TFunction): Array<{
   label: string;
   items: Array<{ id: StageSectionKey; label: string; icon: typeof Circle }>;
-}> = [
-  {
-    label: "Stage",
-    items: [
-      { id: "instructions", label: "Automation", icon: LayoutGrid },
-      { id: "advanced", label: "Advanced", icon: SlidersHorizontal },
-      { id: "secrets", label: "Secrets", icon: KeyRound },
-    ],
-  },
-  {
-    label: "Operate",
-    items: [
-      { id: "activity", label: "Activity", icon: ActivityIcon },
-      { id: "history", label: "History", icon: HistoryIcon },
-    ],
-  },
-];
+}> {
+  return [
+    {
+      label: t("pipelineSettings.stageNavStageGroup"),
+      items: [
+        { id: "instructions", label: t("pipelineSettings.Automation"), icon: LayoutGrid },
+        { id: "advanced", label: t("pipelineSettings.Advanced"), icon: SlidersHorizontal },
+        { id: "secrets", label: t("pipelineSettings.Secrets"), icon: KeyRound },
+      ],
+    },
+    {
+      label: t("pipelineSettings.stageNavOperateGroup"),
+      items: [
+        { id: "activity", label: t("pipelineSettings.Activity"), icon: ActivityIcon },
+        { id: "history", label: t("pipelineSettings.History"), icon: HistoryIcon },
+      ],
+    },
+  ];
+}
 
-const STAGE_SECTION_TITLES: Record<StageSectionKey, string> = {
-  instructions: "Automation",
-  secrets: "Secrets",
-  activity: "Activity",
-  history: "History",
-  advanced: "Advanced",
-};
+function stageSectionTitles(t: TFunction): Record<StageSectionKey, string> {
+  return {
+    instructions: t("pipelineSettings.Automation"),
+    secrets: t("pipelineSettings.Secrets"),
+    activity: t("pipelineSettings.Activity"),
+    history: t("pipelineSettings.History"),
+    advanced: t("pipelineSettings.Advanced"),
+  };
+}
 
 function parseStageSectionKey(value: string | null): StageSectionKey | null {
   switch (value) {
@@ -214,37 +218,39 @@ export function resolvePipelineSettingsFallbackStageId(
   return stages[0]?.id ?? null;
 }
 
-const STAGE_KIND_OPTIONS: Array<{
+function stageKindOptions(t: TFunction): Array<{
   value: EditableStageKind;
   label: string;
   description: string;
   icon: typeof Circle;
-}> = [
-  {
-    value: "working",
-    label: "Working",
-    description: "Items wait here while work happens. An agent or a person moves them forward.",
-    icon: Hammer,
-  },
-  {
-    value: "review",
-    label: "Review",
-    description: "Someone has to approve before items leave. Use this when a person or an agent has to say yes or no.",
-    icon: BadgeCheck,
-  },
-  {
-    value: "done",
-    label: "Done",
-    description: "The final step. Items that reach here are finished.",
-    icon: CircleCheck,
-  },
-  {
-    value: "cancelled",
-    label: "Cancelled",
-    description: "The dead end. Items that reach here are dropped or rejected.",
-    icon: Ban,
-  },
-];
+}> {
+  return [
+    {
+      value: "working",
+      label: t("pipelineSettings.kindWorking"),
+      description: t("pipelineSettings.Items_wait_here_while_work_happens_An_ag"),
+      icon: Hammer,
+    },
+    {
+      value: "review",
+      label: t("pipelineSettings.kindReview"),
+      description: t("pipelineSettings.Someone_has_to_approve_before_items_leav"),
+      icon: BadgeCheck,
+    },
+    {
+      value: "done",
+      label: t("pipelineSettings.kindDone"),
+      description: t("pipelineSettings.The_final_step_Items_that_reach_here_are"),
+      icon: CircleCheck,
+    },
+    {
+      value: "cancelled",
+      label: t("pipelineSettings.kindCancelled"),
+      description: t("pipelineSettings.The_dead_end_Items_that_reach_here_are_d"),
+      icon: Ban,
+    },
+  ];
+}
 
 /** Per-stage instructions document key — keyed by stage id so it survives renames. */
 function stageInstructionsKey(stageId: string) {
@@ -326,11 +332,13 @@ function stageConfig(stage: PipelineStage | null | undefined): StageConfig {
   return config as StageConfig;
 }
 
-const STAGE_EXECUTION_WORKSPACE_OPTIONS = [
-  { value: "shared_workspace", label: "Project default" },
-  { value: "isolated_workspace", label: "New isolated workspace" },
-  { value: "reuse_existing", label: "Reuse existing workspace" },
-] as const;
+function stageExecutionWorkspaceOptions(t: TFunction) {
+  return [
+    { value: "shared_workspace" as const, label: t("pipelineSettings.Project_default") },
+    { value: "isolated_workspace" as const, label: t("pipelineSettings.New_isolated_workspace") },
+    { value: "reuse_existing" as const, label: t("pipelineSettings.Reuse_existing_workspace") },
+  ];
+}
 
 function nullableString(value: unknown) {
   return typeof value === "string" && value.trim() ? value.trim() : "";
@@ -863,13 +871,9 @@ function nextStageForInsert(stages: PipelineStage[], position: number) {
   return stages.find((stage) => stage.position >= position) ?? null;
 }
 
-function stageNavGroups(kind: string): typeof STAGE_NAV_GROUPS {
-  void kind;
-  return STAGE_NAV_GROUPS;
-}
-
 export function isPipelineSettingsStageSectionAvailable(kind: string, section: StageSectionKey) {
-  return stageNavGroups(kind).some((group) => group.items.some((item) => item.id === section));
+  void kind;
+  return Object.values<StageSectionKey>(["instructions", "advanced", "secrets", "activity", "history"]).includes(section);
 }
 
 function defaultReviewTarget(stages: PipelineStage[], selectedStageId: string | null, kind: string) {
@@ -964,49 +968,51 @@ function buildAutomationVariableGroups(input: {
   pipeline: PipelineDetail;
   stage: PipelineStage;
   sampleRow: PipelineCaseChildRow | null;
+  t: TFunction;
 }): AutomationVariableGroup[] {
+  const { t } = input;
   const sampleCase = input.sampleRow?.case ?? null;
   const exampleSource = itemExampleSource(input.sampleRow);
   const pipelineVariables: AutomationVariableOption[] = [
     {
       key: "pipeline_id",
-      label: "Pipeline ID",
-      description: "ID of the pipeline this automation runs in.",
+      label: t("pipelineSettings.Pipeline_ID"),
+      description: t("pipelineSettings.ID_of_the_pipeline_this_automation_runs_"),
       example: input.pipeline.id,
       exampleSource: null,
     },
     {
       key: "pipeline_key",
-      label: "Pipeline key",
-      description: "Stable key of the pipeline this automation runs in.",
+      label: t("pipelineSettings.Pipeline_key"),
+      description: t("pipelineSettings.Stable_key_of_the_pipeline_this_automati"),
       example: input.pipeline.key,
       exampleSource: null,
     },
     {
       key: "pipeline_name",
-      label: "Pipeline name",
-      description: "Display name of the pipeline this automation runs in.",
+      label: t("pipelineSettings.Pipeline_name"),
+      description: t("pipelineSettings.Display_name_of_the_pipeline_this_automa"),
       example: input.pipeline.name,
       exampleSource: null,
     },
     {
       key: "stage_id",
-      label: "Stage ID",
-      description: "ID of this automation stage.",
+      label: t("pipelineSettings.Stage_ID"),
+      description: t("pipelineSettings.ID_of_this_automation_stage"),
       example: input.stage.id,
       exampleSource: null,
     },
     {
       key: "stage_key",
-      label: "Stage key",
-      description: "Stable key of this automation stage.",
+      label: t("pipelineSettings.Stage_key"),
+      description: t("pipelineSettings.Stable_key_of_this_automation_stage"),
       example: input.stage.key,
       exampleSource: null,
     },
     {
       key: "stage_name",
-      label: "Stage name",
-      description: "Display name of this automation stage.",
+      label: t("pipelineSettings.Stage_name"),
+      description: t("pipelineSettings.Display_name_of_this_automation_stage"),
       example: input.stage.name,
       exampleSource: null,
     },
@@ -1014,43 +1020,43 @@ function buildAutomationVariableGroups(input: {
   const itemVariables: AutomationVariableOption[] = [
     {
       key: "title",
-      label: "Item title",
-      description: "Title of the item being automated.",
+      label: t("pipelineSettings.Item_title"),
+      description: t("pipelineSettings.Title_of_the_item_being_automated"),
       example: sampleCase?.title ?? "",
       exampleSource,
     },
     {
       key: "body",
-      label: "Item body",
-      description: "Body text of the item being automated.",
+      label: t("pipelineSettings.Item_body"),
+      description: t("pipelineSettings.Body_text_of_the_item_being_automated"),
       example: sampleCase?.summary ?? "",
       exampleSource,
     },
     {
       key: "case_id",
-      label: "Item ID",
-      description: "ID of the item being automated.",
+      label: t("pipelineSettings.Item_ID"),
+      description: t("pipelineSettings.ID_of_the_item_being_automated"),
       example: sampleCase?.id ?? "",
       exampleSource,
     },
     {
       key: "case_key",
-      label: "Item key",
-      description: "Stable key of the item being automated.",
+      label: t("pipelineSettings.Item_key"),
+      description: t("pipelineSettings.Stable_key_of_the_item_being_automated"),
       example: sampleCase?.caseKey ?? "",
       exampleSource,
     },
     {
       key: "case_title",
-      label: "Item title alias",
-      description: "Compatibility alias for the item title.",
+      label: t("pipelineSettings.Item_title_alias"),
+      description: t("pipelineSettings.Compatibility_alias_for_the_item_title"),
       example: sampleCase?.title ?? "",
       exampleSource,
     },
     {
       key: "case_version",
-      label: "Item version",
-      description: "Current item version when the automation runs.",
+      label: t("pipelineSettings.Item_version"),
+      description: t("pipelineSettings.Current_item_version_when_the_automation"),
       example: sampleCase?.version ?? "",
       exampleSource,
     },
@@ -1064,17 +1070,17 @@ function buildAutomationVariableGroups(input: {
     fieldVariables.push({
       key,
       label: key.replace(/[_-]+/g, " ").replace(/([a-z0-9])([A-Z])/g, "$1 $2"),
-      description: `Field copied from the current item data.`,
+      description: t("pipelineSettings.fieldCopiedFromCurrentItem"),
       example: value,
       exampleSource,
     });
   }
   const groups: AutomationVariableGroup[] = [
-    { id: "pipeline", label: "Pipeline and stage", variables: pipelineVariables },
-    { id: "item", label: "Current item", variables: itemVariables },
+    { id: "pipeline", label: t("pipelineSettings.Pipeline_and_stage"), variables: pipelineVariables },
+    { id: "item", label: t("pipelineSettings.Current_item"), variables: itemVariables },
   ];
   if (fieldVariables.length > 0) {
-    groups.push({ id: "fields", label: "Item fields", variables: fieldVariables });
+    groups.push({ id: "fields", label: t("pipelineSettings.Item_fields"), variables: fieldVariables });
   }
   return groups;
 }
@@ -1192,11 +1198,12 @@ function StageSubSidebar({
   stageKind: string;
   onSectionChange: (section: StageSectionKey) => void;
 }) {
-  const groups = stageNavGroups(stageKind);
+  const { t } = useTranslation();
+  const groups = stageNavGroups(t);
   return (
     <>
       <div className="md:hidden">
-        <label className="sr-only" htmlFor="stage-section-picker">Stage section</label>
+        <label className="sr-only" htmlFor="stage-section-picker">{t("pipelineSettings.stageSection")}</label>
         <select
           id="stage-section-picker"
           value={activeSection}
@@ -1461,9 +1468,9 @@ export function PipelineSettings() {
   }, [pipelineCasesQuery.data, selectedStage?.id]);
   const automationVariableGroups = useMemo(
     () => pipeline && selectedStage
-      ? buildAutomationVariableGroups({ pipeline, stage: selectedStage, sampleRow: sampleCaseRow })
+      ? buildAutomationVariableGroups({ pipeline, stage: selectedStage, sampleRow: sampleCaseRow, t })
       : [],
-    [pipeline, sampleCaseRow, selectedStage],
+    [pipeline, sampleCaseRow, selectedStage, t],
   );
   const automationVariableKeys = useMemo(
     () => flattenAutomationVariableKeys(automationVariableGroups),
@@ -2214,7 +2221,7 @@ export function PipelineSettings() {
       }
     : null;
   const selectedStageKindOption =
-    STAGE_KIND_OPTIONS.find((option) => option.value === stageKind) ?? STAGE_KIND_OPTIONS[0]!;
+    stageKindOptions(t).find((option) => option.value === stageKind) ?? stageKindOptions(t)[0]!;
   const SelectedStageKindIcon = selectedStageKindOption.icon;
   const issueTitleTemplateDirty =
     selectedStage != null && pipelineAutomationTitleTemplate(issueTitleTemplate) !== savedIssueTitleTemplate;
@@ -2331,7 +2338,7 @@ export function PipelineSettings() {
           </p>
         </div>
         <ToggleSwitch
-          aria-label="Break into smaller pieces"
+          aria-label={t("pipelineSettings.breakIntoSmallerPieces")}
           checked={breakdownEnabled}
           onCheckedChange={(checked) => {
             setBreakdownEnabled(checked);
@@ -2520,7 +2527,7 @@ export function PipelineSettings() {
               <p className="text-xs text-muted-foreground">{t("pipelineSettings.As_soon_as_the_pieces_are_created")}</p>
             </div>
           </FieldRow>
-          <FieldRow label="Wait">
+          <FieldRow label={t("pipelineSettings.waitLabel")}>
             <div className="space-y-2">
               <label className="flex items-start gap-2 text-sm">
                 <input
@@ -2609,7 +2616,7 @@ export function PipelineSettings() {
             <label className="block space-y-1.5 text-sm font-medium">
               <span className="sr-only">{t("pipelineSettings.Pipeline_name")}</span>
               <Input
-                aria-label="Pipeline name"
+                aria-label={t("pipelineSettings.pipelineName")}
                 value={pipelineName}
                 onChange={(event) => setPipelineName(event.target.value)}
                 required
@@ -2619,7 +2626,7 @@ export function PipelineSettings() {
             <label className="block space-y-1.5 text-sm font-medium">
               <span className="sr-only">{t("pipelineSettings.Pipeline_description")}</span>
               <Textarea
-                aria-label="Pipeline description"
+                aria-label={t("pipelineSettings.pipelineDescription")}
                 value={pipelineDescription}
                 onChange={(event) => setPipelineDescription(event.target.value)}
                 rows={2}
@@ -2737,7 +2744,7 @@ export function PipelineSettings() {
                 <div className="min-w-0 flex-1 md:px-8">
                   <div className="mb-4 flex items-center justify-between gap-3">
                     <h2 className="text-lg font-semibold text-foreground">
-                      {STAGE_SECTION_TITLES[activeStageSection]}
+                      {stageSectionTitles(t)[activeStageSection]}
                     </h2>
                     {activeStageSection === "instructions" ? (
                       <div className="flex items-center gap-2">
@@ -2779,7 +2786,7 @@ export function PipelineSettings() {
                   {activeStageSection === "instructions" ? (
                     <div className="w-full max-w-3xl">
                       <div className="divide-y divide-border border-b border-border">
-                        <FieldRow label="Name">
+                        <FieldRow label={t("projectProperties.nameLabel")}>
                           <Input value={stageName} onChange={(event) => setStageName(event.target.value)} required />
                         </FieldRow>
                         <FieldRow label={t("pipelineSettings.Step_type")}>
@@ -2801,7 +2808,7 @@ export function PipelineSettings() {
                               </DropdownMenuTrigger>
                               <DropdownMenuContent align="start" className="w-(--sz-calc-40)">
                                 <DropdownMenuRadioGroup value={stageKind} onValueChange={setStageKindWithDefaults}>
-                                  {STAGE_KIND_OPTIONS.map((option) => {
+                                  {stageKindOptions(t).map((option) => {
                                     const Icon = option.icon;
                                     return (
                                       <DropdownMenuRadioItem
@@ -2829,13 +2836,13 @@ export function PipelineSettings() {
                         </FieldRow>
 
                         {stageKind === "review" ? (
-                          <FieldRow label="Approver">
+                          <FieldRow label={t("pipelineSettings.approver")}>
                             <InlineEntitySelector
                               value={selectedApproval === "any_human" ? "" : selectedApproval}
                               options={approvalOptions}
                               recentOptionIds={recentAssigneeOptionIds}
-                              placeholder="Approver"
-                              noneLabel="Any human"
+                              placeholder={t("pipelineSettings.approver")}
+                              noneLabel={t("pipelineSettings.Any_human")}
                               searchPlaceholder={t("pipelineSettings.Search_approvers")}
                               emptyMessage={t("pipelineSettings.No_approvers_found")}
                               onChange={(value) => setSelectedApproval(approverValueFromOption(value))}
@@ -2923,7 +2930,7 @@ export function PipelineSettings() {
                             value={stageAssigneeOptionId(stageAssigneeAgentId)}
                             options={stageAssigneeOptions}
                             recentOptionIds={recentAssigneeOptionIds}
-                            placeholder="Pick agent"
+                            placeholder={t("pipelineSettings.pickAgent")}
                             noneLabel={t("pipelineSettings.No_automation")}
                             searchPlaceholder={t("pipelineSettings.Search_agents")}
                             emptyMessage={t("pipelineSettings.No_agents_found")}
@@ -3033,7 +3040,7 @@ export function PipelineSettings() {
                                     onChange={(event) => handleAutomationExecutionWorkspacePreferenceChange(event.target.value)}
                                     className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"
                                   >
-                                    {STAGE_EXECUTION_WORKSPACE_OPTIONS.map((option) => (
+                                    {stageExecutionWorkspaceOptions(t).map((option) => (
                                       <option key={option.value} value={option.value}>
                                         {option.label}
                                       </option>
@@ -3181,7 +3188,7 @@ export function PipelineSettings() {
                     <div className="w-full max-w-3xl space-y-8">
                       <div className="divide-y divide-border border-b border-border">
                         <div className="py-3">
-                          <h3 className="text-sm font-semibold text-foreground">Transitions</h3>
+                          <h3 className="text-sm font-semibold text-foreground">{t("pipelineSettings.transitions")}</h3>
                         </div>
                         <FieldRow label={t("pipelineSettings.Strict_mode")}>
                           <div className="space-y-1.5">
@@ -3216,7 +3223,7 @@ export function PipelineSettings() {
                       ) : (
                         <div className="divide-y divide-border border-b border-border">
                           <div className="py-3">
-                            <h3 className="text-sm font-semibold text-foreground">Children</h3>
+                            <h3 className="text-sm font-semibold text-foreground">{t("pipelineSettings.children")}</h3>
                           </div>
                           <FieldRow label={t("pipelineSettings.Block_children")}>
                             <div className="space-y-1.5">
@@ -3377,7 +3384,7 @@ export function PipelineSettings() {
               onClick={() => deleteStage.mutate()}
             >
               <Trash2 className="h-4 w-4" />
-              {deleteStage.isPending ? "Deleting..." : "Delete stage"}
+              {deleteStage.isPending ? t("pipelineSettings.deletingStage") : t("pipelineSettings.deleteStageAction")}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -3427,7 +3434,7 @@ export function PipelineSettings() {
               onClick={() => archivePipeline.mutate(true)}
             >
               <Archive className="h-4 w-4" />
-              {archivePipeline.isPending ? "Archiving..." : "Archive pipeline"}
+              {archivePipeline.isPending ? t("pipelineSettings.archivingPipeline") : t("pipelineSettings.archivePipelineAction")}
             </Button>
           </DialogFooter>
         </DialogContent>

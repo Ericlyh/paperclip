@@ -5886,7 +5886,15 @@
     "When_an_item_enters_this_step": "当项目进入此步骤时",
     "You_have_unsaved_changes": "您有未保存的变更。",
     "runs_these_instructions_then_moves_the_i": "运行这些指示，然后将项目移至下一个步骤。",
-    "starting_at": "从以下位置开始"
+    "starting_at": "从以下位置开始",
+    "stageSection": "Stage section",
+    "breakIntoSmallerPieces": "Break into smaller pieces",
+    "pipelineName": "Pipeline name",
+    "pipelineDescription": "Pipeline description",
+    "approver": "Approver",
+    "pickAgent": "Pick agent",
+    "transitions": "Transitions",
+    "children": "Children"
   },
   "pipelines": {
     "Add_at_least_one_item": "至少添加一个项目",
@@ -6748,7 +6756,20 @@
     "unarchiving": "Unarchiving...",
     "worktreeParentDir": "Worktree parent dir",
     "archive": "Archive",
-    "unarchive": "Unarchive"
+    "unarchive": "Unarchive",
+    "projectNamePlaceholder": "Project name",
+    "addDescriptionPlaceholder": "Add a description...",
+    "codebase": "Codebase",
+    "codebaseHelp": "Repo identifies the source of truth. Local folder is the default place agents write code.",
+    "repo": "Repo",
+    "executionWorkspacesHelpAria": "Execution workspaces help",
+    "sharedWorkspaceConcurrencyAria": "Shared workspace concurrency",
+    "sharedConcurrencyAutoLabel": "Auto",
+    "sharedConcurrencyAutoHelp": "Concurrent runs on local/SSH runners; runs take turns in cloud sandboxes.",
+    "sharedConcurrencySerializeLabel": "Serialize",
+    "sharedConcurrencySerializeHelp": "Runs always take turns in the shared project workspace.",
+    "sharedConcurrencyAllowLabel": "Allow",
+    "sharedConcurrencyAllowHelp": "Runs never wait for the workspace; concurrent edits are possible."
   },
   "projectWorkspaceDetail": {
     "A_hosted_workspace_tracked_by_external_r": "由外部参考追踪的代管工作区。",
@@ -6806,7 +6827,15 @@
     "https_github_com_org_repo": "https://github.com/org/repo",
     "origin_main": "origin/main",
     "pkill_f_vite_true": "pkill -f vite || true",
-    "pnpm_install_pnpm_dev": "pnpm install && pnpm dev"
+    "pnpm_install_pnpm_dev": "pnpm install && pnpm dev",
+    "notFound": "Workspace not found for this project.",
+    "nameLabel": "Workspace name",
+    "namePlaceholder": "Workspace name",
+    "advancedRuntimeJson": "Advanced runtime JSON",
+    "factsLabel": "Workspace facts",
+    "currentState": "Current state",
+    "commandsLabel": "Workspace commands",
+    "servicesAndJobs": "Services and jobs"
   },
   "projects": {
     "addProject": "添加项目",
@@ -9387,7 +9416,26 @@
     "storeAsSecret": "Store as secret",
     "selectUserSecret": "Select user secret...",
     "required": "Required",
-    "optional": "Optional"
+    "optional": "Optional",
+    "keyPlaceholder": "KEY",
+    "variableNameAria": "Variable name",
+    "valueSourceAria": "Value source",
+    "valuePlaceholder": "value",
+    "variableValueAria": "Variable value",
+    "sensitiveStoreTitle": "This value looks sensitive — store it as a secret",
+    "sensitiveDismissAria": "Dismiss sensitive-value suggestion",
+    "sensitiveDismissTitle": "Dismiss — keep this value as plain text",
+    "versionAria": "Version",
+    "secretVersionAria": "Secret version",
+    "recommended": "(recommended)",
+    "userSecretAria": "User secret",
+    "userSecretKeyPlaceholder": "user-secret key",
+    "userSecretKeyAria": "User secret key",
+    "requirementAria": "Requirement",
+    "revertedToText": "Reverted to text —",
+    "undo": "Undo",
+    "moreActionsAria": "More actions",
+    "storeAsSecretAction": "Store as secret…"
   },
   "connectionDialogs": {
     "activate": "Activate",
@@ -9874,5 +9922,15 @@
     "removing": "Removing…",
     "coverage": "Coverage:",
     "notSet": "· {{missing}} not set"
+  },
+  "projectDetail": {
+    "addDescriptionPlaceholder": "Add a description...",
+    "statusLabel": "Status",
+    "targetDateLabel": "Target Date",
+    "iconLabel": "Icon",
+    "searchIconsPlaceholder": "Search icons...",
+    "noIconsMatch": "No icons match",
+    "colorLabel": "Color",
+    "loadingWorkspaces": "Loading workspaces..."
   }
 }

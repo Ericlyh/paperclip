@@ -18,7 +18,7 @@ import {
   type WorkspaceRuntimeControlRequest,
 } from "../components/WorkspaceRuntimeControls";
 import { useBreadcrumbs } from "../context/BreadcrumbContext";
-import { useTranslation } from "../i18n";
+import { useTranslation, type TFunction } from "../i18n";
 import { useCompany } from "../context/CompanyContext";
 import { queryKeys } from "../lib/queryKeys";
 import { projectRouteRef, projectWorkspaceUrl } from "../lib/utils";
@@ -51,9 +51,11 @@ type OrderedProjectWorkspaceTabItem = {
 };
 
 const DEFAULT_PLUGIN_DETAIL_TAB_ORDER = 100;
-const PROJECT_WORKSPACE_BASE_TAB_ITEMS: OrderedProjectWorkspaceTabItem[] = [
-  { value: "configuration", label: "Configuration", order: 30 },
-];
+function projectWorkspaceBaseTabItems(t: TFunction): OrderedProjectWorkspaceTabItem[] {
+  return [
+    { value: "configuration", label: t("projectWorkspaceDetail.Configuration_tab"), order: 30 },
+  ];
+}
 
 function isProjectWorkspacePluginTab(value: string | null): value is ProjectWorkspacePluginTab {
   return typeof value === "string" && value.startsWith("plugin:");
@@ -72,17 +74,21 @@ function orderProjectWorkspaceTabItems(items: OrderedProjectWorkspaceTabItem[]) 
     .map(({ item }) => item);
 }
 
-const SOURCE_TYPE_OPTIONS: Array<{ value: ProjectWorkspaceSourceType; label: string; description: string }> = [
-  { value: "local_path", label: "Local git checkout", description: "A local path Paperclip can use directly." },
-  { value: "non_git_path", label: "Local non-git path", description: "A local folder without git semantics." },
-  { value: "git_repo", label: "Remote git repo", description: "A repo URL with optional refs and local checkout." },
-  { value: "remote_managed", label: "Remote-managed workspace", description: "A hosted workspace tracked by external reference." },
-];
+function sourceTypeOptions(t: TFunction): Array<{ value: ProjectWorkspaceSourceType; label: string; description: string }> {
+  return [
+    { value: "local_path", label: t("projectWorkspaceDetail.Local_git_checkout"), description: t("projectWorkspaceDetail.A_local_path_Paperclip_can_use_directly") },
+    { value: "non_git_path", label: t("projectWorkspaceDetail.Local_non_git_path"), description: t("projectWorkspaceDetail.A_local_folder_without_git_semantics") },
+    { value: "git_repo", label: t("projectWorkspaceDetail.Remote_git_repo"), description: t("projectWorkspaceDetail.A_repo_URL_with_optional_refs_and_local_") },
+    { value: "remote_managed", label: t("projectWorkspaceDetail.Remote_managed_workspace"), description: t("projectWorkspaceDetail.A_hosted_workspace_tracked_by_external_r") },
+  ];
+}
 
-const VISIBILITY_OPTIONS: Array<{ value: ProjectWorkspaceVisibility; label: string }> = [
-  { value: "default", label: "Default" },
-  { value: "advanced", label: "Advanced" },
-];
+function visibilityOptions(t: TFunction): Array<{ value: ProjectWorkspaceVisibility; label: string }> {
+  return [
+    { value: "default", label: t("projectWorkspaceDetail.visibility_default") },
+    { value: "advanced", label: t("projectWorkspaceDetail.visibility_advanced") },
+  ];
+}
 
 function isSafeExternalUrl(value: string | null | undefined) {
   if (!value) return false;
@@ -306,8 +312,8 @@ export function ProjectWorkspaceDetail() {
     [pluginDetailSlots],
   );
   const tabItems = useMemo(
-    () => orderProjectWorkspaceTabItems([...PROJECT_WORKSPACE_BASE_TAB_ITEMS, ...pluginTabItems]),
-    [pluginTabItems],
+    () => orderProjectWorkspaceTabItems([...projectWorkspaceBaseTabItems(t), ...pluginTabItems]),
+    [pluginTabItems, t],
   );
 
   useEffect(() => {
@@ -354,7 +360,7 @@ export function ProjectWorkspaceDetail() {
       setErrorMessage(null);
     },
     onError: (error) => {
-      setErrorMessage(error instanceof Error ? error.message : "Failed to save workspace.");
+      setErrorMessage(error instanceof Error ? error.message : t("projectWorkspaceDetail.Failed_to_save_workspace"));
     },
   });
 
@@ -365,7 +371,7 @@ export function ProjectWorkspaceDetail() {
       setErrorMessage(null);
     },
     onError: (error) => {
-      setErrorMessage(error instanceof Error ? error.message : "Failed to update workspace.");
+      setErrorMessage(error instanceof Error ? error.message : t("projectWorkspaceDetail.Failed_to_update_workspace"));
     },
   });
 
@@ -377,30 +383,30 @@ export function ProjectWorkspaceDetail() {
       setErrorMessage(null);
       setRuntimeActionMessage(
         request.action === "run"
-          ? "Workspace job completed."
+          ? t("projectWorkspaceDetail.Workspace_job_completed")
           : request.action === "stop"
-            ? "Workspace service stopped. Task execution is not paused."
+            ? t("projectWorkspaceDetail.Workspace_service_stopped_Task_executi")
             : request.action === "restart"
-              ? "Workspace service restarted. Task execution is not paused."
-              : "Workspace service started.",
+              ? t("projectWorkspaceDetail.Workspace_service_restarted_Task_executi")
+              : t("projectWorkspaceDetail.Workspace_service_started"),
       );
     },
     onError: (error) => {
       setRuntimeActionMessage(null);
-      setErrorMessage(error instanceof Error ? error.message : "Failed to control workspace commands.");
+      setErrorMessage(error instanceof Error ? error.message : t("projectWorkspaceDetail.Failed_to_control_workspace_commands"));
     },
   });
 
-  if (projectQuery.isLoading) return <p className="text-sm text-muted-foreground">Loading workspace…</p>;
+  if (projectQuery.isLoading) return <p className="text-sm text-muted-foreground">{t("projectWorkspaceDetail.Loading_workspace")}</p>;
   if (projectQuery.error) {
     return (
       <p className="text-sm text-destructive">
-        {projectQuery.error instanceof Error ? projectQuery.error.message : "Failed to load workspace"}
+        {projectQuery.error instanceof Error ? projectQuery.error.message : t("projectWorkspaceDetail.Failed_to_load_workspace")}
       </p>
     );
   }
   if (!project || !workspace || !form || !initialState) {
-    return <p className="text-sm text-muted-foreground">Workspace not found for this project.</p>;
+    return <p className="text-sm text-muted-foreground">{t("projectWorkspaceDetail.notFound")}</p>;
   }
 
   const canRunWorkspaceCommands = Boolean(workspace.cwd);
@@ -424,7 +430,7 @@ export function ProjectWorkspaceDetail() {
     updateWorkspace.mutate(patch);
   };
 
-  const sourceTypeDescription = SOURCE_TYPE_OPTIONS.find((option) => option.value === form.sourceType)?.description ?? null;
+  const sourceTypeDescription = sourceTypeOptions(t).find((option) => option.value === form.sourceType)?.description ?? null;
   const handleTabChange = (tab: ProjectWorkspaceTab) => {
     const workspacePath = projectWorkspaceUrl(project, routeWorkspaceId);
     if (isProjectWorkspacePluginTab(tab)) {
@@ -441,7 +447,7 @@ export function ProjectWorkspaceDetail() {
         <Button variant="ghost" size="sm" asChild>
           <Link to={`/projects/${canonicalProjectRef}/workspaces`}>
             <ArrowLeft className="mr-1 h-4 w-4" />
-            Back to workspaces
+            {t("projectWorkspaceDetail.backToWorkspaces")}
           </Link>
         </Button>
       </div>
@@ -449,7 +455,7 @@ export function ProjectWorkspaceDetail() {
       <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
         <div className="min-w-0 space-y-2">
           <div className="text-xs font-medium uppercase tracking-(--tracking-eyebrow) text-muted-foreground">
-            Project workspace
+            {t("projectWorkspaceDetail.projectWorkspaceLabel")}
           </div>
           <h1 className="truncate text-xl font-semibold sm:text-2xl">{workspace.name}</h1>
         </div>
@@ -463,12 +469,12 @@ export function ProjectWorkspaceDetail() {
             {setPrimaryWorkspace.isPending
               ? <Loader2 className="mr-2 h-4 w-4 animate-spin" />
               : <Check className="mr-2 h-4 w-4" />}
-            Make primary
+            {t("projectWorkspaceDetail.makePrimary")}
           </Button>
         ) : (
           <div className="inline-flex items-center gap-2 rounded-xl border border-emerald-500/25 bg-emerald-500/10 px-3 py-2 text-sm text-emerald-700 dark:text-emerald-300 sm:max-w-sm">
             <Sparkles className="h-4 w-4" />
-            This is the project’s primary codebase workspace.
+            {t("projectWorkspaceDetail.primaryCodebaseWorkspace")}
           </div>
         )}
       </div>
@@ -495,16 +501,16 @@ export function ProjectWorkspaceDetail() {
             <Separator className="my-5" />
 
             <div className="grid gap-4 md:grid-cols-2">
-              <Field label="Workspace name">
+              <Field label={t("projectWorkspaceDetail.nameLabel")}>
                 <input
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
                   value={form.name}
                   onChange={(event) => setForm((current) => current ? { ...current, name: event.target.value } : current)}
-                  placeholder="Workspace name"
+                  placeholder={t("projectWorkspaceDetail.namePlaceholder")}
                 />
               </Field>
 
-              <Field label="Visibility">
+              <Field label={t("projectWorkspaceDetail.visibilityLabel")}>
                 <select
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
                   value={form.visibility}
@@ -512,7 +518,7 @@ export function ProjectWorkspaceDetail() {
                     setForm((current) => current ? { ...current, visibility: event.target.value as ProjectWorkspaceVisibility } : current)
                   }
                 >
-                  {VISIBILITY_OPTIONS.map((option) => (
+                  {visibilityOptions(t).map((option) => (
                     <option key={option.value} value={option.value}>{option.label}</option>
                   ))}
                 </select>
@@ -520,7 +526,7 @@ export function ProjectWorkspaceDetail() {
             </div>
 
             <div className="mt-4 grid gap-4">
-              <Field label="Source type" hint={sourceTypeDescription ?? undefined}>
+              <Field label={t("projectWorkspaceDetail.Source_type")} hint={sourceTypeDescription ?? undefined}>
                 <select
                   className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
                   value={form.sourceType}
@@ -528,19 +534,19 @@ export function ProjectWorkspaceDetail() {
                     setForm((current) => current ? { ...current, sourceType: event.target.value as ProjectWorkspaceSourceType } : current)
                   }
                 >
-                  {SOURCE_TYPE_OPTIONS.map((option) => (
+                  {sourceTypeOptions(t).map((option) => (
                     <option key={option.value} value={option.value}>{option.label}</option>
                   ))}
                 </select>
               </Field>
 
               <div className="grid gap-4 md:grid-cols-(--gtc-13)">
-                <Field label="Local path">
+                <Field label={t("projectWorkspaceDetail.Local_path")}>
                   <input
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                     value={form.cwd}
                     onChange={(event) => setForm((current) => current ? { ...current, cwd: event.target.value } : current)}
-                    placeholder="/absolute/path/to/workspace"
+                    placeholder={t("projectWorkspaceDetail.absolute_path_to_workspace")}
                   />
                 </Field>
                 <div className="flex items-end">
@@ -549,93 +555,93 @@ export function ProjectWorkspaceDetail() {
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Repo URL">
+                <Field label={t("projectWorkspaceDetail.Repo_URL")}>
                   <input
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
                     value={form.repoUrl}
                     onChange={(event) => setForm((current) => current ? { ...current, repoUrl: event.target.value } : current)}
-                    placeholder="https://github.com/org/repo"
+                    placeholder={t("projectWorkspaceDetail.https_github_com_org_repo")}
                   />
                 </Field>
-                <Field label="Repo ref">
+                <Field label={t("projectWorkspaceDetail.Repo_ref")}>
                   <input
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                     value={form.repoRef}
                     onChange={(event) => setForm((current) => current ? { ...current, repoRef: event.target.value } : current)}
-                    placeholder="origin/main"
+                    placeholder={t("projectWorkspaceDetail.origin_main")}
                   />
                 </Field>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Default ref">
+                <Field label={t("projectWorkspaceDetail.Default_ref")}>
                   <input
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                     value={form.defaultRef}
                     onChange={(event) => setForm((current) => current ? { ...current, defaultRef: event.target.value } : current)}
-                    placeholder="origin/main"
+                    placeholder={t("projectWorkspaceDetail.origin_main")}
                   />
                 </Field>
-                <Field label="Shared workspace key">
+                <Field label={t("projectWorkspaceDetail.Shared_workspace_key")}>
                   <input
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                     value={form.sharedWorkspaceKey}
                     onChange={(event) => setForm((current) => current ? { ...current, sharedWorkspaceKey: event.target.value } : current)}
-                    placeholder="frontend"
+                    placeholder={t("projectWorkspaceDetail.frontend")}
                   />
                 </Field>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Remote provider">
+                <Field label={t("projectWorkspaceDetail.Remote_provider")}>
                   <input
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm outline-none"
                     value={form.remoteProvider}
                     onChange={(event) => setForm((current) => current ? { ...current, remoteProvider: event.target.value } : current)}
-                    placeholder="codespaces"
+                    placeholder={t("projectWorkspaceDetail.codespaces")}
                   />
                 </Field>
-                <Field label="Remote workspace ref">
+                <Field label={t("projectWorkspaceDetail.Remote_workspace_ref")}>
                   <input
                     className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                     value={form.remoteWorkspaceRef}
                     onChange={(event) => setForm((current) => current ? { ...current, remoteWorkspaceRef: event.target.value } : current)}
-                    placeholder="workspace-123"
+                    placeholder={t("projectWorkspaceDetail.workspace_123")}
                   />
                 </Field>
               </div>
 
               <div className="grid gap-4 md:grid-cols-2">
-                <Field label="Setup command" hint="Runs when this workspace needs custom bootstrap">
+                <Field label={t("projectWorkspaceDetail.Setup_command")} hint={t("projectWorkspaceDetail.Runs_when_this_workspace_needs_custom_bo")}>
                   <textarea
                     className="min-h-28 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                     value={form.setupCommand}
                     onChange={(event) => setForm((current) => current ? { ...current, setupCommand: event.target.value } : current)}
-                    placeholder="pnpm install && pnpm dev"
+                    placeholder={t("projectWorkspaceDetail.pnpm_install_pnpm_dev")}
                   />
                 </Field>
-                <Field label="Cleanup command" hint="Runs before project-level execution workspace teardown">
+                <Field label={t("projectWorkspaceDetail.Cleanup_command")} hint={t("projectWorkspaceDetail.Runs_before_project_level_execution_work")}>
                   <textarea
                     className="min-h-28 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                     value={form.cleanupCommand}
                     onChange={(event) => setForm((current) => current ? { ...current, cleanupCommand: event.target.value } : current)}
-                    placeholder="pkill -f vite || true"
+                    placeholder={t("projectWorkspaceDetail.pkill_f_vite_true")}
                   />
                 </Field>
               </div>
 
               <details className="rounded-xl border border-dashed border-border/70 bg-background px-3 py-3">
-                <summary className="cursor-pointer text-sm font-medium">Advanced runtime JSON</summary>
+                <summary className="cursor-pointer text-sm font-medium">{t("projectWorkspaceDetail.advancedRuntimeJson")}</summary>
                 <p className="mt-2 text-sm text-muted-foreground">
                   Paperclip derives Services and Jobs from this JSON. Prefer editing named commands first; use raw JSON for advanced lifecycle, port, readiness, or environment settings.
                 </p>
                 <div className="mt-3">
-                  <Field label="Workspace commands JSON" hint="Execution workspaces inherit this config unless they override it. Legacy `services` arrays still work, but `commands` supports both services and jobs.">
+                  <Field label={t("projectWorkspaceDetail.Workspace_commands_JSON")} hint={t("projectWorkspaceDetail.Workspace_commands_JSON_hint")}>
                     <textarea
                       className="min-h-96 w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-sm outline-none"
                       value={form.runtimeConfig}
                       onChange={(event) => setForm((current) => current ? { ...current, runtimeConfig: event.target.value } : current)}
-                      placeholder={"{\n  \"commands\": [\n    {\n      \"id\": \"web\",\n      \"name\": \"web\",\n      \"kind\": \"service\",\n      \"command\": \"pnpm dev\",\n      \"cwd\": \".\",\n      \"port\": { \"type\": \"auto\" },\n      \"readiness\": {\n        \"type\": \"http\",\n        \"urlTemplate\": \"http://127.0.0.1:${port}\"\n      },\n      \"expose\": {\n        \"type\": \"url\",\n        \"urlTemplate\": \"http://127.0.0.1:${port}\"\n      },\n      \"lifecycle\": \"shared\",\n      \"reuseScope\": \"project_workspace\"\n    },\n    {\n      \"id\": \"db-migrate\",\n      \"name\": \"db:migrate\",\n      \"kind\": \"job\",\n      \"command\": \"pnpm db:migrate\",\n      \"cwd\": \".\"\n    }\n  ]\n}"}
+                      placeholder={t("projectWorkspaceDetail.runtimeConfigPlaceholder")}
                     />
                   </Field>
                 </div>
@@ -645,7 +651,7 @@ export function ProjectWorkspaceDetail() {
             <div className="mt-5 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center">
               <Button className="w-full sm:w-auto" disabled={!isDirty || updateWorkspace.isPending} onClick={saveChanges}>
                 {updateWorkspace.isPending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
-                Save changes
+                {t("projectWorkspaceDetail.saveChanges")}
               </Button>
               <Button
                 variant="outline"
@@ -656,11 +662,11 @@ export function ProjectWorkspaceDetail() {
                   setErrorMessage(null);
                 }}
               >
-                Reset
+                {t("projectWorkspaceDetail.reset")}
               </Button>
               {errorMessage ? <p className="text-sm text-destructive">{errorMessage}</p> : null}
               {!errorMessage && runtimeActionMessage ? <p className="text-sm text-muted-foreground">{runtimeActionMessage}</p> : null}
-              {!errorMessage && !isDirty ? <p className="text-sm text-muted-foreground">No unsaved changes.</p> : null}
+              {!errorMessage && !isDirty ? <p className="text-sm text-muted-foreground">{t("projectWorkspaceDetail.No_unsaved_changes")}</p> : null}
             </div>
           </Card>
         </div>
@@ -668,20 +674,20 @@ export function ProjectWorkspaceDetail() {
         <div className="space-y-6">
           <Card className="block p-5">
             <div className="space-y-1">
-              <div className="text-xs font-medium uppercase tracking-(--tracking-eyebrow) text-muted-foreground">Workspace facts</div>
-              <h2 className="text-lg font-semibold">Current state</h2>
+              <div className="text-xs font-medium uppercase tracking-(--tracking-eyebrow) text-muted-foreground">{t("projectWorkspaceDetail.factsLabel")}</div>
+              <h2 className="text-lg font-semibold">{t("projectWorkspaceDetail.currentState")}</h2>
             </div>
             <Separator className="my-4" />
-            <DetailRow label="Project">
+            <DetailRow label={t("projectWorkspaceDetail.projectRowLabel")}>
               <Link to={`/projects/${canonicalProjectRef}`} className="hover:underline">{project.name}</Link>
             </DetailRow>
-            <DetailRow label="Workspace ID">
+            <DetailRow label={t("projectWorkspaceDetail.Workspace_ID")}>
               <span className="break-all font-mono text-xs">{workspace.id}</span>
             </DetailRow>
-            <DetailRow label="Local path">
-              <span className="break-all font-mono text-xs">{workspace.cwd ?? "None"}</span>
+            <DetailRow label={t("projectWorkspaceDetail.Local_path")}>
+              <span className="break-all font-mono text-xs">{workspace.cwd ?? t("projectWorkspaceDetail.None")}</span>
             </DetailRow>
-            <DetailRow label="Repo">
+            <DetailRow label={t("projectWorkspaceDetail.Repo")}>
               {workspace.repoUrl && isSafeExternalUrl(workspace.repoUrl) ? (
                 <a href={workspace.repoUrl} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 hover:underline">
                   {workspace.repoUrl}
@@ -689,17 +695,17 @@ export function ProjectWorkspaceDetail() {
                 </a>
               ) : workspace.repoUrl ? (
                 <span className="break-all font-mono text-xs">{workspace.repoUrl}</span>
-              ) : "None"}
+              ) : t("projectWorkspaceDetail.None")}
             </DetailRow>
-            <DetailRow label="Default ref">{workspace.defaultRef ?? "None"}</DetailRow>
-            <DetailRow label="Updated">{new Date(workspace.updatedAt).toLocaleString()}</DetailRow>
+            <DetailRow label={t("projectWorkspaceDetail.Default_ref")}>{workspace.defaultRef ?? t("projectWorkspaceDetail.None")}</DetailRow>
+            <DetailRow label={t("projectWorkspaceDetail.Updated")}>{new Date(workspace.updatedAt).toLocaleString()}</DetailRow>
           </Card>
 
           <Card className="block p-5">
             <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
               <div className="space-y-1">
-                <div className="text-xs font-medium uppercase tracking-(--tracking-eyebrow) text-muted-foreground">Workspace commands</div>
-                <h2 className="text-lg font-semibold">Services and jobs</h2>
+                <div className="text-xs font-medium uppercase tracking-(--tracking-eyebrow) text-muted-foreground">{t("projectWorkspaceDetail.commandsLabel")}</div>
+                <h2 className="text-lg font-semibold">{t("projectWorkspaceDetail.servicesAndJobs")}</h2>
                 <p className="text-sm text-muted-foreground">
                   Long-running services stay supervised here, while one-shot jobs run on demand against this workspace. Execution workspaces inherit this config unless they override it.
                 </p>
@@ -712,11 +718,11 @@ export function ProjectWorkspaceDetail() {
               pendingRequest={pendingRuntimeAction}
               serviceEmptyMessage={
                 workspace.runtimeConfig?.workspaceRuntime
-                  ? "No services have been started for this workspace yet."
-                  : "No workspace command config is defined for this workspace yet."
+                  ? t("projectWorkspaceDetail.No_services_have_been_started_for_this_w")
+                  : t("projectWorkspaceDetail.No_workspace_command_config_is_defined_f")
               }
-              jobEmptyMessage="No one-shot jobs are configured for this workspace yet."
-              disabledHint="Project workspaces need a working directory before local commands can run, and services also need runtime config."
+              jobEmptyMessage={t("projectWorkspaceDetail.No_one_shot_jobs_are_configured_for_this")}
+              disabledHint={t("projectWorkspaceDetail.Project_workspaces_need_a_working_direct")}
               onAction={(request) => controlRuntimeServices.mutate(request)}
             />
           </Card>
@@ -739,12 +745,12 @@ export function ProjectWorkspaceDetail() {
           />
         ) : pluginDetailSlotsLoading || pluginDetailSlotsError ? (
           <div className="rounded-lg border border-dashed border-border bg-background px-4 py-8 text-sm text-muted-foreground">
-            {pluginDetailSlotsError ? pluginDetailSlotsError : "Loading workspace plugin..."}
+            {pluginDetailSlotsError ? pluginDetailSlotsError : t("projectWorkspaceDetail.Loading_workspace_plugin")}
           </div>
         ) : (
           <MissingPluginTabPlaceholder
             defaultTabHref={`${projectWorkspaceUrl(project, routeWorkspaceId)}?tab=configuration`}
-            defaultTabLabel="Back to configuration"
+            defaultTabLabel={t("projectWorkspaceDetail.Back_to_configuration")}
           />
         )
       ) : null}
