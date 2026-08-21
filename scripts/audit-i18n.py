@@ -38,13 +38,16 @@ _DYNAMIC_AFTER = re.compile(r"""\s*(?:\+\s*[A-Za-z_]|\$\{)""")
 
 # Literal-prop pass: surface JSX attrs whose value is a static human-readable
 # string starting with a capital letter (heuristic for "is this user-facing
-# text?"). The 5 attrs we care about are the ones that ship visible copy
+# text?"). The attrs we care about are the ones that ship visible copy
 # without going through t() — placeholder, aria-label, aria-labelledby, title,
-# alt. Other attrs (className, role, key, data-*, cy-*) are infrastructure
-# and would generate noise; the regex itself restricts to these 5 attrs only,
-# so no separate filter step is needed.
+# alt, and label (e.g., PropertyRow label="Status", PropertyPicker label="Assignee").
+# The negative lookbehind `(?<![\w-])` before `label` keeps aria-label matches
+# exclusive (so `aria-label="x"` is reported once, as aria-label, not twice).
+# Other attrs (className, role, key, data-*, cy-*) are infrastructure and would
+# generate noise; the regex itself restricts to these attrs only, so no separate
+# filter step is needed.
 _LITERAL_PROP = re.compile(
-    r"""\b(?P<attr>placeholder|aria-label|aria-labelledby|title|alt)\s*=\s*"""
+    r"""\b(?P<attr>placeholder|aria-label|aria-labelledby|title|alt|(?<![\w-])label)\s*=\s*"""
     r"""(?:"(?P<dq>[A-Z][^"]+)"|'(?P<sq>[A-Z][^']+)')"""
 )
 

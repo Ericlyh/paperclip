@@ -2113,7 +2113,7 @@ export function IssueProperties({
 
         <PropertyPicker
           inline={inline}
-          label="Labels"
+          label={t("issueProperties.rowLabels")}
           open={labelsOpen}
           onOpenChange={(open) => { setLabelsOpen(open); if (!open) setLabelSearch(""); }}
           triggerContent={labelsTrigger}
@@ -2126,7 +2126,7 @@ export function IssueProperties({
 
         <PropertyPicker
           inline={inline}
-          label="Assignee"
+          label={t("issueProperties.rowAssignee")}
           open={assigneeOpen}
           onOpenChange={(open) => { setAssigneeOpen(open); if (!open) { setAssigneeSearch(""); setPendingAssignee(null); } }}
           triggerContent={assigneeTrigger}
@@ -2147,7 +2147,7 @@ export function IssueProperties({
         {showAssigneeAdapterOptions ? (
           <PropertyPicker
             inline={inline}
-            label="Model"
+            label={t("issueProperties.rowModel")}
             open={assigneeOptionsOpen}
             onOpenChange={setAssigneeOptionsOpen}
             triggerContent={assigneeOptionsTrigger}
@@ -2160,7 +2160,7 @@ export function IssueProperties({
 
         <PropertyPicker
           inline={inline}
-          label="Project"
+          label={t("issueProperties.rowProject")}
           open={projectOpen}
           onOpenChange={(open) => { setProjectOpen(open); if (!open) setProjectSearch(""); }}
           triggerContent={projectTrigger}
@@ -2183,7 +2183,7 @@ export function IssueProperties({
       <PropertySection title={t("issueProperties.sectionRelationships")}>
         <PropertyPicker
           inline={inline}
-          label="Parent"
+          label={t("issueProperties.rowParent")}
           open={parentOpen}
           onOpenChange={(open) => {
             setParentOpen(open);
@@ -2527,7 +2527,7 @@ export function IssueProperties({
             <span className="text-sm">{formatDateTime(issue.completedAt)}</span>
           </PropertyRow>
         )}
-        <PropertyRow label="Created">
+        <PropertyRow label={t("issueProperties.rowCreated")}>
           <span className="text-sm">{formatDateTime(issue.createdAt)}</span>
         </PropertyRow>
         <PropertyRow label={t("issueProperties.updated")}>
