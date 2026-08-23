@@ -789,6 +789,21 @@
     "noAgentsSelected": "No agents selected",
     "selectAgents": "Select agents"
   },
+  "agentProperties": {
+    "label": {
+      "status": "Status",
+      "errorReason": "Error reason",
+      "role": "Role",
+      "title": "Title",
+      "adapter": "Adapter",
+      "session": "Session",
+      "lastError": "Last error",
+      "lastRunError": "Last run error",
+      "lastHeartbeat": "Last Heartbeat",
+      "reportsTo": "Reports To",
+      "created": "Created"
+    }
+  },
   "agentSelect": {
     "noAgentsYet": "No agents yet.",
     "placeholder": "Select agent…",
@@ -942,6 +957,16 @@
       "subtitle": "Whose harness carries {{appName}}'s tools on every run.",
       "title": "Installed on agents",
       "willGrantAccess": "will grant access"
+    }
+  },
+  "approvalPayload": {
+    "label": {
+      "role": "Role",
+      "title": "Title",
+      "icon": "Icon",
+      "scope": "Scope",
+      "window": "Window",
+      "metric": "Metric"
     }
   },
   "approvals": {
@@ -1376,6 +1401,13 @@
     },
     "zapierName": "Zapier"
   },
+  "appsSidebar": {
+    "label": {
+      "browse": "Browse",
+      "review": "Review",
+      "connections": "Connections"
+    }
+  },
   "aria": {
     "changeStatus": "Change status (current: {{current}})",
     "removeCreator": "Remove creator {{name}}"
@@ -1436,6 +1468,11 @@
     "switchToSignInPrompt": "Already have an account?",
     "switchToSignUpAction": "Create one",
     "switchToSignUpPrompt": "Need an account?"
+  },
+  "billerSpendCard": {
+    "label": {
+      "periodSpend": "Period spend"
+    }
   },
   "blockedAttention": {
     "activeChildMany": "Blocked · waiting on {{count}} active sub-tasks",
@@ -2729,6 +2766,12 @@
       "slugPlaceholder": "skill-shortname",
       "taglinePlaceholder": "One-line promise for the skill",
       "untitled": "Untitled"
+    }
+  },
+  "configureBuiltInAgentModal": {
+    "label": {
+      "adapterType": "Adapter type",
+      "monthlyBudget": "Monthly budget (optional)"
     }
   },
   "costs": {
@@ -5223,6 +5266,12 @@
     "workspaceServiceRestarted": "Workspace service restarted.",
     "workspaceServiceStarted": "Workspace service started.",
     "workspaceServiceStopped": "Workspace service stopped."
+  },
+  "issueReferenceActivitySummary": {
+    "label": {
+      "addedReferences": "Added references",
+      "removedReferences": "Removed references"
+    }
   },
   "issueScheduledRetry": {
     "action": {
@@ -8084,6 +8133,13 @@
       "invalidReportingChain": "h-3.5 w-3.5 shrink-0 text-amber-500"
     }
   },
+  "sidebarServerInfo": {
+    "label": {
+      "lastRestarted": "Last restarted",
+      "runningCommit": "Running commit",
+      "checkoutState": "Checkout state"
+    }
+  },
   "skillStudio": {
     "A_README_md_seed_file_is_created_so_the_": "A README.md seed file is created so the folder appears in the file tree.",
     "A_file_already_exists_at_that_path": "A file already exists at that path.",
@@ -10241,6 +10297,9 @@
   "agentActionButtons": {
     "aria": {
       "clearErrorAndReturnAgentToIdle": "Clear error and return agent to idle"
+    },
+    "label": {
+      "runNow": "Run now"
     }
   },
   "agentIconPicker": {
@@ -10280,6 +10339,11 @@
       "runreflectioncoachonce": "Run Reflection Coach once?",
       "disabletheweeklyschedule": "Disable the weekly schedule?",
       "enabletheweeklyschedule": "Enable the weekly schedule?"
+    },
+    "label": {
+      "adapter": "Adapter",
+      "routine": "Routine",
+      "proposal": "Proposal"
     }
   },
   "chatComposer": {
@@ -10297,6 +10361,9 @@
     "aria": {
       "decisionQueues": "flex flex-wrap items-center gap-1.5",
       "recentActivity": "h-1.5 w-1.5 shrink-0 rounded-full bg-primary"
+    },
+    "label": {
+      "all": "All"
     }
   },
   "decisionTriageStrip": {
@@ -10508,6 +10575,13 @@
   "sourceResolvedFoldCallout": {
     "aria": {
       "sourceResolvedWatchdogFold": "Source-resolved watchdog fold"
+    },
+    "label": {
+      "sourceTask": "Source task",
+      "sameRunEvidence": "Same-run evidence",
+      "silenceAgeBeforeFold": "Silence age before fold",
+      "processCleanup": "Process cleanup",
+      "evaluationTask": "Evaluation task"
     }
   },
   "stalledReviewActions": {

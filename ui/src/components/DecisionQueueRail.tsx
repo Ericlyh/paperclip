@@ -43,7 +43,7 @@ export function DecisionQueueRail({ companyId, activeQueueKey = null }: Decision
 
   return (
     <nav className="flex flex-wrap items-center gap-1.5" aria-label={t("decisionQueueRail.aria.decisionQueues")} data-decision-queue-rail>
-      <Chip href={decisionsHref(null)} active={activeQueueKey == null} label="All" />
+      <Chip href={decisionsHref(null)} active={activeQueueKey == null} label={t("decisionQueueRail.label.all")} />
       {queues.map((queue) => {
         const recent = now - new Date(queue.updatedAt).getTime() < RECENT_ACTIVITY_MS;
         return (

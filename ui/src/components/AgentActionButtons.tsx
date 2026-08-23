@@ -52,12 +52,12 @@ import type {
 export function RunButton({
   onClick,
   disabled,
-  label = "Run now",
+  label,
   size = "sm",
 }: {
   onClick: () => void;
   disabled?: boolean;
-  label?: string;
+  label: string;
   size?: "sm" | "default";
 }) {
   return (
@@ -161,7 +161,7 @@ export function AgentActionButtons({
   companyId,
   size = "sm",
   assignLabel = "Assign Task",
-  runLabel = "Run now",
+  runLabel: runLabelProp,
   showStatus = true,
   actionsDisabled = false,
   workActionsDisabled = false,
@@ -213,6 +213,8 @@ export function AgentActionButtons({
   const queryClient = useQueryClient();
   const { openNewIssue } = useDialogActions();
   const { pushToast } = useToastActions();
+  const { t } = useTranslation();
+  const runLabel = runLabelProp ?? t("agentActionButtons.label.runNow");
   const [moreOpen, setMoreOpen] = useState(false);
   const [pauseConfirmOpen, setPauseConfirmOpen] = useState(false);
   const pendingNavigationChangesRef = useRef(hasPendingNavigationChanges);

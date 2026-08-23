@@ -9,6 +9,7 @@ import { DEVELOPER_TABS, advancedTabHref, isExperimentalToolTab } from "@/pages/
 import { useSmokeLabEnabled } from "@/hooks/useSmokeLabEnabled";
 import { useReviewCount } from "@/pages/apps/useReviewCount";
 import { SidebarNavItem } from "./SidebarNavItem";
+import { useTranslation } from "../i18n";
 
 /**
  * Secondary sidebar for the prosumer Apps area (PAP-10856; three-door IA
@@ -28,6 +29,7 @@ import { SidebarNavItem } from "./SidebarNavItem";
  * (PAP-10922).
  */
 export function AppsSidebar() {
+  const { t } = useTranslation();
   const { selectedCompany, selectedCompanyId } = useCompany();
   const { isMobile, setSidebarOpen } = useSidebar();
 
@@ -70,10 +72,10 @@ export function AppsSidebar() {
           Apps
         </div>
         <div className="flex flex-col gap-0.5">
-          <SidebarNavItem to="/apps" label="Browse" icon={Store} end />
+          <SidebarNavItem to="/apps" label={t("appsSidebar.label.browse")} icon={Store} end />
           <SidebarNavItem
             to="/apps/review"
-            label="Review"
+            label={t("appsSidebar.label.review")}
             icon={ShieldQuestion}
             badge={reviewCount > 0 ? reviewCount : undefined}
             badgeTone="warning"
@@ -87,7 +89,7 @@ export function AppsSidebar() {
           Advanced setup for developers. Most teams never open this.
         </p>
         <div className="flex flex-col gap-0.5">
-          <SidebarNavItem to="/apps/connections" label="Connections" icon={AppWindow} end />
+          <SidebarNavItem to="/apps/connections" label={t("appsSidebar.label.connections")} icon={AppWindow} end />
           {developerTabs.map((tab) => (
             <SidebarNavItem
               key={tab.key}

@@ -18,6 +18,7 @@ import { listAdapterOptions } from "@/adapters/metadata";
 import { agentsApi } from "@/api/agents";
 import { queryKeys } from "@/lib/queryKeys";
 import { ApiError } from "@/api/client";
+import { useTranslation } from "../i18n";
 import {
   builtInAgentsApi,
   type BuiltInAgentState,
@@ -60,6 +61,7 @@ export function ConfigureBuiltInAgentModal({
   onOpenChange,
   onConfigured,
 }: ConfigureBuiltInAgentModalProps) {
+  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { definition } = state;
 
@@ -162,7 +164,7 @@ export function ConfigureBuiltInAgentModal({
             board.
           </InlineBanner>
 
-          <Field label="Adapter type">
+          <Field label={t("configureBuiltInAgentModal.label.adapterType")}>
             <AdapterTypeDropdown
               value={adapterType}
               onChange={(next) => {
@@ -201,7 +203,7 @@ export function ConfigureBuiltInAgentModal({
             </InlineBanner>
           )}
 
-          <Field label="Monthly budget (optional)" hint="Leave blank for no cap.">
+          <Field label={t("configureBuiltInAgentModal.label.monthlyBudget")} hint="Leave blank for no cap.">
             <div className="flex items-center gap-2">
               <span className="text-sm text-muted-foreground">$</span>
               <Input

@@ -841,7 +841,7 @@ export function RoutineDetail() {
             ) : null}
           </div>
           <div className="ml-auto flex shrink-0 items-center gap-3">
-            <RunButton onClick={() => setRunVariablesOpen(true)} disabled={runRoutine.isPending} />
+            <RunButton onClick={() => setRunVariablesOpen(true)} disabled={runRoutine.isPending} label={t("agentActionButtons.label.runNow")} />
             <div className="flex items-center gap-2">
               <ToggleSwitch
                 size="default"
