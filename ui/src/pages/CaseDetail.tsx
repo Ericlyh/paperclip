@@ -354,20 +354,20 @@ function CasePropertiesContent({
   return (
     <div className={cn("space-y-4", isFull && "space-y-6")}>
       <PropertySection title={t("caseDetail.title.case")} first>
-        <CasePropertyRow label="Type" mode={mode}>
+        <CasePropertyRow label={t("caseDetail.label.type")} mode={mode}>
           <PropertyChip>{caseData.caseType}</PropertyChip>
         </CasePropertyRow>
         {caseData.key ? (
-          <CasePropertyRow label="Key" mode={mode}>
+          <CasePropertyRow label={t("caseDetail.label.key")} mode={mode}>
             <CaseCopyableToken
               value={caseData.key}
-              label="case key"
+              label={t("caseDetail.label.caseKey")}
               className="font-mono text-xs text-muted-foreground"
               truncate={!isFull}
             />
           </CasePropertyRow>
         ) : null}
-        <CasePropertyRow label="Labels" wrap mode={mode}>
+        <CasePropertyRow label={t("caseDetail.label.labels")} wrap mode={mode}>
           {caseData.labels.length > 0 ? (
             caseData.labels.map((label) => (
               <PropertyChip
@@ -411,11 +411,11 @@ function CasePropertiesContent({
 
       <PropertySection title={t("caseDetail.title.linkedtasks")}>
         {caseData.issueLinks.length === 0 ? (
-          <CasePropertyRow label="Tasks" mode={mode}>
+          <CasePropertyRow label={t("caseDetail.label.tasks")} mode={mode}>
             <span className="text-xs text-muted-foreground">{t("caseDetail.properties.empty")}</span>
           </CasePropertyRow>
         ) : (
-          <CasePropertyRow label="Tasks" wrap mode={mode}>
+          <CasePropertyRow label={t("caseDetail.label.tasks")} wrap mode={mode}>
             <div className="flex flex-wrap items-center gap-1.5">
               {caseData.issueLinks.map((link) => (
                 <IssueReferencePill
@@ -439,7 +439,7 @@ function CasePropertiesContent({
 
       {caseData.attachments.length > 0 ? (
         <PropertySection title={t("caseDetail.title.attachments")}>
-          <CasePropertyRow label="Files" mode={mode}>
+          <CasePropertyRow label={t("caseDetail.label.files")} mode={mode}>
             <span className="text-xs text-muted-foreground">
               {caseData.attachments.length} {caseData.attachments.length === 1 ? "file" : "files"}
             </span>

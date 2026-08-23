@@ -391,6 +391,12 @@
     "installing": "Installing...",
     "install": "Install"
   },
+  "adapterRuntime": {
+    "label": {
+      "runtimeServicesJson": "Runtime services JSON",
+      "payloadTemplateJson": "Payload template JSON"
+    }
+  },
   "agentConfig": {
     "authSuccessMessage": "Authenticated. The sandbox has credentials now.",
     "browserCodeLabel": "Browser code",
@@ -4276,6 +4282,16 @@
     "newGoal": "新增目標",
     "noGoalsYet": "尚無目標。",
     "selectCompany": "請選擇一家公司以檢視目標。"
+  },
+  "goalProperties": {
+    "label": {
+      "status": "Status",
+      "level": "Level",
+      "owner": "Owner",
+      "parentGoal": "Parent Goal",
+      "created": "Created",
+      "updated": "Updated"
+    }
   },
   "inbox": {
     "action": {
@@ -9567,6 +9583,14 @@
       "linkedtasks": "Linked tasks",
       "attachments": "Attachments",
       "morecaseactions": "More case actions"
+    },
+    "label": {
+      "type": "Type",
+      "key": "Key",
+      "caseKey": "case key",
+      "labels": "Labels",
+      "tasks": "Tasks",
+      "files": "Files"
     }
   },
   "boardClaim": {
