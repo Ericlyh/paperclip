@@ -108,7 +108,7 @@ export function TrustPresetSection({
     <div>
       <h3 className="mb-3 text-sm font-medium">Trust</h3>
       <div className="rounded-lg border border-border p-4 space-y-3">
-        <Field label="Trust preset" hint="Choose how broadly this agent can read and act on Paperclip work objects.">
+        <Field label={t("trustPresetSection.field.trustPreset")} hint="Choose how broadly this agent can read and act on Paperclip work objects.">
           <select
             className={inputClass}
             value={preset}
@@ -151,7 +151,7 @@ export function TrustPresetSection({
               {boundaryEditable ? (
                 <div className="rounded-md border border-border/70 bg-background/70 p-3 text-foreground space-y-3">
                   <div className="grid gap-3 sm:grid-cols-(--gtc-12)">
-                    <Field label="Boundary type">
+                    <Field label={t("trustPresetSection.field.boundaryType")}>
                       <select
                         className={inputClass}
                         value={targetType}
@@ -228,17 +228,17 @@ export function TrustPresetSection({
                 onToggle={() => setPolicyOpen((open) => !open)}
               >
                 <div className="divide-y divide-border/60 text-foreground">
-                  <PolicyRow label="Preset" value="Low-trust review v1" />
-                  <PolicyRow label="Raw output" value="Quarantined from higher-trust agents" />
-                  <PolicyRow label="Projects" value={formatCount(boundary?.projectIds, "project", "projects")} />
-                  <PolicyRow label="Root issue" value={boundary?.rootIssueId ? boundary.rootIssueId.slice(0, 8) : "-"} />
-                  <PolicyRow label="Explicit issues" value={formatCount(boundary?.issueIds, "issue", "issues")} />
-                  <PolicyRow label="Allowed agents" value={formatCount(boundary?.allowedAgentIds, "agent", "agents")} />
-                  <PolicyRow label="Allowed tools" value={boundary?.allowedToolClasses?.join(" · ") || "-"} />
-                  <PolicyRow label="Allowed secrets" value={formatCount(boundary?.allowedSecretBindingIds, "binding", "bindings")} />
-                  <PolicyRow label="Promotion target" value={boundary?.outputPromotionTarget?.issueId?.slice(0, 8) ?? "-"} />
+                  <PolicyRow label={t("trustPresetSection.policy.preset")} value="Low-trust review v1" />
+                  <PolicyRow label={t("trustPresetSection.policy.rawOutput")} value="Quarantined from higher-trust agents" />
+                  <PolicyRow label={t("trustPresetSection.policy.projects")} value={formatCount(boundary?.projectIds, "project", "projects")} />
+                  <PolicyRow label={t("trustPresetSection.policy.rootIssue")} value={boundary?.rootIssueId ? boundary.rootIssueId.slice(0, 8) : "-"} />
+                  <PolicyRow label={t("trustPresetSection.policy.explicitIssues")} value={formatCount(boundary?.issueIds, "issue", "issues")} />
+                  <PolicyRow label={t("trustPresetSection.policy.allowedAgents")} value={formatCount(boundary?.allowedAgentIds, "agent", "agents")} />
+                  <PolicyRow label={t("trustPresetSection.policy.allowedTools")} value={boundary?.allowedToolClasses?.join(" · ") || "-"} />
+                  <PolicyRow label={t("trustPresetSection.policy.allowedSecrets")} value={formatCount(boundary?.allowedSecretBindingIds, "binding", "bindings")} />
+                  <PolicyRow label={t("trustPresetSection.policy.promotionTarget")} value={boundary?.outputPromotionTarget?.issueId?.slice(0, 8) ?? "-"} />
                   <PolicyRow
-                    label="EE fields"
+                    label={t("trustPresetSection.policy.eeFields")}
                     value={Object.keys(policy ?? {}).some((key) => !["trustPreset", "reviewPreset", "trustBoundary"].includes(key))
                       ? "Custom advanced policy fields preserved"
                       : "-"}

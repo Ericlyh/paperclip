@@ -9370,7 +9370,9 @@
   },
   "recoveryAction": {
     "branchFacet": {
-      "detached": "detached / unknown"
+      "detached": "detached / unknown",
+      "expectedRecorded": "Expected · recorded",
+      "liveCheckedOut": "Live · checked out"
     },
     "breakGlass": {
       "withoutAncestryProof": "without an ancestry proof",
@@ -9381,6 +9383,15 @@
     },
     "divergence": {
       "ancestryVerdict": "Ancestry verdict"
+    },
+    "metadata": {
+      "owner": "Owner",
+      "sourceRun": "Source run",
+      "correctiveRun": "Corrective run",
+      "evidence": "Evidence",
+      "nextAction": "Next action",
+      "followUp": "Follow-up",
+      "resolution": "Resolution"
     },
     "owner": {
       "recovery": "Recovery:",
@@ -10660,6 +10671,22 @@
   "trustPresetSection": {
     "title": {
       "viewpolicy": "View policy"
+    },
+    "field": {
+      "trustPreset": "Trust preset",
+      "boundaryType": "Boundary type"
+    },
+    "policy": {
+      "preset": "Preset",
+      "rawOutput": "Raw output",
+      "projects": "Projects",
+      "rootIssue": "Root issue",
+      "explicitIssues": "Explicit issues",
+      "allowedAgents": "Allowed agents",
+      "allowedTools": "Allowed tools",
+      "allowedSecrets": "Allowed secrets",
+      "promotionTarget": "Promotion target",
+      "eeFields": "EE fields"
     }
   },
   "worktreeBanner": {
