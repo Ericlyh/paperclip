@@ -91,6 +91,21 @@ export function decideRunLivenessContinuation(input: {
   nextAction: string | null;
   budgetBlocked: boolean;
   idempotentWakeExists: boolean;
+  /**
+   * Whether the source run produced concrete action evidence on the issue —
+   * at least one of: a comment with a non-trivial body, a status change
+   * attributed to the run, a child issue created/modified, a work product
+   * written, or an attachment uploaded.
+   *
+   * Used to gate `plan_only` continuations: a prose-only `plan_only` run
+   * (the OOP-4180 signature) must not extend the bounded-continuation
+   * budget, because the corrective handoff would itself only re-plan.
+   *
+   * `null`/`undefined` preserves the legacy behavior (always allow) so the
+   * `empty_response` path stays untouched; only `plan_only` consults this
+   * flag, and only when it is explicitly `false`.
+   */
+  hasActionEvidence?: boolean | null;
   maxAttempts?: number;
 }): RunContinuationDecision {
   const {
@@ -102,11 +117,27 @@ export function decideRunLivenessContinuation(input: {
     nextAction,
     budgetBlocked,
     idempotentWakeExists,
+    hasActionEvidence,
   } = input;
   const maxAttempts = input.maxAttempts ?? DEFAULT_MAX_LIVENESS_CONTINUATION_ATTEMPTS;
 
   if (!livenessState || !ACTIONABLE_LIVENESS_STATES.has(livenessState)) {
     return { kind: "skip", reason: "liveness state is not actionable for continuation" };
+  }
+  // A prose-only `plan_only` run carries no concrete action evidence. Do not
+  // count it as live continuation — the corrective handoff would also produce
+  // prose-only output and the loop would self-sustain (OOP-4180). Leave the
+  // issue visible for human attention instead. `empty_response` is a
+  // different signal and still extends the budget.
+  if (
+    livenessState === "plan_only" &&
+    hasActionEvidence === false
+  ) {
+    return {
+      kind: "skip",
+      reason:
+        "plan_only run produced no concrete action evidence on the issue — issue remains visible for human attention rather than auto-queueing another corrective handoff",
+    };
   }
   if (!issue) return { kind: "skip", reason: "issue not found" };
   if (!agent) return { kind: "skip", reason: "agent not found" };

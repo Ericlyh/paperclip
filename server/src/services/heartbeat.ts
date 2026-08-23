@@ -50,6 +50,7 @@ import {
   heartbeatRunEvents,
   heartbeatRuns,
   issueApprovals,
+  issueAttachments,
   issueComments,
   issuePlanDecompositions,
   issueRecoveryActions,
@@ -9124,6 +9125,113 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
     });
   }
 
+  // Threshold for a "non-trivial" comment body. Mirrors the acceptance
+  // criterion in OOP-4185: "a substantive comment (≥ 80 chars markdown, not
+  // just 'ack')". Single-shot acks and tool-emitted stubs are short; this
+  // keeps the evidence check from being satisfied by empty payloads.
+  const PLAN_ONLY_COMMENT_BODY_MIN_CHARS = 80;
+
+  async function detectPlanOnlyActionEvidence(input: {
+    companyId: string;
+    issueId: string;
+    runId: string;
+    agentId: string;
+  }): Promise<boolean> {
+    const companyScope = eq(issueComments.companyId, input.companyId);
+    const issueScope = eq(issueComments.issueId, input.issueId);
+    const runAttribution = eq(issueComments.createdByRunId, input.runId);
+    // Run window derived from the heartbeat run row; child issues created in
+    // the same window are credited to the run even when no `created_by_run_id`
+    // exists on the `issues` table.
+    const runRow = await db
+      .select({ startedAt: heartbeatRuns.startedAt, finishedAt: heartbeatRuns.finishedAt })
+      .from(heartbeatRuns)
+      .where(eq(heartbeatRuns.id, input.runId))
+      .then((rows) => rows[0] ?? null);
+    const window = {
+      startedAt: runRow?.startedAt ?? null,
+      finishedAt: runRow?.finishedAt ?? null,
+    };
+
+    const [commentHit, workProductHit, attachmentHit, childIssueHit, statusChangeHit] = await Promise.all([
+      // (a) comment with a non-trivial body
+      db
+        .select({ id: issueComments.id })
+        .from(issueComments)
+        .where(
+          and(
+            companyScope,
+            issueScope,
+            runAttribution,
+            sql`length(${issueComments.body}) >= ${PLAN_ONLY_COMMENT_BODY_MIN_CHARS}`,
+          ),
+        )
+        .limit(1)
+        .then((rows) => rows[0] ?? null),
+      // (d) work product written by this run
+      db
+        .select({ id: issueWorkProducts.id })
+        .from(issueWorkProducts)
+        .where(
+          and(
+            eq(issueWorkProducts.companyId, input.companyId),
+            eq(issueWorkProducts.issueId, input.issueId),
+            eq(issueWorkProducts.createdByRunId, input.runId),
+          ),
+        )
+        .limit(1)
+        .then((rows) => rows[0] ?? null),
+      // (e) attachment on a comment written by this run
+      db
+        .select({ id: issueAttachments.id })
+        .from(issueAttachments)
+        .innerJoin(issueComments, eq(issueAttachments.issueCommentId, issueComments.id))
+        .where(
+          and(
+            eq(issueAttachments.companyId, input.companyId),
+            eq(issueAttachments.issueId, input.issueId),
+            eq(issueComments.createdByRunId, input.runId),
+          ),
+        )
+        .limit(1)
+        .then((rows) => rows[0] ?? null),
+      // (c) child issue created (or modified) during the run window
+      window.startedAt && window.finishedAt
+        ? db
+            .select({ id: issues.id })
+            .from(issues)
+            .where(
+              and(
+                eq(issues.companyId, input.companyId),
+                eq(issues.parentId, input.issueId),
+                sql`${issues.updatedAt} >= ${window.startedAt}`,
+                sql`${issues.updatedAt} <= ${window.finishedAt}`,
+              ),
+            )
+            .limit(1)
+            .then((rows) => rows[0] ?? null)
+        : Promise.resolve(null),
+      // (b) status change attributed to this run via activity log
+      db
+        .select({ id: activityLog.id })
+        .from(activityLog)
+        .where(
+          and(
+            eq(activityLog.companyId, input.companyId),
+            eq(activityLog.entityType, "issue"),
+            eq(activityLog.entityId, input.issueId),
+            eq(activityLog.runId, input.runId),
+          ),
+        )
+        .limit(1)
+        .then((rows) => rows[0] ?? null),
+    ]);
+
+    return Boolean(
+      commentHit || workProductHit || attachmentHit || childIssueHit || statusChangeHit,
+    );
+  }
+
   async function handleRunLivenessContinuation(run: typeof heartbeatRuns.$inferSelect) {
     const livenessState = run.livenessState as RunLivenessState | null;
     if (livenessState !== "plan_only" && livenessState !== "empty_response") return;
@@ -9205,6 +9313,22 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
       })
       : null;
 
+    // For `plan_only` runs, the bounded-continuation budget only extends if
+    // the same run produced concrete action evidence on the issue. Without
+    // this gate, a prose-only plan_only output produces a corrective handoff
+    // that itself only re-plans — the OOP-4180 self-sustaining loop. Only
+    // computed for plan_only; empty_response ignores the flag and continues
+    // to extend the budget as before.
+    const hasActionEvidence =
+      livenessState === "plan_only" && issue
+        ? await detectPlanOnlyActionEvidence({
+            companyId: run.companyId,
+            issueId: issue.id,
+            runId: run.id,
+            agentId: run.agentId,
+          })
+        : null;
+
     const decision = decideRunLivenessContinuation({
       run,
       issue,
@@ -9214,6 +9338,7 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
       nextAction: run.nextAction,
       budgetBlocked: Boolean(budgetBlock),
       idempotentWakeExists: Boolean(existingWake),
+      hasActionEvidence,
     });
 
     if (decision.kind === "exhausted") {

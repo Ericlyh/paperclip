@@ -55,6 +55,7 @@ describe("run liveness continuations", () => {
       nextAction: "Take the first concrete action now.",
       budgetBlocked: false,
       idempotentWakeExists: false,
+      hasActionEvidence: true,
     });
 
     expect(decision.kind).toBe("enqueue");
@@ -136,12 +137,128 @@ describe("run liveness continuations", () => {
       nextAction: null,
       budgetBlocked: false,
       idempotentWakeExists: false,
+      hasActionEvidence: true,
     });
 
     expect(decision.kind).toBe("exhausted");
     if (decision.kind !== "exhausted") return;
     expect(decision.comment).toContain("Bounded liveness continuation exhausted");
     expect(decision.comment).toContain("Attempts used: 2/2");
+  });
+
+  it("skips plan_only without concrete action evidence (OOP-4180 self-sustaining loop)", () => {
+    // Prose-only plan_only output must NOT extend the bounded-continuation
+    // budget — the corrective handoff would itself only re-plan. The issue
+    // is left visible for human attention instead.
+    const decision = decideRunLivenessContinuation({
+      run: run(),
+      issue: issue(),
+      agent: agent(),
+      livenessState: "plan_only",
+      livenessReason: "Planned without acting",
+      nextAction: null,
+      budgetBlocked: false,
+      idempotentWakeExists: false,
+      hasActionEvidence: false,
+    });
+
+    expect(decision).toEqual({
+      kind: "skip",
+      reason:
+        "plan_only run produced no concrete action evidence on the issue — issue remains visible for human attention rather than auto-queueing another corrective handoff",
+    });
+  });
+
+  it("skips plan_only without action evidence even on the second attempt (replay of OOP-4180)", () => {
+    // Replay the OOP-4180 scenario: three consecutive plan_only runs against
+    // the same source run. None carry evidence, so all three return skip —
+    // no corrective handoffs are queued and no comments are emitted.
+    const attempts = [0, 1, 2].map((continuationAttempt) =>
+      decideRunLivenessContinuation({
+        run: run({ continuationAttempt }),
+        issue: issue(),
+        agent: agent(),
+        livenessState: "plan_only",
+        livenessReason: "Planned without acting",
+        nextAction: null,
+        budgetBlocked: false,
+        idempotentWakeExists: false,
+        hasActionEvidence: false,
+      }),
+    );
+
+    expect(attempts.map((d) => d.kind)).toEqual(["skip", "skip", "skip"]);
+    // The exhausted branch must NOT fire on evidence-negative plan_only —
+    // we deliberately surface to the user via "no continuation", not via
+    // the exhausted comment, so the OOP-4180 thread (3 identical agent
+    // comments + 1 exhausted comment) cannot reproduce.
+    expect(attempts.map((d) => (d.kind === "exhausted" ? d.comment : null))).toEqual([
+      null,
+      null,
+      null,
+    ]);
+  });
+
+  it("extends the bounded-continuation budget when plan_only carries action evidence", () => {
+    const decision = decideRunLivenessContinuation({
+      run: run(),
+      issue: issue(),
+      agent: agent(),
+      livenessState: "plan_only",
+      livenessReason: "Planned, then wrote a substantive comment",
+      nextAction: "Continue from where the comment left off.",
+      budgetBlocked: false,
+      idempotentWakeExists: false,
+      hasActionEvidence: true,
+    });
+
+    expect(decision.kind).toBe("enqueue");
+    if (decision.kind !== "enqueue") return;
+    expect(decision.nextAttempt).toBe(1);
+    // The corrective-handoff instruction reflects the existing nextAction —
+    // the regression-check path is intact for evidence-positive runs.
+    expect(decision.payload.instruction).toBe("Continue from where the comment left off.");
+  });
+
+  it("ignores hasActionEvidence for empty_response (legacy behavior preserved)", () => {
+    // empty_response is a different signal — the run produced no output at
+    // all. The corrective handoff asks the agent to produce output, so
+    // requiring action evidence here would be a regression.
+    const decision = decideRunLivenessContinuation({
+      run: run({ continuationAttempt: 1 }),
+      issue: issue(),
+      agent: agent(),
+      livenessState: "empty_response",
+      livenessReason: "No useful output",
+      nextAction: null,
+      budgetBlocked: false,
+      idempotentWakeExists: false,
+      hasActionEvidence: false,
+    });
+
+    expect(decision.kind).toBe("enqueue");
+    if (decision.kind !== "enqueue") return;
+    expect(decision.nextAttempt).toBe(2);
+  });
+
+  it("treats null hasActionEvidence as legacy 'allow continuation' for plan_only", () => {
+    // Backward compatibility: callers that have not been updated to compute
+    // the evidence flag (e.g. older test setups or a non-heartbeat caller)
+    // must still allow continuation. Only the explicit `false` triggers the
+    // gate.
+    const decision = decideRunLivenessContinuation({
+      run: run(),
+      issue: issue(),
+      agent: agent(),
+      livenessState: "plan_only",
+      livenessReason: "Unknown evidence state — fallback",
+      nextAction: null,
+      budgetBlocked: false,
+      idempotentWakeExists: false,
+      hasActionEvidence: null,
+    });
+
+    expect(decision.kind).toBe("enqueue");
   });
 
   it("skips non-actionable and guarded issues", () => {
@@ -165,6 +282,7 @@ describe("run liveness continuations", () => {
         nextAction: null,
         budgetBlocked: guarded.budgetBlocked ?? false,
         idempotentWakeExists: guarded.idempotentWakeExists ?? false,
+        hasActionEvidence: true,
       });
 
       expect(decision.kind).toBe("skip");
