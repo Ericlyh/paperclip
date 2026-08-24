@@ -548,7 +548,7 @@ function AttributionAvatar({
   actor,
   via,
 }: {
-  label: "Assignee" | "Originating";
+  label: string;
   actor: AttributionActor;
   via?: string | null;
 }) {
@@ -648,8 +648,8 @@ function IssueAttributionByline({
   return (
     <TooltipProvider>
       <AvatarGroup className="-space-x-1.5" aria-label={t("issueDetail.attribution.taskPeople")} data-testid="issue-attribution-avatar-stack">
-        {assignee ? <AttributionAvatar label="Assignee" actor={assignee} /> : null}
-        {originator ? <AttributionAvatar label="Originating" actor={originator} via={originatorVia} /> : null}
+        {assignee ? <AttributionAvatar label={t("issueDetail.label.assignee")} actor={assignee} /> : null}
+        {originator ? <AttributionAvatar label={t("issueDetail.label.originating")} actor={originator} via={originatorVia} /> : null}
       </AvatarGroup>
     </TooltipProvider>
   );

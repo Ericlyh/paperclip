@@ -1150,18 +1150,20 @@ function CarriedFieldTokenHelper({
 function AutomationVariableTokenHelper({
   groups,
   onInsert,
-  label = "Available variables",
+  label,
 }: {
   groups: AutomationVariableGroup[];
   onInsert: (fieldKey: string) => void;
   label?: string;
 }) {
+  const { t } = useTranslation();
   if (groups.length === 0) return null;
+  const resolvedLabel = label ?? t("pipelineSettings.label.availableVariables");
   return (
     <div className="rounded-md border border-border bg-muted/20 px-3 py-2">
       <div className="mb-2 flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold uppercase text-muted-foreground">
-          {label}
+          {resolvedLabel}
         </span>
       </div>
       <div className="space-y-2">
@@ -1220,7 +1222,7 @@ function StageSubSidebar({
         </select>
       </div>
       <nav
-        aria-label="Stage sections"
+        aria-label={t("pipelineSettings.label.stageSections")}
         className="sticky top-14 hidden max-h-(--sz-calc-39) w-52 shrink-0 flex-col gap-4 self-start overflow-y-auto border-r border-border bg-sidebar/30 px-3 py-4 md:flex"
       >
         {groups.map((group) => (
@@ -3347,7 +3349,7 @@ export function PipelineSettings() {
               <label className="block space-y-1.5 text-sm font-medium">
                 <span>{t("pipelineSettings.Move_existing_items_to")}</span>
                 <select
-                  aria-label="Move existing items to"
+                  aria-label={t("pipelineSettings.label.moveExistingItemsTo")}
                   value={deleteMoveTargetStageId}
                   onChange={(event) => setDeleteMoveTargetStageId(event.target.value)}
                   className="h-10 w-full rounded-md border border-input bg-background px-3 text-sm"

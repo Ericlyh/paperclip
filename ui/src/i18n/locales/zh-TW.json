@@ -5101,6 +5101,10 @@
     "title": {
       "thistaskisageneratedwatchdogtaskitverifieswhethers": "This task is a generated watchdog task. It verifies whether stopped work in the watched task tree is legitimate.",
       "blockedbyparkedworkatleastoneassignedblockerisinba": "Blocked by parked work — at least one assigned blocker is in backlog and will not wake its assignee."
+    },
+    "label": {
+      "assignee": "Assignee",
+      "originating": "Originating"
     }
   },
   "issueMonitor": {
@@ -6018,7 +6022,12 @@
     "deletingStage": "Deleting...",
     "deleteStageAction": "Delete stage",
     "archivingPipeline": "Archiving...",
-    "archivePipelineAction": "Archive pipeline"
+    "archivePipelineAction": "Archive pipeline",
+    "label": {
+      "availableVariables": "Available variables",
+      "stageSections": "Stage sections",
+      "moveExistingItemsTo": "Move existing items to"
+    }
   },
   "pipelines": {
     "Add_at_least_one_item": "至少新增一個項目",
@@ -8334,6 +8343,11 @@
     "studio": "資料庫",
     "title": {
       "run": "Run"
+    },
+    "label": {
+      "input": "Input",
+      "template": "Template",
+      "created": "Created"
     }
   },
   "skills": {
@@ -10169,6 +10183,11 @@
     "title": {
       "neutraldefault": "Neutral (default)",
       "projectsummary": "Project summary"
+    },
+    "label": {
+      "changeIconAndColor": "Change project icon and color",
+      "resetToNeutralGray": "Reset to neutral gray",
+      "dismissMembershipNotice": "Dismiss project membership notice"
     }
   },
   "taskChatComposer": {
@@ -10913,6 +10932,25 @@
     },
     "placeholder": {
       "replacementValue": "Paste replacement value"
+    }
+  },
+  "newAgent": {
+    "placeholder": {
+      "agentName": "Agent name",
+      "agentTitle": "Title (e.g. VP of Engineering)"
+    }
+  },
+  "editableSections": {
+    "label": {
+      "triggers": "Triggers",
+      "secrets": "Secrets",
+      "lastRun": "Last run"
+    }
+  },
+  "externalObjectRows": {
+    "label": {
+      "externalObjects": "External objects",
+      "references": "References"
     }
   }
 }

@@ -3151,10 +3151,10 @@ function RunDetailView({
 
         {/* snapshot property block */}
         <div className="rounded-md border border-border text-xs">
-          <PropRow label="Input" value={detail.inputId ? "saved input" : "ad-hoc paste"} />
-          <PropRow label="Template" value={detail.templateName ?? t("skillStudio.No_template")} />
+          <PropRow label={t("skillStudio.label.input")} value={detail.inputId ? "saved input" : "ad-hoc paste"} />
+          <PropRow label={t("skillStudio.label.template")} value={detail.templateName ?? t("skillStudio.No_template")} />
           <PropRow label={t("skillStudio.Skill_version")} value={`v${detail.skillVersion.revisionNumber}`} />
-          <PropRow label="Created" value={t("time.agoValue", { value: relativeTime(detail.createdAt) })} />
+          <PropRow label={t("skillStudio.label.created")} value={t("time.agoValue", { value: relativeTime(detail.createdAt) })} />
         </div>
 
         {showRunErrorCard(detail.status) && (

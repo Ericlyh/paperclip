@@ -154,7 +154,7 @@ function ProjectTilePicker({
         <button
           type="button"
           className="shrink-0 rounded-lg cursor-pointer hover:ring-2 hover:ring-foreground/20 transition-(--tp-box-shadow)"
-          aria-label="Change project icon and color"
+          aria-label={t("projectDetail.label.changeIconAndColor")}
         >
           <ProjectTile color={color} icon={icon} size="md" />
         </button>
@@ -202,7 +202,7 @@ function ProjectTilePicker({
                   ? "ring-2 ring-foreground ring-offset-1 ring-offset-background rounded-md"
                   : ""
               }`}
-              aria-label="Reset to neutral gray"
+              aria-label={t("projectDetail.label.resetToNeutralGray")}
               title={t("projectDetail.title.neutraldefault")}
             >
               <ProjectTile color={null} size="sm" />
@@ -781,7 +781,7 @@ export function ProjectDetail() {
           <button
             type="button"
             className="h-6 w-6 shrink-0 text-yellow-900/70 hover:text-yellow-900 dark:text-yellow-100/70 dark:hover:text-yellow-100"
-            aria-label="Dismiss project membership notice"
+            aria-label={t("projectDetail.label.dismissMembershipNotice")}
             onClick={() => setDismissedLeftProjectIds((current) => new Set(current).add(project.id))}
           >
             ×

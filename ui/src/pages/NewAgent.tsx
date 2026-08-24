@@ -263,7 +263,7 @@ export function NewAgent() {
         <div className="px-4 pt-4 pb-2">
           <input
             className="w-full text-lg font-semibold bg-transparent outline-none placeholder:text-muted-foreground/50"
-            placeholder="Agent name"
+            placeholder={t("newAgent.placeholder.agentName")}
             value={name}
             onChange={(e) => setName(e.target.value)}
             autoFocus
@@ -274,7 +274,7 @@ export function NewAgent() {
         <div className="px-4 pb-2">
           <input
             className="w-full bg-transparent outline-none text-sm text-muted-foreground placeholder:text-muted-foreground/40"
-            placeholder="Title (e.g. VP of Engineering)"
+            placeholder={t("newAgent.placeholder.agentTitle")}
             value={title}
             onChange={(e) => setTitle(e.target.value)}
           />
