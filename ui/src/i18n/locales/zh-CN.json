@@ -5141,10 +5141,15 @@
     "rowRelatedTasks": "Related tasks",
     "rowService": "Service",
     "rowStarted": "Started",
-    "rowStatus": "Status",
+    "rowStatus": "状态",
     "rowSubtasks": "Sub-tasks",
     "rowWatchdog": "Watchdog",
     "rowWorkspace": "Workspace",
+    "rowAssignee": "负责人",
+    "rowLabels": "标签",
+    "rowParent": "父任务",
+    "rowProject": "项目",
+    "rowCreated": "建立时间",
     "scheduledRetryAgent": "代理",
     "scheduledRetryAlreadyPromoted": "Already promoted",
     "scheduledRetryAlreadyPromotedRunning": "Already promoted — run starting",
@@ -10071,9 +10076,9 @@
       "ask": "Answer questions only, no changes"
     },
     "modePlaceholders": {
-      "standard": "Message {{agent}} — describe what you want done…",
-      "planning": "Plan with {{agent}} — shapes the plan doc, no code changes…",
-      "ask": "Ask {{agent}} a question — read-only, nothing runs…"
+      "standard": "向 {{agent}} 发送消息 — 描述您想完成的任务…",
+      "planning": "与 {{agent}} 一起规划 — 塑造规划文档，不变更代码…",
+      "ask": "向 {{agent}} 提问 — 只读，不会执行任何操作…"
     }
   },
   "newIssueDialog": {
@@ -10612,6 +10617,25 @@
     "title": {
       "readonly": "Read-only",
       "canmakechanges": "Can make changes"
+    }
+  },
+  "workMode": {
+    "standard": {
+      "label": "代理模式",
+      "shortLabel": "代理"
+    },
+    "planning": {
+      "label": "规划模式",
+      "shortLabel": "规划"
+    },
+    "ask": {
+      "label": "询问模式",
+      "shortLabel": "询问"
+    },
+    "title": {
+      "standard": "代理模式已启用。点击变更。",
+      "planning": "规划模式已启用。点击变更。",
+      "ask": "询问模式已启用。负责人会在此讨论串回复；不会进行实作。"
     }
   }
 }

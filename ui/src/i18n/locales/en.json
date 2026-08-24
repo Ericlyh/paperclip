@@ -11231,5 +11231,24 @@
     "placeholder": {
       "summarizerDefault": "Summarizer (default)"
     }
+  },
+  "workMode": {
+    "standard": {
+      "label": "Agent mode",
+      "shortLabel": "Agent"
+    },
+    "planning": {
+      "label": "Plan mode",
+      "shortLabel": "Plan"
+    },
+    "ask": {
+      "label": "Ask mode",
+      "shortLabel": "Ask"
+    },
+    "title": {
+      "standard": "Agent mode for this submission. Click to change.",
+      "planning": "Plan mode is on for this submission. Click to change.",
+      "ask": "Ask mode for this submission. Click to change. The responsible will answer in this thread; no implementation work."
+    }
   }
 }

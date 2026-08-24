@@ -510,7 +510,7 @@ export function TaskChatComposer({
               data-testid="task-chat-composer-mode"
               data-pending-work-mode={pendingMode}
             >
-              {modeMeta.label}
+              {t(`workMode.${modeMeta.value}.label`)}
               <ChevronDown className="h-3 w-3" aria-hidden />
             </button>
           </DropdownMenuTrigger>
@@ -530,7 +530,7 @@ export function TaskChatComposer({
                 >
                   <Icon className="h-4 w-4 shrink-0" style={{ color: modeHue(m.value) }} aria-hidden />
                   <span className="flex min-w-0 flex-1 flex-col">
-                    <span className="font-medium">{m.label}</span>
+                    <span className="font-medium">{t(`workMode.${m.value}.label`)}</span>
                     <span className="text-xs text-muted-foreground">{modeDescription(t, m.value as IssueWorkMode)}</span>
                   </span>
                   {selected ? <Check className="h-4 w-4 shrink-0" aria-hidden /> : null}
