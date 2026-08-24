@@ -2132,6 +2132,21 @@
       "username": "Username",
       "usernameHint": "SSH username."
     },
+    "label": {
+      "description": "Description",
+      "driver": "Driver",
+      "environmentVariables": "Environment variables",
+      "host": "Host",
+      "knownHosts": "Known hosts",
+      "name": "Name",
+      "port": "Port",
+      "privateKey": "Private key",
+      "provider": "Provider",
+      "remoteWorkspacePath": "Remote workspace path",
+      "streamRunLogs": "Stream run logs",
+      "strictHostKeyChecking": "Strict host key checking",
+      "username": "Username"
+    },
     "list": {
       "addEnvironment": "Add environment",
       "defaultSection": "Default",
@@ -9192,6 +9207,11 @@
       "low": "Low",
       "medium": "Medium"
     },
+    "label": {
+      "aging": "Aging",
+      "dismissed": "Dismissed",
+      "snoozed": "Snoozed"
+    },
     "title": "Decisions",
     "toolbar": {
       "filter": "Filter"
@@ -9511,6 +9531,12 @@
     },
     "packageFiles": {
       "title": "Package files"
+    },
+    "label": {
+      "collisionStrategy": "Collision strategy",
+      "githubUrl": "GitHub URL",
+      "newCompanyName": "New company name",
+      "target": "Target"
     }
   },
   "statusCardDetailDrawer": {

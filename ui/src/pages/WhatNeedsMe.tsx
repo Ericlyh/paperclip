@@ -634,7 +634,7 @@ export function WhatNeedsMe() {
 
           {snoozedItems.length > 0 && (
             <Curtain
-              label="Snoozed"
+              label={t("whatNeedsMe.label.snoozed")}
               count={snoozedItems.length}
               open={snoozedOpen}
               onToggle={() => setSnoozedOpen((prev) => !prev)}
@@ -658,7 +658,7 @@ export function WhatNeedsMe() {
 
           {dismissedItems.length > 0 && (
             <Curtain
-              label="Dismissed"
+              label={t("whatNeedsMe.label.dismissed")}
               count={dismissedItems.length}
               open={dismissedOpen}
               onToggle={() => setDismissedOpen((prev) => !prev)}
@@ -682,7 +682,7 @@ export function WhatNeedsMe() {
 
           {agingItems.length > 0 && (
             <Curtain
-              label="Aging"
+              label={t("whatNeedsMe.label.aging")}
               count={agingItems.length}
               open={agingOpen}
               onToggle={() => setAgingOpen((prev) => !prev)}

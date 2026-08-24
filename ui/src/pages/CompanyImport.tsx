@@ -1851,7 +1851,7 @@ export function CompanyImport() {
           </div>
         ) : (
           <Field
-            label="GitHub URL"
+            label={t("companyImport.label.githubUrl")}
             hint="Repo tree path or blob URL to COMPANY.md (e.g. github.com/owner/repo/tree/main/company)."
           >
             <input
@@ -1868,7 +1868,7 @@ export function CompanyImport() {
           </Field>
         )}
 
-        <Field label="Target" hint="Import into this company or create a new one.">
+        <Field label={t("companyImport.label.target")} hint="Import into this company or create a new one.">
           <select
             className="w-full rounded-md border border-border bg-transparent px-2.5 py-1.5 text-sm outline-none"
             value={targetMode}
@@ -1887,7 +1887,7 @@ export function CompanyImport() {
 
         {targetMode === "new" && (
           <Field
-            label="New company name"
+            label={t("companyImport.label.newCompanyName")}
             hint="Optional override. Leave blank to use the package name."
           >
             <input
@@ -1904,7 +1904,7 @@ export function CompanyImport() {
         )}
 
         <Field
-          label="Collision strategy"
+          label={t("companyImport.label.collisionStrategy")}
           hint="Board imports can rename, skip, or replace matching company content."
         >
           <select
