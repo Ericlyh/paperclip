@@ -9710,6 +9710,7 @@
     "emptyMessage": "You haven't added any of your own tools yet.",
     "isolatedHeading": "This runs in your company's own workspace, isolated from everything else.",
     "keyInvalid": "Use letters, numbers and underscores, starting with a letter or underscore (e.g. API_KEY).",
+    "keyPlaceholder": "API_KEY",
     "keysLabel": "Keys it needs",
     "keysOptional": "· optional, depends on the tool",
     "nameHint": "What you'll call this tool in your apps list.",
@@ -10843,10 +10844,49 @@
       "activity": "Activity"
     }
   },
+  "auditFeed": {
+    "ariaLabel": {
+      "activityScope": "Activity scope",
+      "fromDate": "From date",
+      "toDate": "To date"
+    },
+    "placeholder": {
+      "action": "Action",
+      "agent": "Agent",
+      "entity": "Entity",
+      "responsibleUser": "Responsible user"
+    }
+  },
+  "toolsAudit": {
+    "label": {
+      "actionName": "Action name",
+      "actorType": "Actor type",
+      "contentType": "Content type",
+      "deliveredMcpServers": "Delivered MCP servers",
+      "dispatched": "Dispatched",
+      "httpRequest": "HTTP request",
+      "httpStatus": "HTTP status",
+      "mcpMethod": "MCP method",
+      "reasonCode": "Reason code",
+      "requestId": "Request ID",
+      "responseSize": "Response size",
+      "runId": "Run ID",
+      "transport": "Transport",
+      "upstreamId": "Upstream ID"
+    },
+    "placeholder": {
+      "agent": "Agent",
+      "app": "App",
+      "searchActivity": "Search activity…"
+    }
+  },
   "pasteConfigTab": {
     "title": {
       "readonly": "Read-only",
       "canmakechanges": "Can make changes"
+    },
+    "placeholder": {
+      "replacementValue": "Paste replacement value"
     }
   }
 }

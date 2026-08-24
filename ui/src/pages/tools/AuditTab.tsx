@@ -133,6 +133,7 @@ function ActivityRow({
   event: ToolGatewayActivityEvent;
   ruleNamesById: Map<string, string>;
 }) {
+  const { t } = useTranslation();
   const [open, setOpen] = useState(false);
   const [detailsOpen, setDetailsOpen] = useState(false);
 
@@ -245,22 +246,22 @@ function ActivityRow({
             </button>
             {detailsOpen ? (
               <div className="mt-2 space-y-1.5 text-xs">
-                {rawTool ? <DetailFact label="Action name" value={rawTool} mono /> : null}
-                <DetailFact label="Reason code" value={reasonCode} mono />
-                <DetailFact label="Actor type" value={event.actorType ?? "—"} />
-                {runId ? <DetailFact label="Run ID" value={runId} mono /> : null}
-                {transport ? <DetailFact label="Transport" value={transport} mono /> : null}
-                {requestMethod && endpoint ? <DetailFact label="HTTP request" value={`${requestMethod} ${endpoint}`} mono /> : null}
-                {mcpMethod ? <DetailFact label="MCP method" value={mcpMethod} mono /> : null}
-                {requestId ? <DetailFact label="Request ID" value={requestId} mono /> : null}
-                {request ? <DetailFact label="Dispatched" value={request.dispatched === true ? "Yes" : "No"} /> : null}
-                {httpStatus !== undefined ? <DetailFact label="HTTP status" value={String(httpStatus)} mono /> : null}
-                {contentType ? <DetailFact label="Content type" value={contentType} mono /> : null}
-                {responseBytes !== undefined ? <DetailFact label="Response size" value={`${responseBytes} bytes`} /> : null}
-                {upstreamRequestId ? <DetailFact label="Upstream ID" value={upstreamRequestId} mono /> : null}
+                {rawTool ? <DetailFact label={t("toolsAudit.label.actionName")} value={rawTool} mono /> : null}
+                <DetailFact label={t("toolsAudit.label.reasonCode")} value={reasonCode} mono />
+                <DetailFact label={t("toolsAudit.label.actorType")} value={event.actorType ?? "—"} />
+                {runId ? <DetailFact label={t("toolsAudit.label.runId")} value={runId} mono /> : null}
+                {transport ? <DetailFact label={t("toolsAudit.label.transport")} value={transport} mono /> : null}
+                {requestMethod && endpoint ? <DetailFact label={t("toolsAudit.label.httpRequest")} value={`${requestMethod} ${endpoint}`} mono /> : null}
+                {mcpMethod ? <DetailFact label={t("toolsAudit.label.mcpMethod")} value={mcpMethod} mono /> : null}
+                {requestId ? <DetailFact label={t("toolsAudit.label.requestId")} value={requestId} mono /> : null}
+                {request ? <DetailFact label={t("toolsAudit.label.dispatched")} value={request.dispatched === true ? "Yes" : "No"} /> : null}
+                {httpStatus !== undefined ? <DetailFact label={t("toolsAudit.label.httpStatus")} value={String(httpStatus)} mono /> : null}
+                {contentType ? <DetailFact label={t("toolsAudit.label.contentType")} value={contentType} mono /> : null}
+                {responseBytes !== undefined ? <DetailFact label={t("toolsAudit.label.responseSize")} value={`${responseBytes} bytes`} /> : null}
+                {upstreamRequestId ? <DetailFact label={t("toolsAudit.label.upstreamId")} value={upstreamRequestId} mono /> : null}
                 {isRuntimeMcpDeliveryDiagnostic ? (
                   <>
-                    <DetailFact label="Delivered MCP servers" value="0" mono />
+                    <DetailFact label={t("toolsAudit.label.deliveredMcpServers")} value="0" mono />
                     {permittedNotInstalledConnections.map((connection) => {
                       const connectionId = detailString(connection, "id");
                       const connectionName = detailString(connection, "name") ?? "Unnamed connection";
@@ -373,7 +374,7 @@ export function AuditTab({ companyId }: { companyId: string }) {
       <div className="flex flex-wrap items-center gap-2">
         <Select value={app} onValueChange={setApp}>
           <SelectTrigger className="w-40">
-            <SelectValue placeholder="App" />
+            <SelectValue placeholder={t("toolsAudit.placeholder.app")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>All apps</SelectItem>
@@ -386,7 +387,7 @@ export function AuditTab({ companyId }: { companyId: string }) {
         </Select>
         <Select value={agent} onValueChange={setAgent}>
           <SelectTrigger className="w-40">
-            <SelectValue placeholder="Agent" />
+            <SelectValue placeholder={t("toolsAudit.placeholder.agent")} />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value={ALL}>All agents</SelectItem>
@@ -422,7 +423,7 @@ export function AuditTab({ companyId }: { companyId: string }) {
           </SelectContent>
         </Select>
         <Input
-          placeholder="Search activity…"
+          placeholder={t("toolsAudit.placeholder.searchActivity")}
           value={searchInput}
           onChange={(e) => setSearchInput(e.target.value)}
           className="max-w-xs"

@@ -290,6 +290,7 @@ function DraftCard({
   canCheck: boolean;
   onCheck?: () => void;
 }) {
+  const { t } = useTranslation();
   return (
     <div className="rounded-lg border border-border bg-card p-4">
       <div className="flex items-center justify-between gap-3">
@@ -321,7 +322,7 @@ function DraftCard({
                   type="password"
                   value={credentialValues[credentialValueKey(draft, field.configPath)] ?? ""}
                   onChange={(event) => onCredentialChange(field.configPath, event.target.value)}
-                  placeholder="Paste replacement value"
+                  placeholder={t("pasteConfigTab.placeholder.replacementValue")}
                   className="h-8 max-w-sm text-xs"
                 />
               </div>

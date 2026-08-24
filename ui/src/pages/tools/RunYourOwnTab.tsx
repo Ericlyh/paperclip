@@ -145,7 +145,7 @@ export function RunYourOwnTab({ companyId }: { companyId: string }) {
                             rows.map((r) => (r.id === row.id ? { ...r, value: event.target.value } : r)),
                           )
                         }
-                        placeholder="API_KEY"
+                        placeholder={t("runYourOwnTab.keyPlaceholder")}
                         spellCheck={false}
                         className={`font-mono text-(length:--text-compact) ${invalid ? "border-destructive" : ""}`}
                       />

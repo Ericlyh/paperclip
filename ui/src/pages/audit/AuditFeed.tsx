@@ -492,7 +492,7 @@ export function AuditFeed({
 
       {showModeToggle ? (
         <Tabs value={resolvedMode} onValueChange={(value) => onModeChange?.(value as AuditFeedMode)}>
-          <TabsList aria-label="Activity scope">
+          <TabsList aria-label={t("auditFeed.ariaLabel.activityScope")}>
             <TabsTrigger value="all">{t("activity.allActivity")}</TabsTrigger>
             <TabsTrigger value="agents">{t("activity.agentActions")}</TabsTrigger>
           </TabsList>
@@ -504,7 +504,7 @@ export function AuditFeed({
           {!lockedAgentId ? (
             <Select value={agent} onValueChange={setAgent}>
               <SelectTrigger className="w-40">
-                <SelectValue placeholder="Agent" />
+                <SelectValue placeholder={t("auditFeed.placeholder.agent")} />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value={ALL}>All agents</SelectItem>
@@ -519,7 +519,7 @@ export function AuditFeed({
           <Select value={responsibleUser} onValueChange={setResponsibleUser}>
             {/* Wide enough for "All responsible users" — w-44 truncated it. */}
             <SelectTrigger className="w-52">
-              <SelectValue placeholder="Responsible user" />
+              <SelectValue placeholder={t("auditFeed.placeholder.responsibleUser")} />
             </SelectTrigger>
             <SelectContent>
               <SelectItem value={ALL}>All responsible users</SelectItem>
@@ -532,7 +532,7 @@ export function AuditFeed({
           </Select>
           <Select value={actionDomain} onValueChange={setActionDomain}>
             <SelectTrigger className="w-36">
-              <SelectValue placeholder="Action" />
+              <SelectValue placeholder={t("auditFeed.placeholder.action")} />
             </SelectTrigger>
             <SelectContent>
               {ACTION_DOMAINS.map((d) => (
@@ -544,7 +544,7 @@ export function AuditFeed({
           </Select>
           <Select value={entityType} onValueChange={setEntityType}>
             <SelectTrigger className="w-36">
-              <SelectValue placeholder="Entity" />
+              <SelectValue placeholder={t("auditFeed.placeholder.entity")} />
             </SelectTrigger>
             <SelectContent>
               {ENTITY_TYPES.map((e) => (
@@ -556,7 +556,7 @@ export function AuditFeed({
           </Select>
           <Input
             type="date"
-            aria-label="From date"
+            aria-label={t("auditFeed.ariaLabel.fromDate")}
             value={dateFrom}
             max={dateTo || undefined}
             onChange={(e) => setDateFrom(e.target.value)}
@@ -564,7 +564,7 @@ export function AuditFeed({
           />
           <Input
             type="date"
-            aria-label="To date"
+            aria-label={t("auditFeed.ariaLabel.toDate")}
             value={dateTo}
             min={dateFrom || undefined}
             onChange={(e) => setDateTo(e.target.value)}

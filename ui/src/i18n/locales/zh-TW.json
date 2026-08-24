@@ -9710,6 +9710,7 @@
     "emptyMessage": "您尚未新增任何自有的工具。",
     "isolatedHeading": "此指令會在貴公司專屬的工作區中執行，與其他環境完全隔離。",
     "keyInvalid": "僅可使用字母、數字與底線，且開頭必須為字母或底線（例如 API_KEY）。",
+    "keyPlaceholder": "API_KEY",
     "keysLabel": "需要的密鑰",
     "keysOptional": "· 選填，視工具而定",
     "nameHint": "此工具在您應用程式清單中的顯示名稱。",
@@ -10843,10 +10844,49 @@
       "activity": "Activity"
     }
   },
+  "auditFeed": {
+    "ariaLabel": {
+      "activityScope": "Activity scope",
+      "fromDate": "From date",
+      "toDate": "To date"
+    },
+    "placeholder": {
+      "action": "Action",
+      "agent": "Agent",
+      "entity": "Entity",
+      "responsibleUser": "Responsible user"
+    }
+  },
+  "toolsAudit": {
+    "label": {
+      "actionName": "Action name",
+      "actorType": "Actor type",
+      "contentType": "Content type",
+      "deliveredMcpServers": "Delivered MCP servers",
+      "dispatched": "Dispatched",
+      "httpRequest": "HTTP request",
+      "httpStatus": "HTTP status",
+      "mcpMethod": "MCP method",
+      "reasonCode": "Reason code",
+      "requestId": "Request ID",
+      "responseSize": "Response size",
+      "runId": "Run ID",
+      "transport": "Transport",
+      "upstreamId": "Upstream ID"
+    },
+    "placeholder": {
+      "agent": "Agent",
+      "app": "App",
+      "searchActivity": "Search activity…"
+    }
+  },
   "pasteConfigTab": {
     "title": {
       "readonly": "Read-only",
       "canmakechanges": "Can make changes"
+    },
+    "placeholder": {
+      "replacementValue": "Paste replacement value"
     }
   }
 }
