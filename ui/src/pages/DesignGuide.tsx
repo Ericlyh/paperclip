@@ -1131,7 +1131,7 @@ export function DesignGuide() {
               </>
             }
             identifier="PAP-001"
-            title="Implement authentication flow"
+            title={t("designGuide.entityRows.rowTitle.authFlow")}
             subtitle={t("designGuide.entityRows.subtitle.responsible")}
             trailing={<IssueStatusBadge status="in_progress" />}
             onClick={() => {}}
@@ -1144,7 +1144,7 @@ export function DesignGuide() {
               </>
             }
             identifier="PAP-002"
-            title="Set up CI/CD pipeline"
+            title={t("designGuide.entityRows.rowTitle.ciCdPipeline")}
             subtitle={t("designGuide.entityRows.subtitle.completedAgo")}
             trailing={<IssueStatusBadge status="done" />}
             onClick={() => {}}
@@ -1157,7 +1157,7 @@ export function DesignGuide() {
               </>
             }
             identifier="PAP-003"
-            title="Write API documentation"
+            title={t("designGuide.entityRows.rowTitle.apiDocs")}
             trailing={<IssueStatusBadge status="todo" />}
             onClick={() => {}}
           />
@@ -1169,7 +1169,7 @@ export function DesignGuide() {
               </>
             }
             identifier="PAP-004"
-            title="Deploy to production"
+            title={t("designGuide.entityRows.rowTitle.deployProd")}
             subtitle={t("designGuide.entityRows.subtitle.blockedBy")}
             trailing={<IssueStatusBadge status="blocked" />}
             selected
@@ -1178,7 +1178,7 @@ export function DesignGuide() {
         <SubSection title={t("designGuide.entityRows.membershipAction")}>
           <div className="border border-border rounded-md">
             <EntityRow
-              title="Joined resource"
+              title={t("designGuide.entityRows.rowTitle.joinedResource")}
               subtitle={t("designGuide.entityRows.subtitle.hoverHint")}
               className="group"
               trailing={
@@ -1191,7 +1191,7 @@ export function DesignGuide() {
               }
             />
             <EntityRow
-              title="Left resource"
+              title={t("designGuide.entityRows.rowTitle.leftResource")}
               subtitle={t("designGuide.entityRows.subtitle.persistentAction")}
               className="group text-foreground/55"
               trailing={
@@ -1204,7 +1204,7 @@ export function DesignGuide() {
               }
             />
             <EntityRow
-              title="Leaving resource"
+              title={t("designGuide.entityRows.rowTitle.leavingResource")}
               subtitle={t("designGuide.entityRows.subtitle.disabledPending")}
               className="group text-foreground/55"
               trailing={
@@ -1219,7 +1219,7 @@ export function DesignGuide() {
               }
             />
             <EntityRow
-              title="Joining resource"
+              title={t("designGuide.entityRows.rowTitle.joiningResource")}
               subtitle={t("designGuide.entityRows.subtitle.targetVisible")}
               className="group"
               trailing={
@@ -1514,13 +1514,13 @@ export function DesignGuide() {
             <EntityRow
               leading={SHOW_TASK_PRIORITY_UI ? <PriorityIcon priority="high" /> : undefined}
               identifier="PAP-101"
-              title="Build agent heartbeat system"
+              title={t("designGuide.entityRows.rowTitle.heartbeatSystem")}
               onClick={() => {}}
             />
             <EntityRow
               leading={SHOW_TASK_PRIORITY_UI ? <PriorityIcon priority="medium" /> : undefined}
               identifier="PAP-102"
-              title="Add cost tracking dashboard"
+              title={t("designGuide.entityRows.rowTitle.costDashboard")}
               onClick={() => {}}
             />
           </div>

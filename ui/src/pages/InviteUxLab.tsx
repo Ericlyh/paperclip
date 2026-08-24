@@ -195,6 +195,7 @@ function InviteSummaryPanel({
   requestedAccess: string;
   signedInLabel?: string;
 }) {
+  const { t } = useTranslation("uxLab");
   return (
     <>
       {/* token-extraction: allowlisted — brandColor feeds CompanyPatternIcon's hexToHue() color math via a canvas fill; demo/showcase-only prop, not a rendered CSS value. */}
@@ -213,10 +214,10 @@ function InviteSummaryPanel({
       </div>
 
       <div className="grid gap-3 sm:grid-cols-2">
-        <MetaCard label="Company" value="Acme Robotics" />
-        <MetaCard label="Invited by" value="Board User" />
-        <MetaCard label="Requested access" value={requestedAccess} />
-        <MetaCard label="Invite expires" value="Mar 7, 2027" />
+        <MetaCard label={t("inviteUxLab.inviteSummary.company")} value="Acme Robotics" />
+        <MetaCard label={t("inviteUxLab.inviteSummary.invitedBy")} value="Board User" />
+        <MetaCard label={t("inviteUxLab.inviteSummary.requestedAccess")} value={requestedAccess} />
+        <MetaCard label={t("inviteUxLab.inviteSummary.inviteExpires")} value="Mar 7, 2027" />
       </div>
 
       {inviteMessage ? (
@@ -818,7 +819,7 @@ export function InviteUxLab() {
           <InviteLandingShell
             left={
               <InviteSummaryPanel
-                title="Join Acme Robotics"
+                title={t("inviteUxLab.summaryTitle.joinAcme")}
                 description="Create your Paperclip account first. If you already have one, switch to sign in and continue the invite with the same email."
                 inviteMessage="Welcome aboard."
                 requestedAccess="Operator"
@@ -830,7 +831,7 @@ export function InviteUxLab() {
           <InviteLandingShell
             left={
               <InviteSummaryPanel
-                title="Join Acme Robotics"
+                title={t("inviteUxLab.summaryTitle.joinAcme")}
                 description="Create your Paperclip account first. If you already have one, switch to sign in and continue the invite with the same email."
                 inviteMessage="Welcome aboard."
                 requestedAccess="Operator"
@@ -850,7 +851,7 @@ export function InviteUxLab() {
           <InviteLandingShell
             left={
               <InviteSummaryPanel
-                title="Join Acme Robotics"
+                title={t("inviteUxLab.summaryTitle.joinAcme")}
                 description="Your account is ready. Review the invite details, then accept it to continue."
                 inviteMessage="Welcome aboard."
                 requestedAccess="Operator"
@@ -863,7 +864,7 @@ export function InviteUxLab() {
           <InviteLandingShell
             left={
               <InviteSummaryPanel
-                title="Join Acme Robotics"
+                title={t("inviteUxLab.summaryTitle.joinAcme")}
                 description="Review the invite details, then submit the agent information below to start the join request."
                 requestedAccess="Agent join request"
               />
@@ -874,7 +875,7 @@ export function InviteUxLab() {
           <InviteLandingShell
             left={
               <InviteSummaryPanel
-                title="Join Acme Robotics"
+                title={t("inviteUxLab.summaryTitle.joinAcme")}
                 description="Your account is ready. Review the invite details, then accept it to continue."
                 requestedAccess="Operator"
                 signedInLabel="Jane Example"
@@ -893,18 +894,18 @@ export function InviteUxLab() {
       >
         <div className="grid gap-5 xl:grid-cols-3">
           <InviteResultPreview
-            title="Request to join Acme Robotics"
+            title={t("inviteUxLab.resultTitle.requestToJoin")}
             description="Board User must approve your request to join."
             claimSecret="pcp_claim_secret_demo"
             onboardingTextUrl="/api/invites/pcp_invite_test/onboarding.txt"
           />
           <InviteResultPreview
-            title="You joined the company"
+            title={t("inviteUxLab.resultTitle.youJoined")}
             description="Your account already matched the approved invite, so the board can be opened immediately."
             joinedNow
           />
           <InviteResultPreview
-            title="Request to join Acme Robotics"
+            title={t("inviteUxLab.resultTitle.requestToJoin")}
             description="Ask them to visit Company Settings → Members to approve your request."
           />
         </div>

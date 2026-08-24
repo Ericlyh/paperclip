@@ -14,6 +14,7 @@ import {
   LONG_THREAD_COMMENT_COUNT,
   LONG_THREAD_MARKDOWN_COMMENT_COUNT,
 } from "../fixtures/issueChatLongThreadFixture";
+import { useTranslation } from "../i18n";
 
 const noop = async () => {};
 
@@ -52,6 +53,7 @@ function MetricTile({ label, value, testId }: { label: string; value: string; te
 }
 
 export function IssueChatLongThreadPerf() {
+  const { t } = useTranslation("uxLab");
   const [metrics, setMetrics] = useState<RenderMetrics>(initialMetrics);
   const metricsRef = useRef<RenderMetrics>(initialMetrics);
   const renderStartedAtRef = useRef(performance.now());
@@ -123,8 +125,8 @@ export function IssueChatLongThreadPerf() {
           </p>
         </div>
         <div className="grid min-w-(--sz-280px) grid-cols-2 gap-2">
-          <MetricTile label="Fixture rows" value={String(rowTarget)} testId="perf-fixture-row-target" />
-          <MetricTile label="Markdown rows" value={String(LONG_THREAD_MARKDOWN_COMMENT_COUNT)} testId="perf-fixture-markdown-rows" />
+          <MetricTile label={t("issueChatLongThreadPerf.tile.fixtureRows")} value={String(rowTarget)} testId="perf-fixture-row-target" />
+          <MetricTile label={t("issueChatLongThreadPerf.tile.markdownRows")} value={String(LONG_THREAD_MARKDOWN_COMMENT_COUNT)} testId="perf-fixture-markdown-rows" />
         </div>
       </div>
 
@@ -182,11 +184,11 @@ export function IssueChatLongThreadPerf() {
               <CardTitle className="text-base">Baseline metrics</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-2">
-              <MetricTile label="Profiler commits" value={String(metrics.commitCount)} testId="perf-commit-count" />
-              <MetricTile label="Mount duration" value={formatMs(metrics.mountActualDuration)} testId="perf-mount-duration" />
-              <MetricTile label="Latest duration" value={formatMs(metrics.latestActualDuration)} testId="perf-latest-duration" />
-              <MetricTile label="Max duration" value={formatMs(metrics.maxActualDuration)} testId="perf-max-duration" />
-              <MetricTile label="Total duration" value={formatMs(metrics.totalActualDuration)} testId="perf-total-duration" />
+              <MetricTile label={t("issueChatLongThreadPerf.tile.profilerCommits")} value={String(metrics.commitCount)} testId="perf-commit-count" />
+              <MetricTile label={t("issueChatLongThreadPerf.tile.mountDuration")} value={formatMs(metrics.mountActualDuration)} testId="perf-mount-duration" />
+              <MetricTile label={t("issueChatLongThreadPerf.tile.latestDuration")} value={formatMs(metrics.latestActualDuration)} testId="perf-latest-duration" />
+              <MetricTile label={t("issueChatLongThreadPerf.tile.maxDuration")} value={formatMs(metrics.maxActualDuration)} testId="perf-max-duration" />
+              <MetricTile label={t("issueChatLongThreadPerf.tile.totalDuration")} value={formatMs(metrics.totalActualDuration)} testId="perf-total-duration" />
             </CardContent>
           </Card>
 
