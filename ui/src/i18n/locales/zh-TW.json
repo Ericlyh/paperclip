@@ -9472,7 +9472,21 @@
     "noteWhyItExists": "Note (why it exists)",
     "expires": "Expires",
     "cancel": "Cancel",
-    "minting": "Minting…"
+    "minting": "Minting…",
+    "label": {
+      "owner": "擁有者",
+      "created": "建立時間",
+      "lastUsed": "最後使用",
+      "expires": "到期"
+    },
+    "ariaLabel": {
+      "dismissNewToken": "關閉新權杖"
+    },
+    "placeholder": {
+      "name": "例如：cto-cursor",
+      "clientLabel": "例如：Cursor on work laptop",
+      "ownerNote": "例如：Dotta 的 MacBook"
+    }
   },
   "recoveryAction": {
     "branchFacet": {
@@ -10872,6 +10886,12 @@
     "title": {
       "enabledonthisagent": "Enabled on this agent",
       "availablefromthelibrary": "Available from the library"
+    },
+    "ariaLabel": {
+      "searchSkills": "搜尋技能"
+    },
+    "placeholder": {
+      "searchSkills": "搜尋技能"
     }
   },
   "myUserSecretsTab": {
@@ -10951,6 +10971,93 @@
     "label": {
       "externalObjects": "External objects",
       "references": "References"
+    }
+  },
+  "advancedPanel": {
+    "placeholder": {
+      "pasteNewKey": "貼上新的金鑰"
+    }
+  },
+  "agentSkillReleasePicker": {
+    "ariaLabel": {
+      "skillRelease": "技能版本"
+    }
+  },
+  "agentSkillRow": {
+    "ariaLabel": {
+      "readOnly": "唯讀"
+    }
+  },
+  "appDetail": {
+    "ariaLabel": {
+      "appName": "應用程式名稱",
+      "renameApp": "重新命名應用程式"
+    }
+  },
+  "appsSubNav": {
+    "ariaLabel": {
+      "appsSections": "應用程式分區"
+    }
+  },
+  "browse": {
+    "ariaLabel": {
+      "searchApps": "搜尋應用程式"
+    },
+    "placeholder": {
+      "searchApps": "搜尋應用程式…"
+    }
+  },
+  "connectClientDialog": {
+    "ariaLabel": {
+      "clients": "用戶端"
+    }
+  },
+  "gatewayAdvancedPanel": {
+    "label": {
+      "transport": "傳輸",
+      "authentication": "驗證",
+      "protocolVersion": "協定版本",
+      "publicId": "公開 ID"
+    },
+    "ariaLabel": {
+      "typeNameToConfirm": "輸入閘道名稱以確認封存"
+    }
+  },
+  "gatewayDetail": {
+    "ariaLabel": {
+      "gatewayTabs": "閘道分頁"
+    }
+  },
+  "newGatewayDialog": {
+    "placeholder": {
+      "name": "例如：CTO 代理",
+      "description": "此端點的用途及應何時輪替"
+    }
+  },
+  "overviewPanel": {
+    "label": {
+      "apps": "應用程式",
+      "tokens": "權杖",
+      "health": "健康狀態"
+    },
+    "ariaLabel": {
+      "toggleGateway": "切換閘道"
+    }
+  },
+  "routineDetail": {
+    "placeholder": {
+      "routineTitle": "例程標題"
+    }
+  },
+  "testPanel": {
+    "ariaLabel": {
+      "findAnAction": "搜尋動作",
+      "chooseTestAgent": "選擇要測試的代理",
+      "searchAgents": "搜尋代理"
+    },
+    "placeholder": {
+      "findAnAction": "搜尋動作…",
+      "searchAgents": "搜尋代理…"
     }
   }
 }

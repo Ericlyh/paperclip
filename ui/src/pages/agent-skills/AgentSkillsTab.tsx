@@ -417,9 +417,9 @@ export function AgentSkillsTab({ agent, companyId }: { agent: Agent; companyId?:
               <Input
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search skills"
+                placeholder={t("agentSkillsTab.placeholder.searchSkills")}
                 className="h-8 w-full pl-8 sm:w-56"
-                aria-label="Search skills"
+                aria-label={t("agentSkillsTab.ariaLabel.searchSkills")}
               />
             </div>
             <Button asChild variant="outline" size="sm" className="shrink-0">

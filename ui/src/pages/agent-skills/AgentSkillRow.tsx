@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 import { SkillCardIcon, type SkillIconCard } from "../../components/SkillCardIcon";
+import { useTranslation } from "react-i18next";
 import type { AgentSkillSearchFields } from "./agent-skill-filter";
 
 export type AgentSkillRowVariant = "enabled" | "available" | "readonly";
@@ -65,6 +66,7 @@ export function AgentSkillRow({
   badge,
   accessory,
 }: AgentSkillRowProps) {
+  const { t } = useTranslation("agentSkillRow");
   const readOnly = variant === "readonly";
   const SourceIcon = data.sourceMeta?.icon;
 
@@ -120,7 +122,7 @@ export function AgentSkillRow({
   );
 
   const trailing = readOnly ? (
-    <Lock className="h-4 w-4 shrink-0 text-muted-foreground/60" aria-label="Read-only" />
+    <Lock className="h-4 w-4 shrink-0 text-muted-foreground/60" aria-label={t("ariaLabel.readOnly")} />
   ) : (
     (() => {
       const toggle = (

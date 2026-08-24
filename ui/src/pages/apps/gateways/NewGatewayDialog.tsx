@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/dialog";
 import { useToast } from "@/context/ToastContext";
 import { queryKeys } from "@/lib/queryKeys";
+import { useTranslation } from "react-i18next";
 import { allowedToolsLabel } from "./gateway-helpers";
 
 export const gatewaysQueryKey = (companyId: string) => ["tools", "gateways", companyId] as const;
@@ -36,6 +37,7 @@ export function NewGatewayDialog({
 }) {
   const queryClient = useQueryClient();
   const { pushToast } = useToast();
+  const { t } = useTranslation("newGatewayDialog");
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [profileId, setProfileId] = useState("");
@@ -104,7 +106,7 @@ export function NewGatewayDialog({
             <Input
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="CTO agents"
+              placeholder={t("placeholder.name")}
               required
               autoFocus
             />
@@ -137,7 +139,7 @@ export function NewGatewayDialog({
               className="min-h-16 w-full rounded-md border border-input bg-background px-3 py-2 text-sm"
               value={description}
               onChange={(event) => setDescription(event.target.value)}
-              placeholder="Who this endpoint is for and when it should be rotated."
+              placeholder={t("placeholder.description")}
             />
           </label>
           {noProfiles ? (

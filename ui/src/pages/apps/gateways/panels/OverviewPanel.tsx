@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { ToggleSwitch } from "@/components/ui/toggle-switch";
 import { useToast } from "@/context/ToastContext";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 import { copyTextToClipboard } from "@/lib/clipboard";
 import {
   activeTokenCount,
@@ -34,6 +35,7 @@ export function OverviewPanel({
   onToggle: () => void;
 }) {
   const { pushToast } = useToast();
+  const { t } = useTranslation("overviewPanel");
   const endpoint = `${typeof window !== "undefined" ? window.location.origin : ""}${gateway.endpointPath}`;
   const active = activeTokenCount(gateway);
   const expiring = expiringTokenCount(gateway);
@@ -66,18 +68,18 @@ export function OverviewPanel({
         <div className="rounded-lg border border-border p-4">
           <div className="text-xs font-medium text-muted-foreground">{on ? "On" : "Off"}</div>
           <div className="mt-2">
-            <ToggleSwitch checked={on} disabled={toggleDisabled} onCheckedChange={onToggle} aria-label="Toggle gateway" />
+            <ToggleSwitch checked={on} disabled={toggleDisabled} onCheckedChange={onToggle} aria-label={t("ariaLabel.toggleGateway")} />
           </div>
           <p className="mt-2 text-xs text-muted-foreground">Toggle the whole gateway off here.</p>
         </div>
-        <StatCard label="Apps">
+        <StatCard label={t("label.apps")}>
           {apps.length} {apps.length === 1 ? "app" : "apps"}
           {profile ? ` · ${allowedToolsLabel(profile)}` : ""}
         </StatCard>
-        <StatCard label="Tokens">
+        <StatCard label={t("label.tokens")}>
           {active} active{expiring > 0 ? ` · ${expiring} expiring` : ""}
         </StatCard>
-        <StatCard label="Health">
+        <StatCard label={t("label.health")}>
           {needsAttention.length === 0 ? "All green" : `${needsAttention.length} needs attention`}
         </StatCard>
       </div>

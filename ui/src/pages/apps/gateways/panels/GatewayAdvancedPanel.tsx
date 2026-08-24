@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useToast } from "@/context/ToastContext";
 import { copyTextToClipboard } from "@/lib/clipboard";
+import { useTranslation } from "react-i18next";
 import { gatewaysQueryKey } from "../NewGatewayDialog";
 
 /**
@@ -25,6 +26,7 @@ export function GatewayAdvancedPanel({
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { pushToast } = useToast();
+  const { t } = useTranslation("gatewayAdvancedPanel");
   const [confirming, setConfirming] = useState(false);
   const [confirmName, setConfirmName] = useState("");
 
@@ -77,10 +79,10 @@ export function GatewayAdvancedPanel({
       <section className="space-y-2">
         <h3 className="text-sm font-semibold text-foreground">Transport</h3>
         <dl className="grid gap-x-6 gap-y-2 text-sm sm:grid-cols-2">
-          <Row label="Transport" value="streamable_http" />
-          <Row label="Authentication" value="bearer" />
-          <Row label="Protocol version" value="2025-03-26" />
-          <Row label="Public ID" value={gateway.gatewayPublicId} mono />
+          <Row label={t("label.transport")} value="streamable_http" />
+          <Row label={t("label.authentication")} value="bearer" />
+          <Row label={t("label.protocolVersion")} value="2025-03-26" />
+          <Row label={t("label.publicId")} value={gateway.gatewayPublicId} mono />
         </dl>
         <div className="flex items-center gap-2">
           <code className="min-w-0 flex-1 truncate rounded-md bg-muted px-3 py-2 font-mono text-xs text-muted-foreground">
@@ -118,7 +120,7 @@ export function GatewayAdvancedPanel({
               value={confirmName}
               onChange={(e) => setConfirmName(e.target.value)}
               placeholder={gateway.name}
-              aria-label="Type the gateway name to confirm archive"
+              aria-label={t("ariaLabel.typeNameToConfirm")}
             />
             <div className="flex gap-2">
               <Button

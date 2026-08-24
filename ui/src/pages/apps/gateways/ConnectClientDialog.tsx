@@ -13,6 +13,7 @@ import {
 import { useToast } from "@/context/ToastContext";
 import { cn } from "@/lib/utils";
 import { copyTextToClipboard } from "@/lib/clipboard";
+import { useTranslation } from "react-i18next";
 import { formatSnippetConfig, maskedTokenLabel, orderedSnippets } from "./gateway-helpers";
 
 type PanelKey = string; // snippet client key, or "raw_url"
@@ -35,6 +36,7 @@ export function ConnectClientDialog({
   createdToken?: ToolMcpGatewayTokenCreated | null;
 }) {
   const { pushToast } = useToast();
+  const { t } = useTranslation("connectClientDialog");
   const snippets = useMemo(() => orderedSnippets(gateway.clientSnippets ?? []), [gateway.clientSnippets]);
   const endpoint = useMemo(() => {
     const origin = typeof window !== "undefined" ? window.location.origin : "";
@@ -78,7 +80,7 @@ export function ConnectClientDialog({
         </DialogHeader>
 
         <div className="grid gap-4 sm:grid-cols-(--gtc-10)">
-          <nav className="flex gap-1 overflow-x-auto sm:flex-col" aria-label="Clients">
+          <nav className="flex gap-1 overflow-x-auto sm:flex-col" aria-label={t("ariaLabel.clients")}>
             {snippets.map((snippet) => (
               <button
                 key={snippet.client}

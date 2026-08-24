@@ -1,5 +1,6 @@
 import { Link } from "@/lib/router";
 import { cn } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 
 type SubNavKey = "connected" | "gateways" | "activity";
 
@@ -15,8 +16,9 @@ const ITEMS: { key: SubNavKey; label: string; href: string }[] = [
  * design of record, rather than buried under the Advanced developer door.
  */
 export function AppsSubNav({ active }: { active: SubNavKey }) {
+  const { t } = useTranslation("appsSubNav");
   return (
-    <nav className="flex items-center gap-6 border-b border-border text-sm" aria-label="Apps sections">
+    <nav className="flex items-center gap-6 border-b border-border text-sm" aria-label={t("ariaLabel.appsSections")}>
       {ITEMS.map((item) => {
         const isActive = item.key === active;
         return (

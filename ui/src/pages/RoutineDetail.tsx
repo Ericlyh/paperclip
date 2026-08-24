@@ -814,7 +814,7 @@ export function RoutineDetail() {
               ref={titleInputRef}
               data-autosize-title
               className="min-w-0 flex-1 resize-none overflow-hidden bg-transparent text-base font-semibold leading-7 outline-none placeholder:text-muted-foreground/50"
-              placeholder="Routine title"
+              placeholder={t("routineDetail.placeholder.routineTitle")}
               rows={1}
               value={editDraft.title}
               onChange={(event) => {

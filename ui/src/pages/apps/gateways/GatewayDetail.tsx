@@ -14,6 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { cn } from "@/lib/utils";
 import { ErrorState } from "@/pages/tools/shared";
+import { useTranslation } from "react-i18next";
 import { GATEWAY_TABS, gatewayTabHref, isGatewayTabKey, type GatewayTabKey } from "./gateway-tabs";
 import { gatewaysQueryKey } from "./NewGatewayDialog";
 import { ConnectClientDialog } from "./ConnectClientDialog";
@@ -31,6 +32,7 @@ export function GatewayDetail() {
   const { pushToast } = useToast();
   const { selectedCompany, selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
+  const { t } = useTranslation("gatewayDetail");
   const [snippetOpen, setSnippetOpen] = useState(false);
   const [createdToken, setCreatedToken] = useState<ToolMcpGatewayTokenCreated | null>(null);
 
@@ -183,7 +185,7 @@ export function GatewayDetail() {
         </Button>
       </div>
 
-      <nav className="flex items-center gap-6 overflow-x-auto border-b border-border text-sm" aria-label="Gateway tabs">
+      <nav className="flex items-center gap-6 overflow-x-auto border-b border-border text-sm" aria-label={t("ariaLabel.gatewayTabs")}>
         {GATEWAY_TABS.map((item) => {
           const isActive = item.key === activeTab;
           return (

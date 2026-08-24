@@ -9472,7 +9472,21 @@
     "noteWhyItExists": "Note (why it exists)",
     "expires": "Expires",
     "cancel": "Cancel",
-    "minting": "Minting…"
+    "minting": "Minting…",
+    "label": {
+      "owner": "Owner",
+      "created": "Created",
+      "lastUsed": "Last used",
+      "expires": "Expires"
+    },
+    "ariaLabel": {
+      "dismissNewToken": "Dismiss new token"
+    },
+    "placeholder": {
+      "name": "cto-cursor",
+      "clientLabel": "Cursor on work laptop",
+      "ownerNote": "Dotta’s MacBook"
+    }
   },
   "recoveryAction": {
     "branchFacet": {
@@ -10872,6 +10886,12 @@
     "title": {
       "enabledonthisagent": "Enabled on this agent",
       "availablefromthelibrary": "Available from the library"
+    },
+    "ariaLabel": {
+      "searchSkills": "Search skills"
+    },
+    "placeholder": {
+      "searchSkills": "Search skills"
     }
   },
   "myUserSecretsTab": {
@@ -10951,6 +10971,93 @@
     "label": {
       "externalObjects": "External objects",
       "references": "References"
+    }
+  },
+  "advancedPanel": {
+    "placeholder": {
+      "pasteNewKey": "Paste your new key"
+    }
+  },
+  "agentSkillReleasePicker": {
+    "ariaLabel": {
+      "skillRelease": "Skill release"
+    }
+  },
+  "agentSkillRow": {
+    "ariaLabel": {
+      "readOnly": "Read-only"
+    }
+  },
+  "appDetail": {
+    "ariaLabel": {
+      "appName": "App name",
+      "renameApp": "Rename app"
+    }
+  },
+  "appsSubNav": {
+    "ariaLabel": {
+      "appsSections": "Apps sections"
+    }
+  },
+  "browse": {
+    "ariaLabel": {
+      "searchApps": "Search apps"
+    },
+    "placeholder": {
+      "searchApps": "Search apps…"
+    }
+  },
+  "connectClientDialog": {
+    "ariaLabel": {
+      "clients": "Clients"
+    }
+  },
+  "gatewayAdvancedPanel": {
+    "label": {
+      "transport": "Transport",
+      "authentication": "Authentication",
+      "protocolVersion": "Protocol version",
+      "publicId": "Public ID"
+    },
+    "ariaLabel": {
+      "typeNameToConfirm": "Type the gateway name to confirm archive"
+    }
+  },
+  "gatewayDetail": {
+    "ariaLabel": {
+      "gatewayTabs": "Gateway tabs"
+    }
+  },
+  "newGatewayDialog": {
+    "placeholder": {
+      "name": "CTO agents",
+      "description": "Who this endpoint is for and when it should be rotated."
+    }
+  },
+  "overviewPanel": {
+    "label": {
+      "apps": "Apps",
+      "tokens": "Tokens",
+      "health": "Health"
+    },
+    "ariaLabel": {
+      "toggleGateway": "Toggle gateway"
+    }
+  },
+  "routineDetail": {
+    "placeholder": {
+      "routineTitle": "Routine title"
+    }
+  },
+  "testPanel": {
+    "ariaLabel": {
+      "findAnAction": "Find an action",
+      "chooseTestAgent": "Choose which agent to test as",
+      "searchAgents": "Search agents"
+    },
+    "placeholder": {
+      "findAnAction": "Find an action…",
+      "searchAgents": "Search agents…"
     }
   }
 }

@@ -9,6 +9,7 @@ import { Input } from "@/components/ui/input";
 import { useToast } from "@/context/ToastContext";
 import { redactUrlSecrets } from "@/lib/redact-url-secrets";
 import { navigateTopLevel } from "@/lib/browserNavigation";
+import { useTranslation } from "react-i18next";
 import type { AppDetailSectionProps } from "./types";
 
 export function AdvancedPanel({
@@ -140,6 +141,7 @@ function ReconnectForm({
   onReconnected: () => void;
 }) {
   const { pushToast } = useToast();
+  const { t } = useTranslation("advancedPanel");
   const method = galleryEntry && Array.isArray(galleryEntry.methods)
     ? getAvailableConnectionMethod(galleryEntry)
     : null;
@@ -221,7 +223,7 @@ function ReconnectForm({
           autoComplete="off"
           value={single}
           onChange={(e) => setSingle(e.target.value)}
-          placeholder="Paste your new key"
+          placeholder={t("placeholder.pasteNewKey")}
           className="h-10 font-mono"
         />
       )}

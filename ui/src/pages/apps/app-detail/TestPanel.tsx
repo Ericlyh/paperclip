@@ -40,6 +40,7 @@ import {
   type JsonSchemaNode,
 } from "@/components/JsonSchemaForm";
 import { cn, relativeTime } from "@/lib/utils";
+import { useTranslation } from "react-i18next";
 import { appTabHref } from "../app-tabs";
 
 // ---------------------------------------------------------------------------
@@ -134,6 +135,8 @@ export function TestPanel({
     queryFn: () => toolsApi.listTestAgents(connectionId),
     enabled: !!connectionId,
   });
+
+  const { t } = useTranslation("testPanel");
 
   const agents = useMemo(
     () => [...(testAgentsQuery.data?.agents ?? [])].sort((a, b) => a.name.localeCompare(b.name)),
@@ -251,8 +254,8 @@ export function TestPanel({
           <div className="relative min-w-(--sz-12rem) flex-1">
             <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              aria-label="Find an action"
-              placeholder="Find an action…"
+              aria-label={t("ariaLabel.findAnAction")}
+              placeholder={t("placeholder.findAnAction")}
               className="pl-9"
               value={query}
               onChange={(event) => setQuery(event.target.value)}
@@ -397,6 +400,7 @@ function AgentPicker({
   appName: string;
   inline?: boolean;
 }) {
+  const { t } = useTranslation("testPanel");
   const [open, setOpen] = useState(false);
   const [search, setSearch] = useState("");
 
@@ -413,7 +417,7 @@ function AgentPicker({
             "items-center gap-1.5 text-foreground outline-none hover:text-primary focus-visible:text-primary",
             inline ? "inline-flex font-semibold underline-offset-2 hover:underline" : "mt-0.5 flex text-lg font-bold",
           )}
-          aria-label="Choose which agent to test as"
+          aria-label={t("ariaLabel.chooseTestAgent")}
         >
           {selectedAgent.name}
           <ChevronsUpDown className={cn("text-muted-foreground", inline ? "h-3.5 w-3.5" : "h-4 w-4")} />
@@ -424,8 +428,8 @@ function AgentPicker({
           <div className="relative">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-muted-foreground" />
             <Input
-              aria-label="Search agents"
-              placeholder="Search agents…"
+              aria-label={t("ariaLabel.searchAgents")}
+              placeholder={t("placeholder.searchAgents")}
               className="h-8 pl-8 text-sm"
               value={search}
               onChange={(event) => setSearch(event.target.value)}

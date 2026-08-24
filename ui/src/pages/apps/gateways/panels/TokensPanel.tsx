@@ -171,21 +171,21 @@ export function TokensPanel({
           <div className="grid gap-3 md:grid-cols-2">
             <label className="space-y-1.5 text-sm">
               <span className="text-xs font-medium text-muted-foreground">{t("name")}</span>
-              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="cto-cursor" required autoFocus />
+              <Input value={name} onChange={(e) => setName(e.target.value)} placeholder={t("placeholder.name")} required autoFocus />
             </label>
             <label className="space-y-1.5 text-sm">
               <span className="text-xs font-medium text-muted-foreground">{t("ownerClient")}</span>
               <Input
                 value={clientLabel}
                 onChange={(e) => setClientLabel(e.target.value)}
-                placeholder="Cursor on work laptop"
+                placeholder={t("placeholder.clientLabel")}
               />
             </label>
           </div>
           <div className="grid gap-3 md:grid-cols-[1fr_auto]">
             <label className="space-y-1.5 text-sm">
               <span className="text-xs font-medium text-muted-foreground">{t("noteWhyItExists")}</span>
-              <Input value={ownerNote} onChange={(e) => setOwnerNote(e.target.value)} placeholder="Dotta’s MacBook" />
+              <Input value={ownerNote} onChange={(e) => setOwnerNote(e.target.value)} placeholder={t("placeholder.ownerNote")} />
             </label>
             <label className="space-y-1.5 text-sm">
               <span className="text-xs font-medium text-muted-foreground">{t("expires")}</span>
@@ -212,7 +212,7 @@ export function TokensPanel({
                 You won’t see the full value again. Store it in your client’s config or your secret manager.
               </div>
             </div>
-            <Button variant="ghost" size="sm" onClick={() => setCreated(null)} aria-label="Dismiss new token">
+            <Button variant="ghost" size="sm" onClick={() => setCreated(null)} aria-label={t("ariaLabel.dismissNewToken")}>
               Dismiss
             </Button>
           </div>
@@ -312,14 +312,14 @@ export function TokensPanel({
                     <StatusBadge status={status} />
                   </div>
                   <dl className="mt-3 grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                    <TokenField label="Owner" value={token.clientLabel || token.ownerNote || "—"} />
-                    <TokenField label="Created" value={<RelativeTime value={token.createdAt} />} />
+                    <TokenField label={t("label.owner")} value={token.clientLabel || token.ownerNote || "—"} />
+                    <TokenField label={t("label.created")} value={<RelativeTime value={token.createdAt} />} />
                     <TokenField
-                      label="Last used"
+                      label={t("label.lastUsed")}
                       value={token.lastUsedAt ? <RelativeTime value={token.lastUsedAt} /> : "—"}
                     />
                     <TokenField
-                      label="Expires"
+                      label={t("label.expires")}
                       value={
                         token.revokedAt ? "—" : token.expiresAt ? <RelativeTime value={token.expiresAt} /> : "no expiry"
                       }
