@@ -9592,6 +9592,9 @@
     },
     "title": {
       "couldnotloadmatchedissues": "Could not load matched issues"
+    },
+    "ariaLabel": {
+      "selectSummaryRevision": "Select summary revision"
     }
   },
   "issueDocumentsSection": {
@@ -10731,12 +10734,6 @@
       "switchTheseAgentsToTheCopy": "Switch these agents to the copy"
     }
   },
-  "taskChatBlockerLinks": {
-    "aria": {
-      "taskBlockers": "Task blockers",
-      "tasksWaitingOnLiveWork": "Tasks waiting on live work"
-    }
-  },
   "taskChatBubbleActions": {
     "aria": {
       "copyMessage": "Copy message"
@@ -10863,6 +10860,12 @@
     "title": {
       "openfileinnewtab": "Open file in new tab",
       "downloadfile": "Download file"
+    },
+    "placeholder": {
+      "image": "Image",
+      "document": "Document",
+      "text": "Text",
+      "file": "File"
     }
   },
   "tweakPanel": {
@@ -10873,6 +10876,9 @@
   "createStatusCardDialog": {
     "title": {
       "createfailed": "Create failed"
+    },
+    "placeholder": {
+      "keepAnEyeOn": "Keep an eye on the ID and Cloud projects. Tell me whether the service is live, and if not, the exact three actions needed to get it to production."
     }
   },
   "index": {
@@ -10907,6 +10913,36 @@
   "auditTab": {
     "title": {
       "activity": "Activity"
+    },
+    "description": {
+      "activity": "What your agents actually did with your apps, newest first. Each line is one decision — allowed, blocked, asked first, waiting, or failed."
+    },
+    "label": {
+      "allApps": "All apps",
+      "allAgents": "All agents",
+      "clearFilters": "Clear filters",
+      "noActivityMatches": "No activity matches these filters",
+      "tryWiderTimeWindow": "Try a wider time window or different filters.",
+      "nothingHereYet": "Nothing here yet",
+      "asSoonAsAgents": "As soon as your agents start using connected apps, what they do shows up here.",
+      "recordedByPaperclip": "Recorded by Paperclip — entries can't be edited. Sensitive values are never stored.",
+      "loading": "Loading…",
+      "loadMore": "Load more"
+    },
+    "allOutcomes": "All outcomes",
+    "outcome": {
+      "allowed": "Allowed",
+      "blocked": "Blocked",
+      "askedFirst": "Asked first",
+      "waiting": "Waiting",
+      "failed": "Failed",
+      "recorded": "Recorded"
+    },
+    "window": {
+      "last1Hour": "Last 1 hour",
+      "last24Hours": "Last 24 hours",
+      "last7Days": "Last 7 days",
+      "last30Days": "Last 30 days"
     }
   },
   "auditFeed": {
@@ -10920,6 +10956,31 @@
       "agent": "Agent",
       "entity": "Entity",
       "responsibleUser": "Responsible user"
+    },
+    "title": {
+      "activity": "Activity"
+    },
+    "description": {
+      "agentActions": "Every recorded agent action, newest first — with the responsible person and run behind each one.",
+      "everythingHappening": "Everything happening in your company, newest first — people, agents, and the system. Each line is one recorded action."
+    },
+    "label": {
+      "allAgents": "All agents",
+      "allResponsibleUsers": "All responsible users",
+      "clearFilters": "Clear filters",
+      "exporting": "Exporting…",
+      "exportCsv": "Export CSV",
+      "failedToLoadAuditLog": "Failed to load the audit log.",
+      "tryAgain": "Try again",
+      "noActionsMatch": "No actions match these filters",
+      "tryWiderDateRange": "Try a wider date range or different filters.",
+      "asSoonAsAgents": "As soon as your agents start doing things, their actions show up here.",
+      "asSoonAsAnyone": "As soon as anyone in your company does something, it shows up here.",
+      "nothingHereYet": "Nothing here yet",
+      "loadMore": "Load more",
+      "loading": "Loading…",
+      "recordedByPaperclip": "Recorded by Paperclip — entries can't be edited. Sensitive values are never stored.",
+      "refreshingAuditAccess": "Refreshing audit access…"
     }
   },
   "toolsAudit": {
@@ -11058,6 +11119,55 @@
     "placeholder": {
       "findAnAction": "Find an action…",
       "searchAgents": "Search agents…"
+    }
+  },
+  "taskChatLab": {
+    "ariaLabel": {
+      "states": "States",
+      "streamingSpeed": "Streaming speed",
+      "agentBubbleTreatment": "Agent bubble treatment"
+    },
+    "label": {
+      "liveStates": "Live states",
+      "tierB": "Tier-B (synthetic)"
+    }
+  },
+  "timeline": {
+    "connectorHint": {
+      "dashed": "dashed handoff: retry or changes requested",
+      "solid": "solid handoff: delegation or assignment"
+    },
+    "minimapHandle": {
+      "dragLeftEdge": "Drag left edge to resize visible range",
+      "dragRightEdge": "Drag right edge to resize visible range"
+    }
+  },
+  "taskChatBlockerLinks": {
+    "aria": {
+      "taskBlockers": "Task blockers",
+      "tasksWaitingOnLiveWork": "Tasks waiting on live work"
+    },
+    "label": {
+      "blockedBy": "Blocked by",
+      "ultimatelyBlockedBy": "Ultimately blocked by",
+      "waitingOnLiveWork": "Waiting on live work",
+      "nowRunning": "Now running"
+    }
+  },
+  "providerQuotaCard": {
+    "label": {
+      "periodSpend": "Period spend",
+      "thisWeek": "This week"
+    }
+  },
+  "openCodeLogoIcon": {
+    "alt": {
+      "opencode": "OpenCode"
+    }
+  },
+  "summarizerAgentSelect": {
+    "placeholder": {
+      "summarizerDefault": "Summarizer (default)"
     }
   }
 }

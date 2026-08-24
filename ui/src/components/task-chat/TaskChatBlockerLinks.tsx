@@ -180,9 +180,9 @@ export function TaskChatBlockerLinks({
       data-testid="task-chat-blocker-links"
       className="flex min-w-0 flex-col gap-1 overflow-hidden text-(length:--text-micro) leading-4 text-amber-700 dark:text-amber-300"
     >
-      <BlockerRow label="Blocked by" blocker={directBlocker} />
+      <BlockerRow label={t("taskChatBlockerLinks.label.blockedBy")} blocker={directBlocker} />
       {ultimateBlocker ? (
-        <BlockerRow label="Ultimately blocked by" blocker={ultimateBlocker} />
+        <BlockerRow label={t("taskChatBlockerLinks.label.ultimatelyBlockedBy")} blocker={ultimateBlocker} />
       ) : null}
     </div>
   );
@@ -207,7 +207,7 @@ export function TaskChatLiveWorkLinks({
         <span className="flex h-3.5 w-3.5 items-center justify-center" aria-hidden>
           <span className="h-2.5 w-2.5 animate-pulse rounded-full bg-blue-400" />
         </span>
-        Waiting on live work
+        {t("taskChatBlockerLinks.label.waitingOnLiveWork")}
       </div>
       <ol className="flex min-w-0 flex-col gap-1">
         {liveWork.steps.map(({ blocker, status }, index) => (
@@ -226,7 +226,7 @@ export function TaskChatLiveWorkLinks({
       </ol>
       {liveWork.nowRunning.map((blocker) => (
         <div key={blocker.id} className="flex min-w-0 items-center gap-1.5 whitespace-nowrap">
-          <span className="shrink-0 font-medium">Now running</span>
+          <span className="shrink-0 font-medium">{t("taskChatBlockerLinks.label.nowRunning")}</span>
           <LiveWorkLink blocker={blocker} />
         </div>
       ))}

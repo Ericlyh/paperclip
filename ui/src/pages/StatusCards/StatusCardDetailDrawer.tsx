@@ -282,7 +282,7 @@ export function StatusCardDetailDrawer({
                       value={selectedRevisionId ?? "__latest__"}
                       onValueChange={(value) => setSelectedRevisionId(value === "__latest__" ? null : value)}
                     >
-                      <SelectTrigger size="sm" className="w-auto gap-1.5" aria-label="Select summary revision">
+                      <SelectTrigger size="sm" className="w-auto gap-1.5" aria-label={t("statusCardDetailDrawer.ariaLabel.selectSummaryRevision")}>
                         <History className="h-3.5 w-3.5" aria-hidden="true" />
                         <SelectValue />
                       </SelectTrigger>

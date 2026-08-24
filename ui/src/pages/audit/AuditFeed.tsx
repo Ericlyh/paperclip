@@ -480,11 +480,11 @@ export function AuditFeed({
       {!hideHeader ? (
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
-            <h1 className="text-lg font-semibold text-foreground">Activity</h1>
+            <h1 className="text-lg font-semibold text-foreground">{t("auditFeed.title.activity")}</h1>
             <p className="mt-1 max-w-2xl text-sm text-muted-foreground">
               {resolvedMode === "agents"
-                ? "Every recorded agent action, newest first — with the responsible person and run behind each one."
-                : "Everything happening in your company, newest first — people, agents, and the system. Each line is one recorded action."}
+                ? t("auditFeed.description.agentActions")
+                : t("auditFeed.description.everythingHappening")}
             </p>
           </div>
         </div>
@@ -507,7 +507,7 @@ export function AuditFeed({
                 <SelectValue placeholder={t("auditFeed.placeholder.agent")} />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value={ALL}>All agents</SelectItem>
+                <SelectItem value={ALL}>{t("auditFeed.label.allAgents")}</SelectItem>
                 {(agents.data ?? []).map((a) => (
                   <SelectItem key={a.id} value={a.id}>
                     {a.name}
@@ -522,7 +522,7 @@ export function AuditFeed({
               <SelectValue placeholder={t("auditFeed.placeholder.responsibleUser")} />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value={ALL}>All responsible users</SelectItem>
+              <SelectItem value={ALL}>{t("auditFeed.label.allResponsibleUsers")}</SelectItem>
               {(userDirectory.data?.users ?? []).map((u) => (
                 <SelectItem key={u.principalId} value={u.principalId}>
                   {u.user?.name ?? u.user?.email ?? u.principalId.slice(0, 8)}
@@ -572,7 +572,7 @@ export function AuditFeed({
           />
           {hasActiveFilters ? (
             <Button variant="ghost" size="sm" onClick={clearFilters}>
-              Clear filters
+              {t("auditFeed.label.clearFilters")}
             </Button>
           ) : null}
           <Button
@@ -583,7 +583,7 @@ export function AuditFeed({
             disabled={exporting || feed.isLoading || items.length === 0}
           >
             <Download className="mr-1.5 h-4 w-4" />
-            {exporting ? "Exporting…" : "Export CSV"}
+            {exporting ? t("auditFeed.label.exporting") : t("auditFeed.label.exportCsv")}
           </Button>
         </div>
       ) : null}
@@ -591,21 +591,21 @@ export function AuditFeed({
       {recoveringFromAccessDowngrade || fallingBackToAllActivity ? (
         <Card>
           <CardContent className="py-14 text-center text-sm text-muted-foreground">
-            Refreshing audit access…
+            {t("auditFeed.label.refreshingAuditAccess")}
           </CardContent>
         </Card>
       ) : feed.isLoading ? (
         <Card>
-          <CardContent className="py-14 text-center text-sm text-muted-foreground">Loading…</CardContent>
+          <CardContent className="py-14 text-center text-sm text-muted-foreground">{t("auditFeed.label.loading")}</CardContent>
         </Card>
       ) : feed.error ? (
         <Card>
           <CardContent className="flex flex-col items-center gap-3 py-14 text-center">
             <p className="text-sm text-muted-foreground">
-              {feed.error instanceof Error ? feed.error.message : "Failed to load the audit log."}
+              {feed.error instanceof Error ? feed.error.message : t("auditFeed.label.failedToLoadAuditLog")}
             </p>
             <Button variant="outline" size="sm" onClick={() => feed.refetch()}>
-              Try again
+              {t("auditFeed.label.tryAgain")}
             </Button>
           </CardContent>
         </Card>
@@ -615,19 +615,19 @@ export function AuditFeed({
             <ScrollText className="h-10 w-10 text-muted-foreground/40" />
             <div>
               <p className="text-sm font-medium text-foreground">
-                {hasActiveFilters ? "No actions match these filters" : "Nothing here yet"}
+                {hasActiveFilters ? t("auditFeed.label.noActionsMatch") : t("auditFeed.label.nothingHereYet")}
               </p>
               <p className="mt-1 max-w-md text-sm text-muted-foreground">
                 {hasActiveFilters
-                  ? "Try a wider date range or different filters."
+                  ? t("auditFeed.label.tryWiderDateRange")
                   : resolvedMode === "agents"
-                    ? "As soon as your agents start doing things, their actions show up here."
-                    : "As soon as anyone in your company does something, it shows up here."}
+                    ? t("auditFeed.label.asSoonAsAgents")
+                    : t("auditFeed.label.asSoonAsAnyone")}
               </p>
             </div>
             {hasActiveFilters ? (
               <Button variant="outline" size="sm" onClick={clearFilters}>
-                Clear filters
+                {t("auditFeed.label.clearFilters")}
               </Button>
             ) : null}
           </CardContent>
@@ -657,13 +657,13 @@ export function AuditFeed({
             onClick={() => feed.fetchNextPage()}
             disabled={feed.isFetchingNextPage}
           >
-            {feed.isFetchingNextPage ? "Loading…" : "Load more"}
+            {feed.isFetchingNextPage ? t("auditFeed.label.loading") : t("auditFeed.label.loadMore")}
           </Button>
         </div>
       ) : null}
 
       <p className="text-xs text-muted-foreground">
-        Recorded by Paperclip — entries can't be edited. Sensitive values are never stored.
+        {t("auditFeed.label.recordedByPaperclip")}
       </p>
     </div>
   );

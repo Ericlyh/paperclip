@@ -12,6 +12,7 @@ import {
   providerDisplayName,
   quotaSourceDisplayName,
 } from "@/lib/utils";
+import { useTranslation } from "../i18n";
 
 // ordered display labels for rolling-window rows
 const ROLLING_WINDOWS = ["5h", "24h", "7d"] as const;
@@ -48,6 +49,7 @@ export function ProviderQuotaCard({
   quotaSource = null,
   quotaLoading = false,
 }: ProviderQuotaCardProps) {
+  const { t } = useTranslation();
   // single-pass aggregation over rows — memoized so the 8 derived values are not
   // recomputed on every parent render tick (providers tab polls every 30s, and each
   // card is mounted twice: once in the "all" tab grid and once in its per-provider tab).
@@ -162,14 +164,14 @@ export function ProviderQuotaCard({
         {hasBudget && (
           <div className="space-y-3">
             <QuotaBar
-              label="Period spend"
+              label={t("providerQuotaCard.label.periodSpend")}
               percentUsed={budgetPct}
               leftLabel={formatCents(totalCostCents)}
               rightLabel={`${Math.round(budgetPct)}% of allocation`}
               showDeficitNotch={showDeficitNotch}
             />
             <QuotaBar
-              label="This week"
+              label={t("providerQuotaCard.label.thisWeek")}
               percentUsed={weekPct}
               leftLabel={formatCents(weekSpendCents)}
               rightLabel={`~${formatCents(Math.round(weeklyBudgetShare))} / wk`}

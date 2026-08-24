@@ -34,9 +34,10 @@ function PlaceholderPreview({ label }: { label?: string }) {
 }
 
 function ImagePreview({ artifact }: { artifact: CompanyArtifact }) {
+  const { t } = useTranslation();
   const [errored, setErrored] = useState(false);
   if (errored || !artifact.contentPath) {
-    return <PlaceholderPreview label="Image" />;
+    return <PlaceholderPreview label={t("artifactCard.placeholder.image")} />;
   }
   return (
     <PreviewFrame>
@@ -133,9 +134,10 @@ function VideoPreview({ artifact }: { artifact: CompanyArtifact }) {
 }
 
 function TextPreview({ artifact }: { artifact: CompanyArtifact }) {
+  const { t } = useTranslation();
   const preview = artifact.previewText?.trim();
   if (!preview) {
-    return <PlaceholderPreview label={artifact.source === "document" ? "Document" : "Text"} />;
+    return <PlaceholderPreview label={artifact.source === "document" ? t("artifactCard.placeholder.document") : t("artifactCard.placeholder.text")} />;
   }
   return (
     <PreviewFrame className="bg-card">
@@ -150,6 +152,7 @@ function TextPreview({ artifact }: { artifact: CompanyArtifact }) {
 }
 
 export function ArtifactPreview({ artifact }: { artifact: CompanyArtifact }) {
+  const { t } = useTranslation();
   switch (artifact.mediaKind) {
     case "image":
       return <ImagePreview artifact={artifact} />;
@@ -159,7 +162,7 @@ export function ArtifactPreview({ artifact }: { artifact: CompanyArtifact }) {
     case "document":
       return <TextPreview artifact={artifact} />;
     case "file":
-      return <PlaceholderPreview label="File" />;
+      return <PlaceholderPreview label={t("artifactCard.placeholder.file")} />;
     case "empty":
     default:
       return <PlaceholderPreview />;

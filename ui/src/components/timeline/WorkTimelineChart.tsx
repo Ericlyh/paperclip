@@ -267,6 +267,7 @@ export function WorkTimelineChart({
   onVisibleWindowChange,
   nowMs,
 }: WorkTimelineChartProps) {
+  const { t } = useTranslation();
   const location = useLocation();
   const scrollRef = useRef<HTMLDivElement>(null);
   const initialWindowKeyRef = useRef<string | null>(null);
@@ -453,8 +454,8 @@ export function WorkTimelineChart({
     const related = layout.connectors.filter((c) => c.sourceRunId === bar.span.runId || c.targetRunId === bar.span.runId);
     if (related.length === 0) return null;
     return related.some((c) => c.dashed)
-      ? "dashed handoff: retry or changes requested"
-      : "solid handoff: delegation or assignment";
+      ? t("timeline.connectorHint.dashed")
+      : t("timeline.connectorHint.solid");
   };
 
   const showTooltip = (evt: React.MouseEvent, bar: PositionedBar) => {
@@ -831,6 +832,7 @@ function MiniMap({
   scrollLeft: number;
   onVisibleRangeChange: (fromMs: number, toMs: number) => void;
 }) {
+  const { t } = useTranslation();
   const documentDragCleanupRef = useRef<(() => void) | null>(null);
   const W = Math.max(320, viewportW || 900);
   const H = 54;
@@ -956,7 +958,7 @@ function MiniMap({
           height={H - 2}
           width={handleW}
           testId="timeline-minimap-left-handle"
-          label="Drag left edge to resize visible range"
+          label={t("timeline.minimapHandle.dragLeftEdge")}
           onMouseDown={(e) => startRangeDrag("left", e)}
         />
         <MiniMapHandle
@@ -965,7 +967,7 @@ function MiniMap({
           height={H - 2}
           width={handleW}
           testId="timeline-minimap-right-handle"
-          label="Drag right edge to resize visible range"
+          label={t("timeline.minimapHandle.dragRightEdge")}
           onMouseDown={(e) => startRangeDrag("right", e)}
         />
       </svg>

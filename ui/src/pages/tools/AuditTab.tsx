@@ -30,29 +30,29 @@ const PAGE_SIZE = 50;
 const ALL = "__all";
 
 /** Outcome chip vocabulary (spec §4C / §5): Allowed · Blocked · Asked first · Failed · Waiting. */
-const OUTCOME_META: Record<ToolAuditOutcome, { label: string; status: string }> = {
-  allowed: { label: "Allowed", status: "allowed" },
-  blocked: { label: "Blocked", status: "denied" },
-  asked_first: { label: "Asked first", status: "require-approval" },
-  waiting: { label: "Waiting", status: "deferred" },
-  failed: { label: "Failed", status: "failed" },
-  unknown: { label: "Recorded", status: "unchecked" },
+const OUTCOME_META: Record<ToolAuditOutcome, { labelKey: string; status: string }> = {
+  allowed: { labelKey: "outcome.allowed", status: "allowed" },
+  blocked: { labelKey: "outcome.blocked", status: "denied" },
+  asked_first: { labelKey: "outcome.askedFirst", status: "require-approval" },
+  waiting: { labelKey: "outcome.waiting", status: "deferred" },
+  failed: { labelKey: "outcome.failed", status: "failed" },
+  unknown: { labelKey: "outcome.recorded", status: "unchecked" },
 };
 
-const OUTCOME_FILTERS: { value: string; label: string }[] = [
-  { value: ALL, label: "All outcomes" },
-  { value: "allowed", label: "Allowed" },
-  { value: "blocked", label: "Blocked" },
-  { value: "asked_first", label: "Asked first" },
-  { value: "waiting", label: "Waiting" },
-  { value: "failed", label: "Failed" },
+const OUTCOME_FILTERS: { value: string; labelKey: string }[] = [
+  { value: ALL, labelKey: "allOutcomes" },
+  { value: "allowed", labelKey: "outcome.allowed" },
+  { value: "blocked", labelKey: "outcome.blocked" },
+  { value: "asked_first", labelKey: "outcome.askedFirst" },
+  { value: "waiting", labelKey: "outcome.waiting" },
+  { value: "failed", labelKey: "outcome.failed" },
 ];
 
-const WINDOW_FILTERS: { value: ToolAuditWindow; label: string }[] = [
-  { value: "1h", label: "Last 1 hour" },
-  { value: "24h", label: "Last 24 hours" },
-  { value: "7d", label: "Last 7 days" },
-  { value: "30d", label: "Last 30 days" },
+const WINDOW_FILTERS: { value: ToolAuditWindow; labelKey: string }[] = [
+  { value: "1h", labelKey: "window.last1Hour" },
+  { value: "24h", labelKey: "window.last24Hours" },
+  { value: "7d", labelKey: "window.last7Days" },
+  { value: "30d", labelKey: "window.last30Days" },
 ];
 
 function detailString(details: Record<string, unknown> | null, key: string): string | undefined {
@@ -122,8 +122,9 @@ function DetailFact({ label, value, mono }: { label: string; value: string; mono
 }
 
 function OutcomeChip({ outcome }: { outcome: ToolAuditOutcome }) {
+  const { t } = useTranslation();
   const meta = OUTCOME_META[outcome] ?? OUTCOME_META.unknown;
-  return <StatusBadge status={meta.status} label={meta.label} />;
+  return <StatusBadge status={meta.status} label={t(`toolsAudit.${meta.labelKey}`)} />;
 }
 
 function ActivityRow({
@@ -368,7 +369,7 @@ export function AuditTab({ companyId }: { companyId: string }) {
     <div className="space-y-4">
       <ToolsPageHeader
         title={t("auditTab.title.activity")}
-        description="What your agents actually did with your apps, newest first. Each line is one decision — allowed, blocked, asked first, waiting, or failed."
+        description={t("auditTab.description.activity")}
       />
 
       <div className="flex flex-wrap items-center gap-2">
@@ -377,7 +378,7 @@ export function AuditTab({ companyId }: { companyId: string }) {
             <SelectValue placeholder={t("toolsAudit.placeholder.app")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>All apps</SelectItem>
+            <SelectItem value={ALL}>{t("auditTab.label.allApps")}</SelectItem>
             {(apps.data?.applications ?? []).map((a) => (
               <SelectItem key={a.id} value={a.id}>
                 {a.name}
@@ -390,7 +391,7 @@ export function AuditTab({ companyId }: { companyId: string }) {
             <SelectValue placeholder={t("toolsAudit.placeholder.agent")} />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value={ALL}>All agents</SelectItem>
+            <SelectItem value={ALL}>{t("auditTab.label.allAgents")}</SelectItem>
             {(agents.data ?? []).map((a) => (
               <SelectItem key={a.id} value={a.id}>
                 {a.name}
@@ -405,7 +406,7 @@ export function AuditTab({ companyId }: { companyId: string }) {
           <SelectContent>
             {OUTCOME_FILTERS.map((o) => (
               <SelectItem key={o.value} value={o.value}>
-                {o.label}
+                {t(`auditTab.${o.labelKey}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -417,7 +418,7 @@ export function AuditTab({ companyId }: { companyId: string }) {
           <SelectContent>
             {WINDOW_FILTERS.map((o) => (
               <SelectItem key={o.value} value={o.value}>
-                {o.label}
+                {t(`auditTab.${o.labelKey}`)}
               </SelectItem>
             ))}
           </SelectContent>
@@ -430,7 +431,7 @@ export function AuditTab({ companyId }: { companyId: string }) {
         />
         {hasActiveFilters ? (
           <Button variant="ghost" size="sm" onClick={clearFilters}>
-            Clear filters
+            {t("auditTab.label.clearFilters")}
           </Button>
         ) : null}
       </div>
@@ -445,13 +446,13 @@ export function AuditTab({ companyId }: { companyId: string }) {
             <CardContent className="flex flex-col items-center gap-3 py-14 text-center">
               <ScrollText className="h-10 w-10 text-muted-foreground/40" />
               <div>
-                <p className="text-sm font-medium text-foreground">No activity matches these filters</p>
+                <p className="text-sm font-medium text-foreground">{t("auditTab.label.noActivityMatches")}</p>
                 <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                  Try a wider time window or different filters.
+                  {t("auditTab.label.tryWiderTimeWindow")}
                 </p>
               </div>
               <Button variant="outline" size="sm" onClick={clearFilters}>
-                Clear filters
+                {t("auditTab.label.clearFilters")}
               </Button>
             </CardContent>
           </Card>
@@ -460,9 +461,9 @@ export function AuditTab({ companyId }: { companyId: string }) {
             <CardContent className="flex flex-col items-center gap-3 py-14 text-center">
               <ScrollText className="h-10 w-10 text-muted-foreground/40" />
               <div>
-                <p className="text-sm font-medium text-foreground">Nothing here yet</p>
+                <p className="text-sm font-medium text-foreground">{t("auditTab.label.nothingHereYet")}</p>
                 <p className="mt-1 max-w-md text-sm text-muted-foreground">
-                  As soon as your agents start using connected apps, what they do shows up here.
+                  {t("auditTab.label.asSoonAsAgents")}
                 </p>
               </div>
             </CardContent>
@@ -488,13 +489,13 @@ export function AuditTab({ companyId }: { companyId: string }) {
             onClick={() => activity.fetchNextPage()}
             disabled={activity.isFetchingNextPage}
           >
-            {activity.isFetchingNextPage ? "Loading…" : "Load more"}
+            {activity.isFetchingNextPage ? t("auditTab.label.loading") : t("auditTab.label.loadMore")}
           </Button>
         </div>
       ) : null}
 
       <p className="text-xs text-muted-foreground">
-        Recorded by Paperclip — entries can't be edited. Sensitive values are never stored.
+        {t("auditTab.label.recordedByPaperclip")}
       </p>
     </div>
   );

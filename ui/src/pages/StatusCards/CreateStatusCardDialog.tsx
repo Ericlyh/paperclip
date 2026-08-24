@@ -95,7 +95,7 @@ export function CreateStatusCardDialog({
             onChange={(event) => setPrompt(event.target.value)}
             rows={5}
             autoFocus
-            placeholder="Keep an eye on the ID and Cloud projects. Tell me whether the service is live, and if not, the exact three actions needed to get it to production."
+            placeholder={t("createStatusCardDialog.placeholder.keepAnEyeOn")}
             className="text-sm"
           />
           <div className="flex flex-wrap items-center gap-2">

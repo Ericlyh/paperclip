@@ -14,6 +14,7 @@ import type {
   TaskChatItem,
   TaskChatMessageItem,
 } from "@/components/task-chat/task-chat-model";
+import { useTranslation } from "../i18n";
 
 /**
  * Demo binding for the agent-bubble copy · 👍 · 👎 cluster (PAP-413). The live
@@ -153,6 +154,7 @@ const BUBBLE_VARIANTS = [
 type BubbleVariantId = (typeof BUBBLE_VARIANTS)[number]["id"];
 
 export function TaskChatLab() {
+  const { t } = useTranslation();
   const [selected, setSelected] = useState<TaskChatStateId>("agent-message");
   const [bubbleVariant, setBubbleVariant] = useState<BubbleVariantId>("");
   const [speed, setSpeed] = useState(1);
@@ -176,11 +178,11 @@ export function TaskChatLab() {
 
       <div className="flex min-h-0 flex-1">
         {/* State switcher */}
-        <nav className="w-56 shrink-0 overflow-y-auto border-r border-border p-2" aria-label="States">
+        <nav className="w-56 shrink-0 overflow-y-auto border-r border-border p-2" aria-label={t("taskChatLab.ariaLabel.states")}>
           {(["live", "tier-b"] as const).map((tier) => (
             <div key={tier} className="mb-3">
               <p className="mb-1 px-1 text-(length:--text-nano) font-semibold uppercase tracking-wide text-muted-foreground">
-                {tier === "live" ? "Live states" : "Tier-B (synthetic)"}
+                {tier === "live" ? t("taskChatLab.label.liveStates") : t("taskChatLab.label.tierB")}
               </p>
               <ul className="flex flex-col gap-0.5">
                 {TASK_CHAT_STATE_LIST.filter((m) => m.tier === tier).map((m) => (
@@ -234,14 +236,14 @@ export function TaskChatLab() {
                 step={0.1}
                 value={speed}
                 onChange={(e) => setSpeed(parseFloat(e.target.value))}
-                aria-label="Streaming speed"
+                aria-label={t("taskChatLab.ariaLabel.streamingSpeed")}
                 className="w-32"
               />
               <span className="w-10 tabular-nums">{speed.toFixed(1)}×</span>
             </label>
             <div className="ml-auto flex items-center gap-2">
               <span className="text-muted-foreground">Agent bubble</span>
-              <div className="flex items-center gap-0.5 rounded border border-border p-0.5" role="group" aria-label="Agent bubble treatment">
+              <div className="flex items-center gap-0.5 rounded border border-border p-0.5" role="group" aria-label={t("taskChatLab.ariaLabel.agentBubbleTreatment")}>
                 {BUBBLE_VARIANTS.map((v) => (
                   <button
                     key={v.id || "current"}
