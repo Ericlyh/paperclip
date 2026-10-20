@@ -60,6 +60,10 @@ const additionalSerializedServerTests = new Set([
   "server/src/__tests__/routines-e2e.test.ts",
 ]);
 let invocationIndex = 0;
+// Failing invocations are collected instead of exiting the process on the first
+// one, so a single run surfaces every failing group rather than hiding the
+// groups that come after it.
+const failedRuns = [];
 const serializedModeName = "serialized";
 const generalModeName = "general";
 const allModeName = "all";
@@ -269,6 +273,24 @@ function selectSerializedSuites(routeTests, shardIndex, shardCount) {
   return shardFiles.map((file) => byRepoPath.get(file));
 }
 
+function recordFailure(label, status) {
+  failedRuns.push({ label, status });
+  console.error(`[test:run] FAILED ${label} (exit ${status})`);
+  return status;
+}
+
+function reportFailures() {
+  if (failedRuns.length === 0) {
+    return 0;
+  }
+
+  console.error(`\n[test:run] ${failedRuns.length} invocation(s) failed:`);
+  for (const failure of failedRuns) {
+    console.error(`[test:run]   - ${failure.label} (exit ${failure.status})`);
+  }
+  return failedRuns[0].status;
+}
+
 function runVitest(args, label) {
   console.log(`\n[test:run] ${label}`);
   invocationIndex += 1;
@@ -291,11 +313,12 @@ function runVitest(args, label) {
   });
   if (result.error) {
     console.error(`[test:run] Failed to start Vitest: ${result.error.message}`);
-    process.exit(1);
+    return recordFailure(label, 1);
   }
   if (result.status !== 0) {
-    process.exit(result.status ?? 1);
+    return recordFailure(label, result.status ?? 1);
   }
+  return 0;
 }
 
 function runGeneralSuites(routeTests) {
@@ -382,7 +405,7 @@ function runSerializedSuites(routeTests, shardIndex, shardCount) {
   );
 
   for (const routeTest of shardTests) {
-    runVitest(
+    const status = runVitest(
       [
         "--project",
         "@paperclipai/server",
@@ -392,6 +415,12 @@ function runSerializedSuites(routeTests, shardIndex, shardCount) {
       ],
       routeTest.repoPath,
     );
+    if (status !== 0) {
+      // Serialized suites run one at a time and dominate shard wall-clock, so a
+      // failing suite still ends the shard immediately.
+      reportFailures();
+      process.exit(status);
+    }
   }
 }
 
@@ -474,4 +503,11 @@ if (options.mode === generalModeName || options.mode === allModeName) {
 
 if (options.mode === serializedModeName || options.mode === allModeName) {
   runSerializedSuites(routeTests, options.shardIndex ?? 0, options.shardCount ?? 1);
+}
+
+// The run is only failed after every configured group has had its turn, so a
+// single CI run surfaces every failure class instead of the first one.
+const finalStatus = reportFailures();
+if (finalStatus !== 0) {
+  process.exit(finalStatus);
 }

@@ -58,6 +58,9 @@ jobs:
       - name: Test general-server shard partition
         run: node --test ./scripts/__tests__/run-vitest-stable-shard.test.mjs
 
+      - name: Test vitest runner failure aggregation
+        run: node --test ./scripts/__tests__/run-vitest-stable-failure-aggregation.test.mjs
+
       - name: Test e2e shard partition
         run: node --test ./scripts/__tests__/e2e-shard.test.mjs
 
