@@ -507,4 +507,90 @@ describe("paperclip MCP tools", () => {
     );
     expect(response.content[0]?.text).toContain("run-1");
   });
+
+  it("returns the project-scoped Workspace context bundle for a project", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(
+        mockJsonResponse({
+          id: "22222222-2222-2222-2222-222222222222",
+          companyId: "11111111-1111-1111-1111-111111111111",
+          name: "Xirp + Premium Agent",
+          status: "planned",
+        }),
+      )
+      .mockResolvedValueOnce(
+        mockJsonResponse({
+          project: { id: "22222222-2222-2222-2222-222222222222", name: "Xirp + Premium Agent" },
+          recentIssues: [{ id: "issue-1", title: "Compare Xirp", status: "todo" }],
+          recentDecisions: [],
+          recentDocuments: [],
+          recentRuns: [],
+          members: { users: [], agents: [] },
+          summary: {
+            issueCount: 1,
+            openIssueCount: 1,
+            decisionCount: 0,
+            documentCount: 0,
+            runCount: 0,
+            memberCount: 0,
+            generatedAt: "2026-08-13T10:30:00.000Z",
+          },
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tool = getTool("paperclipGetWorkspaceContext");
+    const response = await tool.execute({ projectId: "22222222-2222-2222-2222-222222222222", issueLimit: 5 });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const [bundleUrl] = fetchMock.mock.calls[1] as [string];
+    expect(String(bundleUrl)).toBe(
+      "http://localhost:3100/api/companies/11111111-1111-1111-1111-111111111111/projects/22222222-2222-2222-2222-222222222222/workspace-context?issueLimit=5",
+    );
+    expect(response.content[0]?.text).toContain("Xirp + Premium Agent");
+    expect(response.content[0]?.text).toContain("issueCount");
+  });
+
+  it("gracefully surfaces the issue_has_no_project case for issue Workspace context", async () => {
+    const fetchMock = vi.fn().mockResolvedValueOnce(
+      mockJsonResponse({ error: "issue_has_no_project" }, 404),
+    );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tool = getTool("paperclipGetIssueWorkspaceContext");
+    const response = await tool.execute({ issueId: "PAP-1135" });
+
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url] = fetchMock.mock.calls[0] as [string];
+    expect(String(url)).toBe("http://localhost:3100/api/issues/PAP-1135/workspace-context");
+    expect(response.content[0]?.text).toContain("issue_has_no_project");
+  });
+
+  it("returns project Workspace members via the workspace-members endpoint", async () => {
+    const fetchMock = vi.fn()
+      .mockResolvedValueOnce(
+        mockJsonResponse({
+          id: "22222222-2222-2222-2222-222222222222",
+          companyId: "11111111-1111-1111-1111-111111111111",
+        }),
+      )
+      .mockResolvedValueOnce(
+        mockJsonResponse({
+          users: [{ id: "user-1", name: "Molt", role: "owner" }],
+          agents: [{ id: "agent-1", name: "Claude Code (host)", role: "claude_local" }],
+        }),
+      );
+    vi.stubGlobal("fetch", fetchMock);
+
+    const tool = getTool("paperclipListWorkspaceMembers");
+    const response = await tool.execute({ projectId: "22222222-2222-2222-2222-222222222222" });
+
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const [membersUrl] = fetchMock.mock.calls[1] as [string];
+    expect(String(membersUrl)).toBe(
+      "http://localhost:3100/api/companies/11111111-1111-1111-1111-111111111111/projects/22222222-2222-2222-2222-222222222222/workspace-members",
+    );
+    expect(response.content[0]?.text).toContain("Molt");
+    expect(response.content[0]?.text).toContain("Claude Code (host)");
+  });
 });
