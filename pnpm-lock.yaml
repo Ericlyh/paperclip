@@ -144,6 +144,9 @@ importers:
       '@agentclientprotocol/claude-agent-acp':
         specifier: ^0.66.0
         version: 0.66.0(@anthropic-ai/sdk@0.81.0(zod@3.25.76))(@modelcontextprotocol/sdk@1.30.0(zod@3.25.76))
+      '@anthropic-ai/claude-agent-sdk':
+        specifier: 0.3.220
+        version: 0.3.220(@anthropic-ai/sdk@0.81.0(zod@3.25.76))(@modelcontextprotocol/sdk@1.30.0(zod@3.25.76))(zod@3.25.76)
       '@paperclipai/adapter-utils':
         specifier: workspace:*
         version: link:../../adapter-utils
