@@ -10329,12 +10329,20 @@ export function issueRoutes(
         // Re-derive closed-ness from the post-update issue so a status change
         // like in_progress -> done with a closure comment does not enqueue a
         // stale issue_commented wake for an already-completed issue.
+        // OOP-2794: when the comment is posted by the assignee's currently active run on this
+        // issue, the run already sees the comment — skip the self-wake. Covers the host-token
+        // case where the actor is a user but actor.runId matches issue.executionRunId.
+        const commentFromActiveRun =
+          actor.runId != null &&
+          existing.executionRunId != null &&
+          actor.runId === existing.executionRunId &&
+          !reopened && resumeRequested !== true;
         // OOP-2792: cron owns the cadence for routine_execution issues; comments never wake them
         // unless the caller explicitly asked to resume/reopen.
         const routineExecutionCommentWake =
           isRoutineExecutionIssue(existing) && !reopened && resumeRequested !== true;
         const skipAssigneeCommentWake =
-          selfComment || isClosedIssueStatus(issue.status) || routineExecutionCommentWake;
+          selfComment || isClosedIssueStatus(issue.status) || routineExecutionCommentWake || commentFromActiveRun;
 
         if (assigneeId && !assigneeChanged && (reopened || !skipAssigneeCommentWake)) {
           addWakeup(assigneeId, {
@@ -12342,12 +12350,20 @@ export function issueRoutes(
       // Re-derive closed-ness from the post-mutation issue so the auto-approval
       // transition (in_review -> done) suppresses a stale `issue_commented` wake
       // to the returnAssignee for an already-completed issue.
+      // OOP-2794: when the comment is posted by the assignee's currently active run on this
+      // issue, the run already sees the comment — skip the self-wake. Covers the host-token
+      // case where the actor is a user but actor.runId matches issue.executionRunId.
+      const commentFromActiveRun =
+        actor.runId != null &&
+        currentIssue.executionRunId != null &&
+        actor.runId === currentIssue.executionRunId &&
+        !reopened && resumeRequested !== true;
       // OOP-2792: cron owns the cadence for routine_execution issues; comments never wake them
       // unless the caller explicitly asked to resume/reopen.
       const routineExecutionCommentWake =
         isRoutineExecutionIssue(issue) && !reopened && resumeRequested !== true;
       const skipWake =
-        selfComment || isClosedIssueStatus(wakeIssueSnapshot.status) || routineExecutionCommentWake;
+        selfComment || isClosedIssueStatus(wakeIssueSnapshot.status) || routineExecutionCommentWake || commentFromActiveRun;
       if (assigneeId && (reopened || !skipWake)) {
         if (reopened) {
           addWakeup(assigneeId, {
