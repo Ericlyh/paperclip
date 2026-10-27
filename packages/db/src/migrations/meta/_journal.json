@@ -1228,7 +1228,7 @@
       "breakpoints": true
     },
     {
-      "idx": 178,
+      "idx": 177,
       "version": "7",
       "when": 1784241826832,
       "tag": "0177_activity_log_responsible_user",
@@ -1575,6 +1575,13 @@
       "version": "7",
       "when": 1792550400000,
       "tag": "0226_cost_events_and_agents_seq_scan_indexes",
+      "breakpoints": true
+    },
+    {
+      "idx": 227,
+      "version": "7",
+      "when": 1793145600000,
+      "tag": "0227_agent_scoped_board_api_keys",
       "breakpoints": true
     }
   ]

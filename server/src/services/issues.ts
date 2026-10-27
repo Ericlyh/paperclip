@@ -131,6 +131,7 @@ import {
 } from "./activity-log.js";
 import { buildIssueChanges } from "./issue-change-receipt.js";
 import { issueThreadInteractionAttentionAgentAllowed } from "./issue-thread-interaction-resolution.js";
+import { isRoutineExecutionUniqueViolation } from "./routine-execution-errors.js";
 
 const ALL_ISSUE_STATUSES = ["backlog", "todo", "in_progress", "in_review", "blocked", "done", "cancelled"];
 const MAX_ISSUE_COMMENT_PAGE_LIMIT = 500;
@@ -5174,64 +5175,115 @@ export function issueService(db: Db) {
     actorRunId: string;
     expectedCheckoutRunId: string;
   }) {
-    return db.transaction(async (tx) => {
-      const lockedIssue = await tx
-        .select({
-          id: issues.id,
-          status: issues.status,
-          assigneeAgentId: issues.assigneeAgentId,
-          checkoutRunId: issues.checkoutRunId,
-          executionRunId: issues.executionRunId,
-        })
-        .from(issues)
-        .where(eq(issues.id, input.issueId))
-        .for("update")
-        .then((rows) => rows[0] ?? null);
-      if (!lockedIssue) {
-        return { adopted: null, latest: null };
-      }
+    try {
+      return await db.transaction(async (tx) => {
+        const lockedIssue = await tx
+          .select({
+            id: issues.id,
+            status: issues.status,
+            assigneeAgentId: issues.assigneeAgentId,
+            checkoutRunId: issues.checkoutRunId,
+            executionRunId: issues.executionRunId,
+          })
+          .from(issues)
+          .where(eq(issues.id, input.issueId))
+          .for("update")
+          .then((rows) => rows[0] ?? null);
+        if (!lockedIssue) {
+          return { adopted: null, latest: null };
+        }
 
-      if (
-        lockedIssue.status !== "in_progress" ||
-        lockedIssue.assigneeAgentId !== input.actorAgentId ||
-        lockedIssue.checkoutRunId !== input.expectedCheckoutRunId
-      ) {
-        return { adopted: null, latest: lockedIssue };
-      }
+        if (
+          lockedIssue.status !== "in_progress" ||
+          lockedIssue.assigneeAgentId !== input.actorAgentId ||
+          lockedIssue.checkoutRunId !== input.expectedCheckoutRunId
+        ) {
+          return { adopted: null, latest: lockedIssue };
+        }
 
-      await Promise.all([
-        tx.execute(
-          sql`select ${heartbeatRuns.id} from ${heartbeatRuns} where ${heartbeatRuns.id} = ${input.expectedCheckoutRunId} for update`,
-        ),
-        tx.execute(
-          sql`select ${heartbeatRuns.id} from ${heartbeatRuns} where ${heartbeatRuns.id} = ${input.actorRunId} for update`,
-        ),
-      ]);
-      const [existingRun, actorRun] = await Promise.all([
-        tx
-          .select({ status: heartbeatRuns.status })
-          .from(heartbeatRuns)
-          .where(eq(heartbeatRuns.id, input.expectedCheckoutRunId))
-          .then((rows) => rows[0] ?? null),
-        tx
-          .select({ status: heartbeatRuns.status })
-          .from(heartbeatRuns)
-          .where(eq(heartbeatRuns.id, input.actorRunId))
-          .then((rows) => rows[0] ?? null),
-      ]);
-      const stale = !existingRun || TERMINAL_HEARTBEAT_RUN_STATUSES.has(existingRun.status);
-      const actorLive = actorRun && !TERMINAL_HEARTBEAT_RUN_STATUSES.has(actorRun.status);
-      if (!stale || !actorLive) {
-        return { adopted: null, latest: lockedIssue };
-      }
+        await Promise.all([
+          tx.execute(
+            sql`select ${heartbeatRuns.id} from ${heartbeatRuns} where ${heartbeatRuns.id} = ${input.expectedCheckoutRunId} for update`,
+          ),
+          tx.execute(
+            sql`select ${heartbeatRuns.id} from ${heartbeatRuns} where ${heartbeatRuns.id} = ${input.actorRunId} for update`,
+          ),
+        ]);
+        const [existingRun, actorRun] = await Promise.all([
+          tx
+            .select({ status: heartbeatRuns.status })
+            .from(heartbeatRuns)
+            .where(eq(heartbeatRuns.id, input.expectedCheckoutRunId))
+            .then((rows) => rows[0] ?? null),
+          tx
+            .select({ status: heartbeatRuns.status })
+            .from(heartbeatRuns)
+            .where(eq(heartbeatRuns.id, input.actorRunId))
+            .then((rows) => rows[0] ?? null),
+        ]);
+        const stale = !existingRun || TERMINAL_HEARTBEAT_RUN_STATUSES.has(existingRun.status);
+        const actorLive = actorRun && !TERMINAL_HEARTBEAT_RUN_STATUSES.has(actorRun.status);
+        if (!stale || !actorLive) {
+          return { adopted: null, latest: lockedIssue };
+        }
 
+        const now = new Date();
+        const adopted = await tx
+          .update(issues)
+          .set({
+            checkoutRunId: input.actorRunId,
+            executionRunId: input.actorRunId,
+            executionLockedAt: now,
+            updatedAt: now,
+          })
+          .where(
+            and(
+              eq(issues.id, input.issueId),
+              eq(issues.status, "in_progress"),
+              eq(issues.assigneeAgentId, input.actorAgentId),
+              eq(issues.checkoutRunId, input.expectedCheckoutRunId),
+            ),
+          )
+          .returning({
+            id: issues.id,
+            status: issues.status,
+            assigneeAgentId: issues.assigneeAgentId,
+            checkoutRunId: issues.checkoutRunId,
+            executionRunId: issues.executionRunId,
+          })
+          .then((rows) => rows[0] ?? null);
+        if (adopted) {
+          return { adopted, latest: adopted };
+        }
+
+        const latest = await tx
+          .select({
+            id: issues.id,
+            status: issues.status,
+            assigneeAgentId: issues.assigneeAgentId,
+            checkoutRunId: issues.checkoutRunId,
+            executionRunId: issues.executionRunId,
+          })
+          .from(issues)
+          .where(eq(issues.id, input.issueId))
+          .then((rows) => rows[0] ?? null);
+        return { adopted: null, latest };
+      });
+    } catch (error) {
+      // OOP-2711 / OOP-2715: the actor run already owns another open
+      // routine-execution issue with the same dispatch tuple, so claiming the
+      // checkout/execution lock raises `issues_open_routine_execution_uq`.
+      // The claim transaction has rolled back; release the stale lock so the
+      // caller PATCH can proceed with its (terminal) status transition.
+      if (!isRoutineExecutionUniqueViolation(error)) throw error;
       const now = new Date();
-      const adopted = await tx
+      const cleared = await db
         .update(issues)
         .set({
-          checkoutRunId: input.actorRunId,
-          executionRunId: input.actorRunId,
-          executionLockedAt: now,
+          checkoutRunId: null,
+          executionRunId: null,
+          executionAgentNameKey: null,
+          executionLockedAt: null,
           updatedAt: now,
         })
         .where(
@@ -5250,11 +5302,8 @@ export function issueService(db: Db) {
           executionRunId: issues.executionRunId,
         })
         .then((rows) => rows[0] ?? null);
-      if (adopted) {
-        return { adopted, latest: adopted };
-      }
-
-      const latest = await tx
+      if (cleared) return { adopted: null, latest: cleared };
+      const latest = await db
         .select({
           id: issues.id,
           status: issues.status,
@@ -5266,7 +5315,7 @@ export function issueService(db: Db) {
         .where(eq(issues.id, input.issueId))
         .then((rows) => rows[0] ?? null);
       return { adopted: null, latest };
-    });
+    }
   }
 
   async function adoptUnownedCheckoutRun(input: {
@@ -5274,24 +5323,62 @@ export function issueService(db: Db) {
     actorAgentId: string;
     actorRunId: string;
   }) {
-    return db.transaction(async (tx) => {
-      await tx.execute(
-        sql`select ${heartbeatRuns.id} from ${heartbeatRuns} where ${heartbeatRuns.id} = ${input.actorRunId} for update`,
-      );
-      const actorRun = await tx
-        .select({ status: heartbeatRuns.status })
-        .from(heartbeatRuns)
-        .where(eq(heartbeatRuns.id, input.actorRunId))
-        .then((rows) => rows[0] ?? null);
-      if (!actorRun || TERMINAL_HEARTBEAT_RUN_STATUSES.has(actorRun.status)) return null;
+    try {
+      return await db.transaction(async (tx) => {
+        await tx.execute(
+          sql`select ${heartbeatRuns.id} from ${heartbeatRuns} where ${heartbeatRuns.id} = ${input.actorRunId} for update`,
+        );
+        const actorRun = await tx
+          .select({ status: heartbeatRuns.status })
+          .from(heartbeatRuns)
+          .where(eq(heartbeatRuns.id, input.actorRunId))
+          .then((rows) => rows[0] ?? null);
+        if (!actorRun || TERMINAL_HEARTBEAT_RUN_STATUSES.has(actorRun.status)) return null;
 
+        const now = new Date();
+        const adopted = await tx
+          .update(issues)
+          .set({
+            checkoutRunId: input.actorRunId,
+            executionRunId: input.actorRunId,
+            executionLockedAt: now,
+            updatedAt: now,
+          })
+          .where(
+            and(
+              eq(issues.id, input.issueId),
+              eq(issues.status, "in_progress"),
+              eq(issues.assigneeAgentId, input.actorAgentId),
+              isNull(issues.checkoutRunId),
+              or(isNull(issues.executionRunId), eq(issues.executionRunId, input.actorRunId)),
+            ),
+          )
+          .returning({
+            id: issues.id,
+            status: issues.status,
+            assigneeAgentId: issues.assigneeAgentId,
+            checkoutRunId: issues.checkoutRunId,
+            executionRunId: issues.executionRunId,
+          })
+          .then((rows) => rows[0] ?? null);
+
+        return adopted;
+      });
+    } catch (error) {
+      // Same partial-index collision shape as adoptStaleCheckoutRun (OOP-2711 /
+      // OOP-2715): when the actor run already owns another open routine-execution
+      // issue with the same dispatch tuple, claiming the lock here raises
+      // `issues_open_routine_execution_uq`. The claim transaction has rolled
+      // back; release the lock so the caller PATCH can proceed.
+      if (!isRoutineExecutionUniqueViolation(error)) throw error;
       const now = new Date();
-      const adopted = await tx
+      return db
         .update(issues)
         .set({
-          checkoutRunId: input.actorRunId,
-          executionRunId: input.actorRunId,
-          executionLockedAt: now,
+          checkoutRunId: null,
+          executionRunId: null,
+          executionAgentNameKey: null,
+          executionLockedAt: null,
           updatedAt: now,
         })
         .where(
@@ -5311,9 +5398,7 @@ export function issueService(db: Db) {
           executionRunId: issues.executionRunId,
         })
         .then((rows) => rows[0] ?? null);
-
-      return adopted;
-    });
+    }
   }
 
   async function clearExecutionRunIfTerminal(issueId: string): Promise<boolean> {

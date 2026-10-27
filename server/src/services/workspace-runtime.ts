@@ -2729,6 +2729,49 @@ export function formatManagedGitWorktreeBranchInspection(input: ManagedGitWorktr
   };
 }
 
+const PAPERCLIP_COMPANY_ID_DISK_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+
+function defaultCompanyIdFilePath(): string {
+  return path.join(os.homedir(), ".paperclip", ".company-id");
+}
+
+/**
+ * Resolve the path to the durable company-id disk file. Honours
+ * `PAPERCLIP_COMPANY_ID_FILE` (with `~` expansion) so the harness can be
+ * pointed at a different instance or a CI-mounted secret file. Defaults to
+ * `~/.paperclip/.company-id`.
+ */
+export function resolveCompanyIdFilePath(): string {
+  const configured = process.env.PAPERCLIP_COMPANY_ID_FILE?.trim();
+  if (configured) return resolveHomeAwarePath(configured);
+  return defaultCompanyIdFilePath();
+}
+
+/**
+ * Resolve a durable company id. Returns the candidate when it is a valid
+ * UUID; otherwise reads the on-disk file at
+ * `${PAPERCLIP_COMPANY_ID_FILE:-~/.paperclip/.company-id}` and returns its
+ * contents if that is a UUID. Returns `null` when neither source produces
+ * a UUID.
+ *
+ * OOP-2910 / OOP-2900 / OOP-2885 / OOP-2871 / OOP-2866 — the harness
+ * env-injection of `PAPERCLIP_COMPANY_ID` is intermittent and has been
+ * observed substituting the slug `paperclip` in place of the canonical UUID.
+ * Reading from the on-disk file makes the value durable.
+ */
+export function resolveDurableCompanyId(candidate: string | null | undefined): string | null {
+  if (typeof candidate === "string" && PAPERCLIP_COMPANY_ID_DISK_UUID_RE.test(candidate.trim())) {
+    return candidate.trim();
+  }
+  try {
+    const content = readFileSync(resolveCompanyIdFilePath(), "utf8").trim();
+    if (PAPERCLIP_COMPANY_ID_DISK_UUID_RE.test(content)) return content;
+  } catch {
+    // File missing or unreadable; fall through to null.
+  }
+  return null;
+}
+
 function buildWorkspaceCommandEnv(input: {
   base: ExecutionWorkspaceInput;
   repoRoot: string;
@@ -2753,7 +2796,8 @@ function buildWorkspaceCommandEnv(input: {
   env.PAPERCLIP_PROJECT_WORKSPACE_ID = input.base.workspaceId ?? "";
   env.PAPERCLIP_AGENT_ID = input.agent.id ?? "";
   env.PAPERCLIP_AGENT_NAME = input.agent.name;
-  env.PAPERCLIP_COMPANY_ID = input.agent.companyId;
+  env.PAPERCLIP_COMPANY_ID =
+    resolveDurableCompanyId(input.agent.companyId) ?? input.agent.companyId ?? "";
   env.PAPERCLIP_ISSUE_ID = input.issue?.id ?? "";
   env.PAPERCLIP_ISSUE_IDENTIFIER = input.issue?.identifier ?? "";
   env.PAPERCLIP_ISSUE_TITLE = input.issue?.title ?? "";

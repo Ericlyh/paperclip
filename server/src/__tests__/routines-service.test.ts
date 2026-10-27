@@ -2107,6 +2107,34 @@ describeEmbeddedPostgres("routine service live-execution coalescing", () => {
     expect(routineIssues).toHaveLength(0);
   });
 
+  it("recognizes the wrapped postgres.js 23505 and coalesces the colliding dispatch", async () => {
+    const { routine, svc } = await seedFixture();
+    const firstRun = await svc.runRoutine(routine.id, { source: "manual" });
+    const existingIssueId = firstRun.linkedIssueId!;
+
+    // The first dispatch creates the issue that occupies the partial unique
+    // index `issues_open_routine_execution_uq`. Mark its heartbeat run terminal
+    // so the second dispatch's optimistic live-execution lookup misses, then
+    // re-run. With the buggy guard (top-level `error.code` + `error.constraint`)
+    // the resulting 23505 would bubble; with the cause-chain helper the dispatch
+    // coalesces against the existing issue.
+    await db
+      .update(heartbeatRuns)
+      .set({ status: "failed", completedAt: new Date() })
+      .where(eq(heartbeatRuns.id, firstRun.id));
+
+    const run = await svc.runRoutine(routine.id, { source: "manual" });
+
+    expect(["coalesced", "issue_created"]).toContain(run.status);
+    expect(run.linkedIssueId).toBe(existingIssueId);
+
+    const routineIssues = await db
+      .select({ id: issues.id })
+      .from(issues)
+      .where(eq(issues.originId, routine.id));
+    expect(routineIssues).toEqual([{ id: existingIssueId }]);
+  });
+
   it("accepts standard second-precision webhook timestamps for HMAC triggers", async () => {
     const { routine, svc } = await seedFixture();
     const { trigger, secretMaterial } = await svc.createTrigger(
