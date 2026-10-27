@@ -19276,7 +19276,7 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
         )
         .orderBy(desc(heartbeatRuns.createdAt));
 
-      const rows = limit ? await query.limit(limit) : await query;
+      const rows = await query.limit(limit ?? 200);
       return rows.map((row) => {
         const {
           contextIssueId,
