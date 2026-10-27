@@ -4289,7 +4289,7 @@ export function issueRoutes(
           message: scopeResult.detail,
         });
       }
-      const revalidated = await taskWatchdogsSvc.revalidateMutationScope(watchdogScope);
+      const revalidated = await taskWatchdogsSvc.revalidateMutationScope(watchdogScope, issue.id);
       if (!revalidated.allowed) {
         return denyIssueThreadInteractionResolution(res, {
           status: 403,
@@ -4445,7 +4445,7 @@ export function issueRoutes(
               message: "Suggested-task creation is outside the current watchdog scope",
             });
           }
-          const revalidated = await taskWatchdogsSvc.revalidateMutationScope(watchdogScope);
+          const revalidated = await taskWatchdogsSvc.revalidateMutationScope(watchdogScope, parent.id);
           if (!revalidated.allowed) {
             return denyIssueThreadInteractionResolution(res, {
               status: 403,
