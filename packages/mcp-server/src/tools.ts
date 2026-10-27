@@ -259,6 +259,23 @@ async function getIssueWorkspaceRuntime(client: PaperclipApiClient, issueId: str
   };
 }
 
+async function resolveProjectReference(
+  client: PaperclipApiClient,
+  projectId: string,
+  companyId?: string | null,
+): Promise<{ id: string; companyId: string }> {
+  const companyQs = companyId ? `companyId=${encodeURIComponent(companyId)}` : "";
+  const project = (await client.requestJson(
+    "GET",
+    `/projects/${encodeURIComponent(projectId)}${companyQs ? `?${companyQs}` : ""}`,
+  )) as { id?: unknown; companyId?: unknown };
+  const resolvedId = typeof project.id === "string" && project.id ? project.id : projectId;
+  const resolvedCompanyId =
+    (typeof project.companyId === "string" && project.companyId ? project.companyId : null) ??
+    client.resolveCompanyId(companyId);
+  return { id: resolvedId, companyId: resolvedCompanyId };
+}
+
 export function createToolDefinitions(client: PaperclipApiClient): ToolDefinition[] {
   return [
     makeTool(
@@ -406,21 +423,10 @@ export function createToolDefinitions(client: PaperclipApiClient): ToolDefinitio
         if (typeof documentLimit === "number") params.set("documentLimit", String(documentLimit));
         if (typeof runLimit === "number") params.set("runLimit", String(runLimit));
         const qs = params.toString();
-        const companyQs = companyId ? `companyId=${encodeURIComponent(companyId)}` : "";
-        const combinedQs = [qs, companyQs].filter(Boolean).join("&");
-        const project = await client.requestJson(
-          "GET",
-          `/projects/${encodeURIComponent(projectId)}${combinedQs ? `?${combinedQs}` : ""}`,
-        );
-        const resolvedCompanyId =
-          (project as { companyId?: unknown }).companyId ??
-          (typeof companyId === "string" ? companyId : null);
-        if (typeof resolvedCompanyId !== "string") {
-          throw new Error(`Project ${projectId} did not resolve to a companyId`);
-        }
+        const resolved = await resolveProjectReference(client, projectId, companyId);
         return client.requestJson(
           "GET",
-          `/companies/${encodeURIComponent(resolvedCompanyId)}/projects/${encodeURIComponent(projectId)}/workspace-context${qs ? `?${qs}` : ""}`,
+          `/companies/${encodeURIComponent(resolved.companyId)}/projects/${encodeURIComponent(resolved.id)}/workspace-context${qs ? `?${qs}` : ""}`,
         );
       },
     ),
@@ -472,19 +478,10 @@ export function createToolDefinitions(client: PaperclipApiClient): ToolDefinitio
         companyId: companyIdOptional,
       }),
       async ({ projectId, companyId }) => {
-        const project = await client.requestJson(
-          "GET",
-          `/projects/${encodeURIComponent(projectId)}${companyId ? `?companyId=${encodeURIComponent(companyId)}` : ""}`,
-        );
-        const resolvedCompanyId =
-          (project as { companyId?: unknown }).companyId ??
-          (typeof companyId === "string" ? companyId : null);
-        if (typeof resolvedCompanyId !== "string") {
-          throw new Error(`Project ${projectId} did not resolve to a companyId`);
-        }
+        const resolved = await resolveProjectReference(client, projectId, companyId);
         return client.requestJson(
           "GET",
-          `/companies/${encodeURIComponent(resolvedCompanyId)}/projects/${encodeURIComponent(projectId)}/workspace-members`,
+          `/companies/${encodeURIComponent(resolved.companyId)}/projects/${encodeURIComponent(resolved.id)}/workspace-members`,
         );
       },
     ),
