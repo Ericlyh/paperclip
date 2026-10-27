@@ -1583,6 +1583,20 @@
       "when": 1793145600000,
       "tag": "0227_agent_scoped_board_api_keys",
       "breakpoints": true
+    },
+    {
+      "idx": 228,
+      "version": "7",
+      "when": 1793145600001,
+      "tag": "0228_issue_lock_webauthn",
+      "breakpoints": true
+    },
+    {
+      "idx": 229,
+      "version": "7",
+      "when": 1793145600002,
+      "tag": "0229_backfill_built_in_bundles_responsible_user",
+      "breakpoints": true
     }
   ]
 }

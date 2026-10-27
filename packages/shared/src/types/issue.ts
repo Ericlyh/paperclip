@@ -795,6 +795,20 @@ export interface Issue {
   description: string | null;
   descriptionTruncated?: boolean;
   status: IssueStatus;
+  /**
+   * UI-level lock (MAT-112). When true the browser must open a WebAuthn/Touch ID
+   * unlock session before description/comments are returned to a board actor.
+   * Agent API access is intentionally preserved (interface-level gate, not
+   * encryption). Optional in the type so existing Issue fixtures stay valid;
+   * the DB column is NOT NULL and the API always returns it.
+   */
+  locked?: boolean;
+  /**
+   * Set by the server on a browser read when `locked` is true and the caller
+   * has no active unlock session: description/comments were redacted from this
+   * payload. Absent/false for agent reads and unlocked browser reads.
+   */
+  contentRedacted?: boolean;
   workMode: IssueWorkMode;
   priority: IssuePriority;
   reviewPolicy: IssueReviewPolicy | null;
@@ -880,6 +894,7 @@ export type CompactIssue = Pick<
   | "title"
   | "description"
   | "status"
+  | "locked"
   | "workMode"
   | "priority"
   | "reviewPolicy"

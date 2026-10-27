@@ -1,5 +1,5 @@
 import crypto from "node:crypto";
-import { and, asc, desc, eq, gt, inArray, isNotNull, isNull, lte, ne, not, or, sql } from "drizzle-orm";
+import { and, asc, desc, eq, gt, inArray, isNotNull, isNull, lte, not, or, sql } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import {
   agents,
@@ -81,7 +81,6 @@ import type { PluginWorkerManager } from "./plugin-worker-manager.js";
 
 const OPEN_ISSUE_STATUSES = ["backlog", "todo", "in_progress", "in_review", "blocked"];
 const LIVE_HEARTBEAT_RUN_STATUSES = ["queued", "running", "scheduled_retry"];
-const TERMINAL_ISSUE_STATUSES = new Set(["done", "cancelled"]);
 const MAX_CATCH_UP_RUNS = 25;
 const MAX_ROUTINE_REVISIONS = 100;
 const EXECUTION_ISSUE_TRANSIENT_FAILURE_CODE = "execution_issue_status";
@@ -134,13 +133,18 @@ function legacyExecutionIssueTransientFailureStatus(
   ) ?? null;
 }
 
+function readNonEmptyString(value: unknown): string | null {
+  return typeof value === "string" && value.trim().length > 0 ? value : null;
+}
+
 async function resolveCompanyDefaultResponsibleUserId(db: Db, companyId: string) {
   const company = await db
     .select({ defaultResponsibleUserId: companies.defaultResponsibleUserId })
     .from(companies)
     .where(eq(companies.id, companyId))
     .then((rows) => rows[0] ?? null);
-  if (company?.defaultResponsibleUserId) return company.defaultResponsibleUserId;
+  const explicitDefault = readNonEmptyString(company?.defaultResponsibleUserId);
+  if (explicitDefault) return explicitDefault;
 
   const owner = await db
     .select({ userId: companyMemberships.principalId })
@@ -156,11 +160,42 @@ async function resolveCompanyDefaultResponsibleUserId(db: Db, companyId: string)
     .orderBy(asc(companyMemberships.createdAt), asc(companyMemberships.id))
     .limit(1)
     .then((rows) => rows[0] ?? null);
-  return owner?.userId ?? null;
+  if (owner?.userId) return owner.userId;
+
+  const firstUser = await db
+    .select({ userId: companyMemberships.principalId })
+    .from(companyMemberships)
+    .where(
+      and(
+        eq(companyMemberships.companyId, companyId),
+        eq(companyMemberships.principalType, "user"),
+        eq(companyMemberships.status, "active"),
+      ),
+    )
+    .orderBy(asc(companyMemberships.createdAt), asc(companyMemberships.id))
+    .limit(1)
+    .then((rows) => rows[0] ?? null);
+  return firstUser?.userId ?? null;
 }
 
 async function resolveRoutineResponsibleUserId(db: Db, companyId: string, actorUserId: string | null | undefined, parentIssueId?: string | null) {
-  if (actorUserId) return actorUserId;
+  const candidateUserId = readNonEmptyString(actorUserId);
+  if (candidateUserId) {
+    const membership = await db
+      .select({ id: companyMemberships.id })
+      .from(companyMemberships)
+      .where(
+        and(
+          eq(companyMemberships.companyId, companyId),
+          eq(companyMemberships.principalType, "user"),
+          eq(companyMemberships.principalId, candidateUserId),
+          eq(companyMemberships.status, "active"),
+        ),
+      )
+      .limit(1)
+      .then((rows) => rows[0] ?? null);
+    if (membership) return candidateUserId;
+  }
   if (parentIssueId) {
     const parent = await db
       .select({ responsibleUserId: issues.responsibleUserId, createdByUserId: issues.createdByUserId })
@@ -765,7 +800,7 @@ export function routineService(
 
   async function getRoutineDescriptionDocument(
     routineId: string,
-    executor: Db | any = db,
+    executor: Db = db,
   ): Promise<RoutineDescriptionDocument | null> {
     const row = await executor
       .select({
@@ -791,12 +826,12 @@ export function routineService(
         eq(routineDocuments.routineId, routineId),
         eq(routineDocuments.key, ROUTINE_DESCRIPTION_DOCUMENT_KEY),
       ))
-      .then((rows: any[]) => rows[0] ?? null);
+      .then((rows) => rows[0] ?? null);
     return row ? mapRoutineDescriptionDocument(row) : null;
   }
 
   async function upsertRoutineDescriptionDocument(
-    executor: Db | any,
+    executor: Db,
     routine: RoutineRow,
     actor: Actor,
     options: { changeSummary?: string | null } = {},
@@ -981,13 +1016,6 @@ export function routineService(
       routine: routineForDocument,
       revision: mapRoutineRevision(revision),
     };
-  }
-
-  async function assertRoutineAccess(companyId: string, routineId: string) {
-    const routine = await getRoutineById(routineId);
-    if (!routine) throw notFound("Routine not found");
-    if (routine.companyId !== companyId) throw forbidden("Routine must belong to same company");
-    return routine;
   }
 
   async function assertRestorableAssignee(

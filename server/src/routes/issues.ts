@@ -162,6 +162,7 @@ import {
   collectIssueWorkspaceCommandPaths,
 } from "./workspace-command-authz.js";
 import { shouldWakeAssigneeOnCheckout } from "./issues-checkout-wakeup.js";
+import { isIssueUnlockActive } from "./issue-lock-webauthn.js";
 import {
   GENERIC_ATTACHMENT_CONTENT_TYPES,
   isInlineAttachmentContentType,
@@ -2370,6 +2371,7 @@ function toCompactIssue(issue: any): CompactIssue {
     title: issue.title,
     description: issue.description,
     status: issue.status,
+    locked: issue.locked ?? false,
     workMode: issue.workMode,
     priority: issue.priority,
     reviewPolicy: issue.reviewPolicy,
@@ -3912,6 +3914,34 @@ export function issueRoutes(
       details: { ...body.details, ...extraDetails },
     });
     return false as const;
+  }
+
+  // MAT-112 issue-lock (variant A, UI gate). A locked issue's full content
+  // (description + comments) is withheld from BOARD (browser) actors until they
+  // open a WebAuthn/Touch ID unlock session. Agent (API-key) actors are
+  // intentionally NOT gated — this is an interface-level lock, not encryption.
+  function shouldRedactLockedForActor(req: Request): boolean {
+    return req.actor.type === "board" && !isIssueUnlockActive(req);
+  }
+  function redactLockedIssueDetail<T extends { locked?: boolean | null }>(req: Request, issue: T): T {
+    if (issue.locked && shouldRedactLockedForActor(req)) {
+      return { ...issue, description: null, contentRedacted: true };
+    }
+    return issue;
+  }
+  // Clone-and-redact a list body (array of issue rows) without mutating the
+  // shared server-side list cache. Locked items lose their description preview.
+  function redactLockedIssueListBody(req: Request, body: unknown): unknown {
+    if (!Array.isArray(body) || !shouldRedactLockedForActor(req)) return body;
+    let changed = false;
+    const out = body.map((item) => {
+      if (item && typeof item === "object" && (item as { locked?: boolean }).locked) {
+        changed = true;
+        return { ...(item as Record<string, unknown>), description: null, contentRedacted: true };
+      }
+      return item;
+    });
+    return changed ? out : body;
   }
 
   async function assertIssueReadAllowed(req: Request, res: Response, issue: Parameters<typeof decideIssueAccess>[1]) {
@@ -6057,6 +6087,16 @@ export function issueRoutes(
         etagOutcome: etagMatched ? "not_modified" : "fresh",
         identicalInFlightCount: coordinated.identicalInFlightCount,
       });
+      // MAT-112: when a gated browser actor would see a locked issue's cached
+      // (unredacted) content, bypass the ETag/304 shortcut and shared cache so
+      // the redacted body is always sent fresh.
+      const compactRedacted = redactLockedIssueListBody(req, coordinated.response.body);
+      if (compactRedacted !== coordinated.response.body) {
+        res.setHeader("Cache-Control", "no-store");
+        res.removeHeader("ETag");
+        res.json(compactRedacted);
+        return;
+      }
       if (etagMatched) {
         res.status(304).end();
         return;
@@ -6076,7 +6116,7 @@ export function issueRoutes(
       etagOutcome: "none",
       identicalInFlightCount: coordinated.identicalInFlightCount,
     });
-    res.json(coordinated.response.body);
+    res.json(redactLockedIssueListBody(req, coordinated.response.body));
   });
 
   router.get("/companies/:companyId/issues/count", async (req, res) => {
@@ -6569,8 +6609,9 @@ export function issueRoutes(
       : null;
     const workProducts = await workProductsSvc.listForIssue(issue.id);
     res.setHeader("Server-Timing", `paperclip_issue;dur=${(performance.now() - requestStartedAt).toFixed(1)}`);
+    const issueForResponse = redactLockedIssueDetail(req, issue);
     res.json({
-      ...issue,
+      ...issueForResponse,
       ...inboxArchiveFields,
       goalId: goal?.id ?? issue.goalId,
       ancestors,
@@ -9100,6 +9141,14 @@ export function issueRoutes(
         reviewPolicy: existing.reviewPolicy,
       });
     }
+
+    // MAT-112: the issue-lock toggle is a board-user (browser) control. Agents
+    // may not lock/unlock issues — the gate exists to withhold content from the
+    // browser, not from the agent API.
+    if (updateFields.locked !== undefined && req.actor.type !== "board") {
+      res.status(403).json({ error: "Only board users can change the issue lock" });
+      return;
+    }
     const shouldCancelActiveRunForCancelledStatus =
       existing.status !== "cancelled" && updateFields.status === "cancelled";
     if (resumeRequested === true && !commentBody) {
@@ -10876,6 +10925,11 @@ export function issueRoutes(
       limitRaw && Number.isFinite(limitRaw) && limitRaw > 0
         ? Math.min(Math.floor(limitRaw), MAX_ISSUE_COMMENT_LIMIT)
         : null;
+    // MAT-112: locked issue comments are withheld from gated browser actors.
+    if (issue.locked && shouldRedactLockedForActor(req)) {
+      res.json([]);
+      return;
+    }
     const comments = await svc.listComments(id, {
       afterCommentId,
       order,

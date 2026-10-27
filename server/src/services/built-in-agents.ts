@@ -660,30 +660,6 @@ function defaultAdapterType(definition: BuiltInAgentDefinition) {
   return definition.defaultAdapterType ?? definition.allowedAdapterTypes?.[0] ?? "process";
 }
 
-function normalizeAdapterType(value: unknown) {
-  return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
-}
-
-function selectPreferredAdapterType(
-  definition: BuiltInAgentDefinition,
-  usage: Array<{ adapterType: string; count: number }>,
-) {
-  const fallback = defaultAdapterType(definition);
-  const preference = definition.allowedAdapterTypes ?? [];
-  if (preference.length === 0) return fallback;
-
-  const rank = new Map(preference.map((adapterType, index) => [adapterType, index]));
-  let selected: { adapterType: string; count: number; rank: number } | null = null;
-  for (const entry of usage) {
-    const adapterRank = rank.get(entry.adapterType);
-    if (adapterRank === undefined) continue;
-    if (!selected || entry.count > selected.count || (entry.count === selected.count && adapterRank < selected.rank)) {
-      selected = { ...entry, rank: adapterRank };
-    }
-  }
-  return selected?.adapterType ?? fallback;
-}
-
 function assertAdapterAllowed(definition: BuiltInAgentDefinition, adapterType: string) {
   if (definition.allowedAdapterTypes && !definition.allowedAdapterTypes.includes(adapterType)) {
     throw unprocessable(`Adapter type ${adapterType} is not allowed for built-in agent ${definition.key}`, {
@@ -1284,7 +1260,15 @@ export function builtInAgentService(db: Db) {
 
   async function createOrResetRoutine(agent: Agent, definition: BuiltInAgentDefinition, existing: Routine | null, mode: "reconcile" | "reset") {
     const routine = definition.bundle!.routine;
-    const actor = { agentId: null, userId: "built-in-bundles" };
+    // "built-in-bundles" is a system marker, not a real user account. Passing it as
+    // userId becomes the routine's responsibleUserId and propagates onto every task
+    // the routine creates. assertCompanyAccess then looks up an active membership for
+    // that "user", finds none, and denies company_access — so an agent working a
+    // built-in-routine task loses access to the entire company, not just the task.
+    // Leaving userId empty lets resolveRoutineResponsibleUserId fall back to
+    // companies.defaultResponsibleUserId, which is the intended path for
+    // system-originated work.
+    const actor = { agentId: null, userId: null };
     const nextRoutine = existing
       ? await routineSvc.update(existing.id, {
         title: routine.title,
