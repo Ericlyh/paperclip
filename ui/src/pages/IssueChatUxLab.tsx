@@ -142,7 +142,6 @@ function RotatingReasoningDemo({ intervalMs = 2200 }: { intervalMs?: number }) {
 }
 
 export function IssueChatUxLab() {
-  const { t } = useTranslation();
   const [showComposer, setShowComposer] = useState(true);
 
   return (

@@ -134,7 +134,6 @@ const ACTION_COLORS: Record<string, string> = {
 };
 
 function FrontmatterCard({ data }: { data: FrontmatterData }) {
-  const { t } = useTranslation();
   return (
     <div className="rounded-md border border-border bg-accent/20 px-4 py-3 mb-4">
       <dl className="grid grid-cols-(--gtc-5) gap-x-4 gap-y-1.5 text-sm">
@@ -169,6 +168,7 @@ function FrontmatterCard({ data }: { data: FrontmatterData }) {
 // ── Import file tree customization ───────────────────────────────────
 
 function renderImportFileExtra(node: FileTreeNode, checked: boolean, renameMap: Map<string, string>) {
+  const { t } = useTranslation();
   // Show rename indicator only on directories (folders), not individual files
   const renamedTo = node.kind === "dir" ? renameMap.get(node.path) : undefined;
   const actionBadge = node.action ? (

@@ -371,8 +371,8 @@ function ProjectPluginOperationsList({
 /* ── Main project page ── */
 
 export function ProjectDetail() {
-  const { t } = useTranslation();
   const { companyPrefix, projectId, filter } = useParams<{
+  const { t } = useTranslation();
     companyPrefix?: string;
     projectId: string;
     filter?: string;

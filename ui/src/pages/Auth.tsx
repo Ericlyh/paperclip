@@ -14,7 +14,6 @@ import { Sparkles } from "lucide-react";
 type AuthMode = "sign_in" | "sign_up";
 
 export function AuthPage() {
-  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -30,6 +29,7 @@ export function AuthPage() {
     [searchParams],
   );
   const { data: session, isLoading: isSessionLoading } = useQuery({
+  const { t } = useTranslation();
     queryKey: queryKeys.auth.session,
     queryFn: () => authApi.getSession(),
     retry: false,

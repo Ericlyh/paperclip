@@ -258,7 +258,6 @@ function ReinstallDialog({
 }
 
 export function AdapterManager() {
-  const { t } = useTranslation();
   const { selectedCompany } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
@@ -272,6 +271,7 @@ export function AdapterManager() {
   const [reinstallTarget, setReinstallTarget] = useState<AdapterInfo | null>(null);
 
   useEffect(() => {
+  const { t } = useTranslation();
     setBreadcrumbs([
       { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
       { label: "Settings", href: "/company/settings" },

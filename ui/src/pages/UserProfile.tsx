@@ -196,13 +196,13 @@ function UsageList({
 }
 
 export function UserProfile() {
-  const { t } = useTranslation();
   const { userSlug = "" } = useParams<{ userSlug: string }>();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const companyId = selectedCompanyId ?? NO_COMPANY;
 
   const { data, isLoading, error } = useQuery({
+  const { t } = useTranslation();
     queryKey: queryKeys.userProfile(companyId, userSlug),
     queryFn: () => userProfilesApi.get(companyId, userSlug),
     enabled: !!selectedCompanyId && !!userSlug,

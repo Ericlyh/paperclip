@@ -130,7 +130,6 @@ const checklist = [
 ];
 
 export function SystemNoticeUxLab() {
-  const { t } = useTranslation();
   const fixtureById = new Map(systemNoticeFixtures.map((f) => [f.id, f] as const));
 
   const warningCollapsed = fixtureById.get("warning-collapsed")!;
@@ -248,6 +247,7 @@ export function SystemNoticeUxLab() {
             body="Paperclip could not resolve this issue's missing disposition automatically. The issue is blocked on a recovery owner."
             metadata={[
               {
+  const { t } = useTranslation();
                 title: "Recovery owner",
                 rows: [
                   {

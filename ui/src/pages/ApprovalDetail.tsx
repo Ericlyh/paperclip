@@ -18,7 +18,6 @@ import { MarkdownBody } from "../components/MarkdownBody";
 import { useTranslation } from "@/i18n";
 
 export function ApprovalDetail() {
-  const { t } = useTranslation();
   const { approvalId } = useParams<{ approvalId: string }>();
   const { selectedCompanyId, setSelectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
@@ -30,6 +29,7 @@ export function ApprovalDetail() {
   const [showRawPayload, setShowRawPayload] = useState(false);
 
   const { data: approval, isLoading } = useQuery({
+  const { t } = useTranslation();
     queryKey: queryKeys.approvals.detail(approvalId!),
     queryFn: () => approvalsApi.get(approvalId!),
     enabled: !!approvalId,

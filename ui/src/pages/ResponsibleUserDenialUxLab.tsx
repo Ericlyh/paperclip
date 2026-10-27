@@ -108,7 +108,6 @@ function RunDetailHeader({ onBehalfOf, denial }: { onBehalfOf?: string | null; d
 }
 
 export function ResponsibleUserDenialUxLab() {
-  const { t } = useTranslation();
   return (
     <div className="min-h-screen bg-muted/20 p-6">
       <div className="mx-auto max-w-5xl space-y-6">
@@ -209,6 +208,7 @@ export function ResponsibleUserDenialUxLab() {
             <RunLedgerRow
               onBehalfOf="Ada Lovelace"
               denial={
+  const { t } = useTranslation();
                 <ResponsibleUserDenialNotice
                   code="RESPONSIBLE_USER_UNAUTHORIZED"
                   userName="Ada Lovelace"

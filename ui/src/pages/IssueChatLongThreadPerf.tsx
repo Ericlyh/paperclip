@@ -53,7 +53,6 @@ function MetricTile({ label, value, testId }: { label: string; value: string; te
 }
 
 export function IssueChatLongThreadPerf() {
-  const { t } = useTranslation();
   const [metrics, setMetrics] = useState<RenderMetrics>(initialMetrics);
   const metricsRef = useRef<RenderMetrics>(initialMetrics);
   const renderStartedAtRef = useRef(performance.now());
@@ -66,6 +65,7 @@ export function IssueChatLongThreadPerf() {
   );
 
   useEffect(() => () => {
+  const { t } = useTranslation();
     if (publishTimerRef.current !== null) {
       window.clearTimeout(publishTimerRef.current);
     }

@@ -804,7 +804,6 @@ export function DecisionBundleHeader({
 }
 
 function CaughtUpNote({ filtered }: { filtered: boolean }) {
-  const { t } = useTranslation();
   return (
     <div className="rounded-xl border border-dashed border-border py-10 text-center">
       <p className="text-sm font-medium text-foreground">
@@ -818,6 +817,7 @@ function CaughtUpNote({ filtered }: { filtered: boolean }) {
 }
 
 function ZeroState() {
+  const { t } = useTranslation();
   const { t } = useTranslation();
   return (
     <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-20 text-center">

@@ -648,7 +648,6 @@ export function getAwsManagedPathPreview(input: {
 }
 
 export function Secrets() {
-  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
@@ -667,6 +666,7 @@ export function Secrets() {
   const selectedDefinitionId = searchParams.get("definition");
   const setDetailSelection = useCallback(
     (secretId: string | null, definitionId: string | null = null) => {
+  const { t } = useTranslation();
       setSearchParams((prev) => {
         const next = new URLSearchParams(prev);
         if (secretId) next.set("secret", secretId);

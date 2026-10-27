@@ -155,7 +155,6 @@ function buildRoutineMutationPayload(input: RoutineEditDraft) {
 }
 
 export function RoutineDetail() {
-  const { t } = useTranslation();
   const { routineId, section: sectionParam } = useParams<{ routineId: string; section?: string }>();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
@@ -172,6 +171,7 @@ export function RoutineDetail() {
   const [runVariablesOpen, setRunVariablesOpen] = useState(false);
   const [newTrigger, setNewTrigger] = useState(createDefaultNewTrigger);
   const [editDraft, setEditDraft] = useState<RoutineEditDraft>({
+  const { t } = useTranslation();
     title: "",
     description: "",
     projectId: "",

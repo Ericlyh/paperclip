@@ -9,7 +9,6 @@ import { authApi } from "../api/auth";
 import { queryKeys } from "../lib/queryKeys";
 
 export function CliAuthPage() {
-  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const params = useParams();
   const [searchParams] = useSearchParams();
@@ -21,6 +20,7 @@ export function CliAuthPage() {
   );
 
   const sessionQuery = useQuery({
+  const { t } = useTranslation();
     queryKey: queryKeys.auth.session,
     queryFn: () => authApi.getSession(),
     retry: false,

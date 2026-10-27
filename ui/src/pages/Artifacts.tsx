@@ -63,7 +63,6 @@ export function artifactGroupByLabel(value: ArtifactGroupBy): string {
 }
 
 export function Artifacts() {
-  const { t } = useTranslation();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -84,6 +83,7 @@ export function Artifacts() {
   // (e.g. back/forward navigation or a shared URL), without clobbering in-flight
   // typing (which leaves `query` unchanged until the debounce commits).
   useEffect(() => {
+  const { t } = useTranslation();
     setDraftQuery((prev) => (prev.trim() === query ? prev : query));
   }, [query]);
 

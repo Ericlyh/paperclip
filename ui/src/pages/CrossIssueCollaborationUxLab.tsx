@@ -116,7 +116,6 @@ const AGENT_NAMES = new Map([
 ]);
 
 export function CrossIssueCollaborationUxLab() {
-  const { t } = useTranslation();
   const resolveAgentLabel = (id: string) => AGENT_NAMES.get(id) ?? null;
   const resolveUserLabel = (id: string) => (id === "user-dotta" ? "Dotta" : null);
 
@@ -180,6 +179,7 @@ export function CrossIssueCollaborationUxLab() {
             <ActivityRow actorName="Fable" verb="changed the status from todo to in progress">
               <IssueFieldChangeReceipt
                 event={{
+  const { t } = useTranslation();
                   action: "issue.updated",
                   responsibleUserId: "user-dotta",
                   details: {

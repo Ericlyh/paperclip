@@ -244,7 +244,6 @@ function Segmented<T extends string>({
 
 /** Encoding key for the "Signal" timeline: colour = how each run started. */
 function TimelineLegend() {
-  const { t } = useTranslation();
   return (
     <div className="flex flex-wrap items-center gap-x-4 gap-y-2 border-b border-border px-3.5 py-2 text-xs text-muted-foreground">
       <span className="flex items-center gap-1.5">
@@ -271,6 +270,7 @@ function TimelineLegend() {
 }
 
 function TimelineSummaryStats({
+  const { t } = useTranslation();
   summary,
 }: {
   summary: ReturnType<typeof timelineSummary>;

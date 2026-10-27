@@ -717,7 +717,6 @@ function CaseSortPicker({
 
 /** Full-page onboarding hero shown when the company has zero cases (§6). */
 function CasesEmptyHero() {
-  const { t } = useTranslation();
   return (
     <div className="mx-auto flex max-w-xl flex-col items-center gap-4 py-16 text-center">
       <Layers className="h-10 w-10 text-muted-foreground" />
@@ -745,6 +744,7 @@ function CasesEmptyHero() {
 }
 
 export function Cases() {
+  const { t } = useTranslation();
   const { t } = useTranslation();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();

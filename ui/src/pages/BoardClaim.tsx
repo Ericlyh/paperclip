@@ -9,7 +9,6 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 
 export function BoardClaimPage() {
-  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const params = useParams();
   const [searchParams] = useSearchParams();
@@ -21,6 +20,7 @@ export function BoardClaimPage() {
   );
 
   const sessionQuery = useQuery({
+  const { t } = useTranslation();
     queryKey: queryKeys.auth.session,
     queryFn: () => authApi.getSession(),
     retry: false,

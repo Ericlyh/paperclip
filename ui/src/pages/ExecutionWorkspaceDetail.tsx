@@ -771,7 +771,6 @@ function ExecutionWorkspaceRoutinesList({
 }
 
 export function ExecutionWorkspaceDetail() {
-  const { t } = useTranslation();
   const { workspaceId } = useParams<{ workspaceId: string }>();
   const location = useLocation();
   const navigate = useNavigate();
@@ -786,6 +785,7 @@ export function ExecutionWorkspaceDetail() {
   const [pendingRuntimeActions, setPendingRuntimeActions] = useState<WorkspaceRuntimeControlRequest[]>([]);
   const activeRouteTab = workspaceId ? resolveExecutionWorkspaceTab(location.pathname, workspaceId) : null;
   const pluginTabFromSearch = useMemo(() => {
+  const { t } = useTranslation();
     const tab = new URLSearchParams(location.search).get("tab");
     return isExecutionWorkspacePluginTab(tab) ? tab : null;
   }, [location.search]);

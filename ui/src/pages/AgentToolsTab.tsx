@@ -230,7 +230,6 @@ const DENIED_TOOLS_DISPLAY_LIMIT = 30;
  * which access profiles and rules shape the final list.
  */
 export function AgentToolsTab({ agent, companyId }: { agent: AgentDetailRecord; companyId: string }) {
-  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const [installDraft, setInstallDraft] = useState<Record<string, boolean>>({});
   const lastSavedInstallRef = useRef<Record<string, boolean>>({});
@@ -238,6 +237,7 @@ export function AgentToolsTab({ agent, companyId }: { agent: AgentDetailRecord; 
   const failedInstallDraftRef = useRef<{ connectionId: string; installed: boolean } | null>(null);
 
   const effective = useQuery({
+  const { t } = useTranslation();
     queryKey: queryKeys.tools.effectiveProfilesForAgent(companyId, agent.id),
     queryFn: () => toolsApi.getEffectiveProfilesForAgent(companyId, agent.id),
   });

@@ -102,12 +102,12 @@ function TypingBubble() {
 }
 
 export function BoardChat() {
-  const { t } = useTranslation();
   const { selectedCompanyId, selectedCompany } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
 
   useEffect(() => {
+  const { t } = useTranslation();
     setBreadcrumbs([{ label: "Conference Room" }]);
   }, [setBreadcrumbs]);
 

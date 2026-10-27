@@ -284,7 +284,6 @@ function CompatChip({ compatibility }: { compatibility: CatalogTeamCompatibility
 }
 
 function ProvenanceBadge({ team }: { team: CatalogTeam }) {
-  const { t } = useTranslation();
   if (!team.packageName) return null;
   return (
     <Tooltip>
@@ -301,6 +300,7 @@ function ProvenanceBadge({ team }: { team: CatalogTeam }) {
 }
 
 function RiskBanner({ team }: { team: CatalogTeam }) {
+  const { t } = useTranslation();
   const unsafe = team.sourceRefs.filter(
     (s) => sourceWarningCode(s) !== "ok",
   );

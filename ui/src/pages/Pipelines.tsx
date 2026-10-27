@@ -900,7 +900,6 @@ export function pipelineKeyFromName(name: string) {
 }
 
 function PipelinesIndex() {
-  const { t } = useTranslation();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const navigate = useNavigate();
@@ -912,6 +911,7 @@ function PipelinesIndex() {
   useEffect(() => setBreadcrumbs([{ label: "Pipelines" }]), [setBreadcrumbs]);
 
   const pipelinesQuery = useQuery({
+  const { t } = useTranslation();
     queryKey: selectedCompanyId ? queryKeys.pipelines.list(selectedCompanyId) : ["pipelines", "missing-company"],
     queryFn: () => pipelinesApi.list(selectedCompanyId!),
     enabled: Boolean(selectedCompanyId),
