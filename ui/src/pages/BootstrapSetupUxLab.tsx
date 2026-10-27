@@ -32,7 +32,6 @@ const FIXTURE_ORDER: LabFixtureKey[] = [
 ];
 
 function CliFallback({ hasActiveInvite }: { hasActiveInvite: boolean }) {
-  const { t } = useTranslation();
   return (
     <div className="mt-6 border-t border-border pt-5">
       <div className="flex items-center gap-2 text-sm font-medium">
@@ -52,6 +51,7 @@ function CliFallback({ hasActiveInvite }: { hasActiveInvite: boolean }) {
 }
 
 function StateChrome({ children }: { children: ReactNode }) {
+  const { t } = useTranslation();
   return (
     <div className="mx-auto max-w-xl py-10">
       <Card className="block p-6">{children}</Card>

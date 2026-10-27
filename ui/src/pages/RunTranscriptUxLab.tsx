@@ -198,7 +198,6 @@ function DashboardPreview({
 }
 
 export function RunTranscriptUxLab() {
-  const { t } = useTranslation();
   const [selectedSurface, setSelectedSurface] = useState<SurfaceId>("detail");
   const [detailMode, setDetailMode] = useState<TranscriptMode>("nice");
   const [streaming, setStreaming] = useState(true);
@@ -224,6 +223,7 @@ export function RunTranscriptUxLab() {
 
             <div className="space-y-2">
               {surfaceOptions.map((option) => {
+  const { t } = useTranslation();
                 const Icon = option.icon;
                 return (
                   <button

@@ -116,7 +116,6 @@ function useStreamingReplay(
  * 0.1×–10× speed control, and the live motion tweak panel.
  */
 export function TaskChatLab() {
-  const { t } = useTranslation();
   const [selected, setSelected] = useState<TaskChatStateId>("agent-message");
   const [speed, setSpeed] = useState(1);
   const [playing, setPlaying] = useState(true);
@@ -152,6 +151,7 @@ export function TaskChatLab() {
                       type="button"
                       data-state-id={m.id}
                       onClick={() => {
+  const { t } = useTranslation();
                         setSelected(m.id);
                         setPlayToken((t) => t + 1);
                       }}

@@ -30,7 +30,6 @@ type ProjectSortField = "name" | "updated" | "created" | "targetDate";
 type ProjectSortDir = "asc" | "desc";
 
 function useProjectSortOptions() {
-  const { t } = useTranslation();
   return useMemo<Array<{ field: ProjectSortField; label: string }>>(
     () => [
       { field: "name", label: t("projects.sortName") },
@@ -43,6 +42,7 @@ function useProjectSortOptions() {
 }
 
 function compareProjectNames(left: Project, right: Project) {
+  const { t } = useTranslation();
   const nameDiff = left.name.localeCompare(right.name, undefined, { sensitivity: "base" });
   return nameDiff !== 0 ? nameDiff : left.id.localeCompare(right.id);
 }

@@ -239,7 +239,6 @@ function AuditRow({
 
 /** The permission-denied / upsell state shown when the caller lacks the grant. */
 function AuditUpsell() {
-  const { t } = useTranslation();
   return (
     <Card>
       <CardContent className="flex flex-col items-center gap-3 py-14 text-center">
@@ -260,6 +259,7 @@ function AuditUpsell() {
 }
 
 export function AuditFeed({
+  const { t } = useTranslation();
   companyId,
   lockedAgentId,
   hideHeader,
