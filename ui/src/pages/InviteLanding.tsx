@@ -209,7 +209,6 @@ function AwaitingJoinApprovalPanel({
 }
 
 export function InviteLandingPage() {
-  const { t } = useTranslation();
   const queryClient = useQueryClient();
   const navigate = useNavigate();
   const { setSelectedCompanyId } = useCompany();
@@ -229,6 +228,7 @@ export function InviteLandingPage() {
   const authErrorId = "invite-auth-error";
 
   const healthQuery = useQuery({
+  const { t } = useTranslation();
     queryKey: queryKeys.health,
     queryFn: () => healthApi.get(),
     retry: false,

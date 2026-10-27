@@ -246,8 +246,8 @@ function DetailRow({ label, children }: { label: string; children: React.ReactNo
 }
 
 export function ProjectWorkspaceDetail() {
-  const { t } = useTranslation();
   const { companyPrefix, projectId, workspaceId } = useParams<{
+  const { t } = useTranslation();
     companyPrefix?: string;
     projectId: string;
     workspaceId: string;

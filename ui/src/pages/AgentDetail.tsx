@@ -693,8 +693,8 @@ function WorkspaceOperationsSection({
 }
 
 export function AgentDetail() {
-  const { t } = useTranslation();
   const { companyPrefix, agentId, tab: urlTab, runId: urlRunId } = useParams<{
+  const { t } = useTranslation();
     companyPrefix?: string;
     agentId: string;
     tab?: string;

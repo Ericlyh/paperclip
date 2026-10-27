@@ -327,7 +327,6 @@ function InlineAuthPreview({
 }
 
 function AgentRequestPreview() {
-  const { t } = useTranslation();
   return (
     <div className="space-y-4">
       <div>
@@ -365,6 +364,7 @@ function AgentRequestPreview() {
 }
 
 function AcceptInvitePreview({
+  const { t } = useTranslation();
   autoAccept,
   isCurrentMember,
   error,

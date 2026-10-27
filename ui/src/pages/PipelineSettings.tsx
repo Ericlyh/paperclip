@@ -1275,7 +1275,6 @@ function StageEventsList({
 }
 
 export function PipelineSettings() {
-  const { t } = useTranslation();
   const { pipelineId } = useParams<{ pipelineId: string }>();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
@@ -1334,6 +1333,7 @@ export function PipelineSettings() {
   const [archiveDialogOpen, setArchiveDialogOpen] = useState(false);
 
   const pipelineQuery = useQuery({
+  const { t } = useTranslation();
     queryKey: pipelineId ? queryKeys.pipelines.detail(pipelineId) : ["pipelines", "detail", "none"],
     queryFn: () => pipelinesApi.get(pipelineId!),
     enabled: !!pipelineId && !!selectedCompanyId,

@@ -221,7 +221,6 @@ function RecoveryPreviewDialog({
 }
 
 export function InstanceExperimentalSettings() {
-  const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
   const [actionError, setActionError] = useState<string | null>(null);
@@ -230,6 +229,7 @@ export function InstanceExperimentalSettings() {
   const [pendingPreview, setPendingPreview] = useState<IssueGraphLivenessAutoRecoveryPreview | null>(null);
 
   function closeRecoveryPreview() {
+  const { t } = useTranslation();
     setPreviewDialogOpen(false);
     setPendingPreview(null);
   }
