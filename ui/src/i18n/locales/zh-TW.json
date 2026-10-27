@@ -324,44 +324,44 @@
     "user": "使用者"
   },
   "adapterManager": {
-    "acceptsPathsDescription": "Accepts Linux, WSL, and Windows paths. Windows paths are auto-converted.",
+    "acceptsPathsDescription": "支援 Linux、Wsl 和 Windows 路徑。Windows 路徑會自動轉換。",
     "adapterPackagePlaceholder": "my-paperclip-adapter",
-    "alreadyOnLatest": "Already on the latest version.",
+    "alreadyOnLatest": "已為最新版本。",
     "builtIn": "Built-in",
-    "builtInAdapters": "Built-in Adapters",
-    "cancel": "Cancel",
+    "builtInAdapters": "內建轉接器",
+    "cancel": "取消",
     "checking": "checking...",
-    "current": "Current",
+    "current": "目前",
     "external": "External",
-    "externalAdapters": "External Adapters",
-    "externalAdaptersAlpha": "External adapters are alpha.",
+    "externalAdapters": "外部轉接器",
+    "externalAdaptersAlpha": "外部轉接器處於 alpha 階段。",
     "externalAdaptersAlphaDescription": "The adapter plugin system is under active development. APIs and storage format may change. Use the power icon to hide adapters from agent menus without removing them.",
     "hiddenFromMenus": "Hidden from menus",
     "hideFromAgentMenus": "Hide from agent menus",
-    "installAdapter": "Install Adapter",
-    "installAdapterExtend": "Install an adapter package to extend model support.",
+    "installAdapter": "安裝轉接器",
+    "installAdapterExtend": "安裝轉接器套件以擴充模型支援。",
     "installExternalAdapterDescription": "Add an adapter from npm or a local path. The adapter package must export createServerAdapter().",
-    "installExternalAdapterTitle": "Install External Adapter",
+    "installExternalAdapterTitle": "安裝外部轉接器",
     "installedFromLocalPath": "Installed from local path",
     "installedFromNpm": "Installed from npm",
-    "latestOnNpm": "Latest on npm",
+    "latestOnNpm": "npm 最新版",
     "latestVersionPlaceholder": "latest",
-    "localPath": "Local path",
-    "noBuiltInAdapters": "No built-in adapters found.",
-    "noExternalAdapters": "No external adapters installed",
-    "npmPackage": "npm package",
+    "localPath": "本機路徑",
+    "noBuiltInAdapters": "找不到內建轉接器。",
+    "noExternalAdapters": "尚無已安裝的外部轉接器",
+    "npmPackage": "npm 套件",
     "overriddenBy": "Overridden by $1",
-    "overridesBuiltIn": "Overrides built-in",
-    "package": "Package",
-    "packageName": "Package Name",
-    "pathToAdapterPackage": "Path to adapter package",
-    "reinstall": "Reinstall",
+    "overridesBuiltIn": "覆寫內建",
+    "package": "套件",
+    "packageName": "套件名稱",
+    "pathToAdapterPackage": "轉接器套件路徑",
+    "reinstall": "重新安裝轉接器",
     "reinstallAdapter": "Reinstall Adapter",
     "reinstallAdapterDescription": "This will pull the latest version of {$1} from npm and hot-swap the running adapter module. Existing agents will use the new version on their next run.",
     "reinstallAdapterTooltip": "Reinstall adapter (pull latest from npm)",
     "reinstalling": "Reinstalling...",
     "reloadAdapterTooltip": "Reload adapter (hot-swap)",
-    "remove": "Remove",
+    "remove": "移除轉接器",
     "removeAdapter": "Remove adapter",
     "removeAdapterDescription": "Are you sure you want to remove the $1 adapter? It will be unregistered and removed from the adapter store.$2 npm packages will be cleaned up from disk.$3 This action cannot be undone.",
     "removeAdapterTitle": "Remove Adapter",
@@ -370,9 +370,9 @@
     "title": "配接器",
     "unavailable": "unavailable",
     "unknown": "unknown",
-    "versionOptional": "Version (optional)",
+    "versionOptional": "版本（選填）",
     "removeAdapterItWillBe": "It will be unregistered and removed from the adapter store.",
-    "npmPackagesCleanup": "npm packages will be cleaned up from disk.",
+    "npmPackagesCleanup": "npm 套件將從磁碟清除。",
     "actionCannotBeUndone": "This action cannot be undone.",
     "alpha": "Alpha",
     "pauseExternalOverride": "Pause external override",
@@ -1671,7 +1671,7 @@
     },
     "chainOfThought": {
       "forDuration": "for {{duration}}",
-      "worked": "Worked",
+      "worked": "已工作",
       "working": "Working"
     },
     "composer": {
@@ -6017,7 +6017,7 @@
     "approver": "Approver",
     "pickAgent": "Pick agent",
     "transitions": "Transitions",
-    "children": "Children",
+    "children": "下層",
     "stageNavStageGroup": "Stage",
     "stageNavOperateGroup": "Operate",
     "Automation": "Automation",
@@ -6338,64 +6338,64 @@
     "selectCompany": "請選擇一間公司以設定此外掛的本機資料夾。"
   },
   "pluginManager": {
-    "alphaDescription": "The plugin runtime and API surface are still changing. Expect breaking changes while this feature settles.",
-    "alphaTitle": "Plugins are alpha.",
-    "availablePlugins": "Available Plugins",
-    "buildingPlugin": "Building plugin...",
-    "bundled": "Bundled",
-    "close": "Close",
+    "alphaDescription": "外掛程式執行期和 API 介面仍在變動中。在此功能穩定前，請預期可能發生破壞性變更。",
+    "alphaTitle": "外掛程式處於 alpha 階段。",
+    "availablePlugins": "可用的外掛程式",
+    "buildingPlugin": "正在建置外掛程式…",
+    "bundled": "內建",
+    "close": "關閉",
     "company": "Company",
-    "configure": "Configure",
+    "configure": "設定",
     "disable": "Disable",
     "disableFailed": "Failed to disable plugin",
     "disabledSuccess": "Plugin disabled",
-    "enable": "Enable",
+    "enable": "啟用",
     "enableFailed": "Failed to enable plugin",
     "enabledSuccess": "Plugin enabled",
-    "errorDetails": "Error Details",
+    "errorDetails": "錯誤詳情",
     "errorStateWithoutMessage": "Plugin entered an error state without a stored error message.",
     "example": "Example",
-    "experimental": "Experimental",
+    "experimental": "實驗性",
     "firstParty": "First-party",
-    "fullErrorOutput": "Full error output",
+    "fullErrorOutput": "完整錯誤輸出",
     "hitErrorState": "hit an error state.",
     "install": "Install",
     "installFailed": "Failed to install plugin",
-    "installPlugin": "Install Plugin",
-    "installPluginDescription": "Enter the npm package name of the plugin you wish to install.",
-    "installToExtend": "Install a plugin to extend functionality.",
-    "installedPlugins": "Installed Plugins",
+    "installPlugin": "安裝外掛程式",
+    "installPluginDescription": "輸入您想安裝之外掛程式的 npm 套件名稱。",
+    "installToExtend": "安裝外掛程式以擴充功能。",
+    "installedPlugins": "已安裝的外掛程式",
     "installedSuccess": "Plugin installed successfully",
     "installing": "Installing...",
-    "loadBundledFailed": "Failed to load bundled plugins.",
-    "loadFailed": "Failed to load plugins.",
-    "loading": "Loading plugins...",
-    "loadingBundled": "Loading bundled plugins...",
-    "noBundledPlugins": "No bundled plugins were found in this checkout.",
+    "loadBundledFailed": "載入內建外掛程式失敗。",
+    "loadFailed": "載入外掛程式失敗。",
+    "loading": "正在載入外掛程式…",
+    "loadingBundled": "正在載入內建外掛程式…",
+    "noBundledPlugins": "在此版本中找不到內建外掛程式。",
     "noDescription": "No description provided.",
     "noErrorSummary": "No error summary available.",
-    "noPluginsInstalled": "No plugins installed",
+    "noPluginsInstalled": "尚無已安裝的外掛程式",
     "noStoredError": "No stored error message.",
-    "notInstalled": "Not installed",
-    "npmPackageName": "npm Package Name",
+    "notInstalled": "未安裝",
+    "npmPackageName": "npm 套件名稱",
     "openSettings": "Open Settings",
     "plugin": "Plugin",
-    "pluginError": "Plugin error",
+    "pluginError": "外掛程式錯誤",
     "pluginExamplePlaceholder": "@paperclipai/plugin-example",
     "review": "Review",
-    "title": "外掛管理",
+    "title": "外掛程式管理員",
     "undone": "? This action cannot be undone.",
     "uninstallConfirm": "Are you sure you want to uninstall $1",
     "uninstallConfirmAfter": "? This action cannot be undone.",
-    "uninstallConfirmBefore": "Are you sure you want to uninstall",
+    "uninstallConfirmBefore": "確定要解除安裝",
     "uninstallFailed": "Failed to uninstall plugin",
     "uninstallPluginTitle": "Uninstall Plugin",
     "uninstalledSuccess": "Plugin uninstalled successfully",
     "uninstalling": "Uninstalling...",
-    "viewFullError": "View full error",
-    "whatErrored": "What errored",
-    "cancel": "Cancel",
-    "uninstall": "Uninstall"
+    "viewFullError": "檢視完整錯誤",
+    "whatErrored": "錯誤的項目",
+    "cancel": "取消",
+    "uninstall": "解除安裝外掛程式"
   },
   "pluginPage": {
     "back": "返回",
@@ -6455,7 +6455,7 @@
     "chooseProject": "Choose project",
     "columnLast24h": "Last 24h",
     "columnOn": "On",
-    "columnOutcome": "Outcome",
+    "columnOutcome": "結果",
     "columnRule": "Rule",
     "day": "Day",
     "delete": "Delete",
@@ -6781,7 +6781,7 @@
       "connection": "Connection",
       "connectionPlaceholder": "Select a connection",
       "effect": "Effect",
-      "effectExclude": "Exclude",
+      "effectExclude": "排除",
       "effectInclude": "Include",
       "riskLevel": "Risk level",
       "selector": "Selector",
@@ -9017,7 +9017,7 @@
       "created": "已建立",
       "open": "待處理",
       "spend": "花費",
-      "tokens": "Tokens"
+      "tokens": "語彙"
     },
     "title": "使用者",
     "window": {
@@ -9310,13 +9310,13 @@
     },
     "issueChatLongThreadPerf": {
       "tile": {
-        "fixtureRows": "Fixture rows",
-        "markdownRows": "Markdown rows",
-        "profilerCommits": "Profiler commits",
-        "mountDuration": "Mount duration",
-        "latestDuration": "Latest duration",
-        "maxDuration": "Max duration",
-        "totalDuration": "Total duration"
+        "fixtureRows": "測試資料列",
+        "markdownRows": "Markdown 列數",
+        "profilerCommits": "效能分析提交",
+        "mountDuration": "掛載耗時",
+        "latestDuration": "最新耗時",
+        "maxDuration": "最大耗時",
+        "totalDuration": "總耗時"
       }
     }
   },
@@ -9346,7 +9346,7 @@
       "medium": "中"
     },
     "label": {
-      "aging": "Aging",
+      "aging": "陳舊項目",
       "dismissed": "Dismissed",
       "snoozed": "Snoozed"
     },
@@ -9751,27 +9751,27 @@
     },
     "description": "說明",
     "aria": {
-      "changeCaseStatus": "Change case status",
-      "newLabelColor": "New label color",
+      "changeCaseStatus": "變更案例狀態",
+      "newLabelColor": "新標籤顏色",
       "moreCaseActions": "ghost"
     },
     "placeholder": {
-      "searchLabels": "Search labels…"
+      "searchLabels": "搜尋標籤…"
     },
     "title": {
-      "case": "Case",
-      "fields": "Fields",
-      "linkedtasks": "Linked tasks",
-      "attachments": "Attachments",
-      "morecaseactions": "More case actions"
+      "case": "案例",
+      "fields": "欄位",
+      "linkedtasks": "連結任務",
+      "attachments": "附件",
+      "morecaseactions": "更多案例動作"
     },
     "label": {
-      "type": "Type",
-      "key": "Key",
-      "caseKey": "case key",
-      "labels": "Labels",
-      "tasks": "Tasks",
-      "files": "Files"
+      "type": "類型",
+      "key": "鍵值",
+      "caseKey": "案例鍵值",
+      "labels": "標籤",
+      "tasks": "任務",
+      "files": "檔案"
     }
   },
   "boardClaim": {
@@ -10314,13 +10314,13 @@
   },
   "projectDetail": {
     "addDescriptionPlaceholder": "Add a description...",
-    "statusLabel": "Status",
-    "targetDateLabel": "Target Date",
-    "iconLabel": "Icon",
+    "statusLabel": "狀態",
+    "targetDateLabel": "目標日期",
+    "iconLabel": "圖示",
     "searchIconsPlaceholder": "Search icons...",
-    "noIconsMatch": "No icons match",
-    "colorLabel": "Color",
-    "loadingWorkspaces": "Loading workspaces...",
+    "noIconsMatch": "無相符的圖示",
+    "colorLabel": "顏色",
+    "loadingWorkspaces": "正在載入工作區…",
     "title": {
       "neutraldefault": "Neutral (default)",
       "projectsummary": "Project summary"
@@ -10906,12 +10906,12 @@
       "whatToInclude": "grid grid-cols-2 gap-x-4 gap-y-1.5"
     },
     "placeholder": {
-      "searchFiles": "Search files..."
+      "searchFiles": "搜尋檔案..."
     }
   },
   "decisionQueuePage": {
     "placeholder": {
-      "reasonOptional": "Reason (optional)…"
+      "reasonOptional": "原因（選填）…"
     }
   },
   "instanceAccess": {
@@ -11153,8 +11153,8 @@
   },
   "newAgent": {
     "placeholder": {
-      "agentName": "Agent name",
-      "agentTitle": "Title (e.g. VP of Engineering)"
+      "agentName": "代理人名稱",
+      "agentTitle": "職稱（例如：工程副總）"
     }
   },
   "editableSections": {
@@ -11259,13 +11259,13 @@
   },
   "taskChatLab": {
     "ariaLabel": {
-      "states": "States",
-      "streamingSpeed": "Streaming speed",
+      "states": "狀態",
+      "streamingSpeed": "串流速度",
       "agentBubbleTreatment": "Agent bubble treatment"
     },
     "label": {
-      "liveStates": "Live states",
-      "tierB": "Tier-B (synthetic)"
+      "liveStates": "即時狀態",
+      "tierB": "Tier-B（合成）"
     }
   },
   "providerQuotaCard": {
