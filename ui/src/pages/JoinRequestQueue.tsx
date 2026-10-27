@@ -13,7 +13,6 @@ import { useToast } from "@/context/ToastContext";
 import { queryKeys } from "@/lib/queryKeys";
 
 export function JoinRequestQueue() {
-  const { t } = useTranslation();
   const { selectedCompany, selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const { pushToast } = useToast();
@@ -22,6 +21,7 @@ export function JoinRequestQueue() {
   const [requestType, setRequestType] = useState<"all" | "human" | "agent">("all");
 
   useEffect(() => {
+  const { t } = useTranslation();
     setBreadcrumbs([
       { label: selectedCompany?.name ?? "Company", href: "/dashboard" },
       { label: "Inbox", href: "/inbox" },

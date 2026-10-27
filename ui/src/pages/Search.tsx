@@ -172,7 +172,6 @@ function shapeError(error: unknown): { message: string; status?: number } {
 }
 
 export function Search() {
-  const { t } = useTranslation();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const { openNewIssue } = useDialogActions();
@@ -198,6 +197,7 @@ export function Search() {
   const [recentSearches, setRecentSearches] = useState<string[]>([]);
 
   useEffect(() => {
+  const { t } = useTranslation();
     setBreadcrumbs([{ label: "Search" }]);
   }, [setBreadcrumbs]);
 

@@ -13,7 +13,6 @@ import { useToast } from "@/context/ToastContext";
 import { queryKeys } from "@/lib/queryKeys";
 
 export function InstanceAccess() {
-  const { t } = useTranslation();
   const { companies } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
   const { pushToast } = useToast();
@@ -23,6 +22,7 @@ export function InstanceAccess() {
   const [selectedCompanyIds, setSelectedCompanyIds] = useState<Set<string>>(new Set());
 
   useEffect(() => {
+  const { t } = useTranslation();
     setBreadcrumbs([
       { label: "Settings", href: "/company/settings" },
       { label: "Instance settings", href: "/company/settings/instance/general" },

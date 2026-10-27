@@ -23,12 +23,12 @@ import { useTranslation } from "@/i18n";
 const FEEDBACK_TERMS_URL = import.meta.env.VITE_FEEDBACK_TERMS_URL?.trim() || "https://paperclip.ing/tos";
 
 export function InstanceGeneralSettings() {
-  const { t } = useTranslation();
   const { setBreadcrumbs } = useBreadcrumbs();
   const queryClient = useQueryClient();
   const [actionError, setActionError] = useState<string | null>(null);
 
   const signOutMutation = useMutation({
+  const { t } = useTranslation();
     mutationFn: () => authApi.signOut(),
     onSuccess: async () => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.auth.session });

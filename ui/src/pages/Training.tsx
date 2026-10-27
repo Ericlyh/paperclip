@@ -79,7 +79,6 @@ function downloadExport(companyId: string) {
 }
 
 export function TrainingLibrary() {
-  const { t } = useTranslation();
   const navigate = useNavigate();
   const { selectedCompanyId } = useCompany();
   const { setBreadcrumbs } = useBreadcrumbs();
@@ -91,6 +90,7 @@ export function TrainingLibrary() {
   useEffect(() => setBreadcrumbs([{ label: "Decisions", href: "/decisions" }, { label: "Training" }]), [setBreadcrumbs]);
 
   const filters = useMemo<DecisionTrainingFilters>(() => ({
+  const { t } = useTranslation();
     q: q.trim() || undefined,
     project: project === "all" ? undefined : project,
     kind: kind === "all" ? undefined : kind as DecisionTrainingSourceKind,
