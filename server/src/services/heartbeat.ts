@@ -158,6 +158,7 @@ import { createToolGatewayService } from "./tool-gateway.js";
 import { toolAccessService } from "./tool-access.js";
 import { visibleIssueCondition } from "./issue-visibility.js";
 import { ISSUE_BLOCKERS_RESOLVED_WAKE_REASON } from "./issue-dependency-wakeups.js";
+import { applyEdgeWakeMonitorSuppression } from "./issues.js";
 import {
   buildIssueMonitorClearedPatch,
   buildIssueMonitorTriggeredPatch,
@@ -16528,6 +16529,22 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
               .where(eq(issues.id, issueId))
               .then((rows) => rows[0]?.status ?? null);
             if (blockerIssueStatus === "done") {
+              // WOE contract (OOP-3058): suppress monitor* on the dependents so
+              // the now-resolved edge-wake does not collide with a pending
+              // monitor poll in the same window. ADR-0042.
+              const dependents = await issuesSvc.listWakeableBlockedDependents(issueId);
+              if (dependents.length > 0) {
+                await applyEdgeWakeMonitorSuppression(
+                  db,
+                  finalizedRun.companyId,
+                  dependents.map((d) => d.id),
+                ).catch((suppressErr) => {
+                  logger.warn(
+                    { err: suppressErr, issueId, dependents: dependents.length },
+                    "failed to apply edge-wake monitor suppression (finalize path)",
+                  );
+                });
+              }
               await recovery.reconcileResolvedDependencyWakeBackstop({
                 runId: finalizedRun.id,
                 companyId: finalizedRun.companyId,

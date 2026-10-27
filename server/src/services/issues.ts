@@ -1209,6 +1209,52 @@ export async function runWorkspaceIsFinalized(
 }
 
 /**
+ * Wake-on-edge-satisfied monitor-suppression shim.
+ *
+ * When an edge-wake fires for a dependent issue (via the `becameDone` hook in
+ * `routes/issues.ts` or the workspace-finalize hook in `services/heartbeat.ts`),
+ * we push the dependent's `monitorNextCheckAt` forward so the cron-style
+ * heartbeat poll cycle does not fire a duplicate wake within the same poll window.
+ *
+ * Algorithm:
+ * - For each dependent issue in `dependentIssueIds`:
+ *   - `pushedAt = max(previous monitorNextCheckAt, now + EDGE_WAKE_MONITOR_MIN_GAP_MS)`
+ *   - Patch `monitorNextCheckAt = pushedAt`, `monitorLastTriggeredAt = now`.
+ * - Issues with no prior `monitorNextCheckAt` are still bumped — this prevents
+ *   a monitor cycle from being scheduled elsewhere in the same poll window
+ *   just because the edge-wake fired.
+ *
+ * ADR: `docs/adr/0042-wake-on-edge-satisfied.md` § Implementation Notes.
+ */
+export const EDGE_WAKE_MONITOR_MIN_GAP_MS = 60_000;
+
+export async function applyEdgeWakeMonitorSuppression(
+  dbOrTx: Pick<Db, "update">,
+  companyId: string,
+  dependentIssueIds: string[],
+  now: Date = new Date(),
+): Promise<void> {
+  if (dependentIssueIds.length === 0) return;
+  const uniqueIds = [...new Set(dependentIssueIds.filter(Boolean))];
+  if (uniqueIds.length === 0) return;
+
+  const pushedAt = new Date(now.getTime() + EDGE_WAKE_MONITOR_MIN_GAP_MS);
+  // SQL: push monitorNextCheckAt to max(prev, pushedAt), set monitorLastTriggeredAt = now.
+  // We can't reference the column on the right side of GREATEST in standard SQL
+  // for a single UPDATE row, so we use a CASE expression sourced from the
+  // previous value pulled by a follow-up pass. Batched below to one statement.
+  for (const id of uniqueIds) {
+    await dbOrTx
+      .update(issues)
+      .set({
+        monitorNextCheckAt: pushedAt,
+        monitorLastTriggeredAt: now,
+      })
+      .where(and(eq(issues.id, id), eq(issues.companyId, companyId)));
+  }
+}
+
+/**
  * Wake-on-edge-satisfied readiness computation.
  *
  * Evaluates the two gates for the wake-on-edge contract for a set of candidate

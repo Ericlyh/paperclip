@@ -196,6 +196,7 @@ import {
   ISSUE_WAKE_DIAGNOSTICS_MAX_ACTIVITY_RECORDS,
   ISSUE_WAKE_DIAGNOSTICS_MAX_WAKE_REQUESTS,
   readAcceptedPlanConfirmationTarget,
+  applyEdgeWakeMonitorSuppression,
 } from "../services/issues.js";
 import { authorizationDeniedDetails } from "../services/authorization.js";
 import { stalledReviewDecisionService } from "../services/stalled-review-decisions.js";
@@ -10418,6 +10419,21 @@ export function issueRoutes(
       const becameDone = existing.status !== "done" && issue.status === "done";
       if (becameDone) {
         const dependents = await svc.listWakeableBlockedDependents(issue.id);
+        // WOE contract (OOP-3058): push monitorNextCheckAt forward so the
+        // monitor poll cycle does not fire a duplicate wake within the same
+        // poll window. ADR-0042 § Implementation Notes.
+        if (dependents.length > 0) {
+          await applyEdgeWakeMonitorSuppression(
+            db,
+            existing.companyId,
+            dependents.map((d) => d.id),
+          ).catch((suppressErr) =>
+            logger.warn(
+              { err: suppressErr, issueId: issue.id, dependents: dependents.length },
+              "failed to apply edge-wake monitor suppression",
+            ),
+          );
+        }
         for (const dependent of dependents) {
           await addDependencyResolvedWakeup({
             agentId: dependent.assigneeAgentId,
