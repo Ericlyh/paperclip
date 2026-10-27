@@ -15,6 +15,7 @@ export {
   isClaudeProviderQuotaError,
   isClaudeRefusalResult,
   isClaudeUnknownSessionError,
+  isClaudeContextOverflowError,
 } from "./parse.js";
 export {
   getQuotaWindows,

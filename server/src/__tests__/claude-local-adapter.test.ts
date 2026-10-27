@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
-import { isClaudeMaxTurnsResult } from "@paperclipai/adapter-claude-local/server";
+import { isClaudeContextOverflowError, isClaudeMaxTurnsResult } from "@paperclipai/adapter-claude-local/server";
 import { parseClaudeStdoutLine } from "@paperclipai/adapter-claude-local/ui";
 import { printClaudeStreamEvent } from "@paperclipai/adapter-claude-local/cli";
 
@@ -201,5 +201,44 @@ describe("claude_local cli formatter", () => {
     } finally {
       spy.mockRestore();
     }
+  });
+});
+
+describe("claude_local context-overflow detection", () => {
+  it("detects gateway context-window rejections from the structured result event", () => {
+    // Verbatim shape emitted by Claude Code against the MiniMax Anthropic gateway (OOP-3328).
+    expect(
+      isClaudeContextOverflowError({
+        type: "result",
+        subtype: "success",
+        is_error: true,
+        api_error_status: 400,
+        result: "API Error: 400 invalid params, context window exceeds limit (2013)",
+        summary: "API Error: 400 invalid params, context window exceeds limit (2013)",
+      }),
+    ).toBe(true);
+  });
+
+  it("detects the first-party prompt-too-long rejection", () => {
+    expect(
+      isClaudeContextOverflowError({
+        is_error: true,
+        result: 'API Error: 400 {"type":"error","error":{"type":"invalid_request_error","message":"prompt is too long: 215000 tokens > 200000 maximum"}}',
+      }),
+    ).toBe(true);
+  });
+
+  it("ignores context-overflow text on runs that did not error", () => {
+    expect(
+      isClaudeContextOverflowError({
+        is_error: false,
+        result: "I investigated the 400 invalid params, context window exceeds limit report.",
+      }),
+    ).toBe(false);
+  });
+
+  it("ignores unrelated failures", () => {
+    expect(isClaudeContextOverflowError({ is_error: true, result: "Tool call failed" })).toBe(false);
+    expect(isClaudeContextOverflowError(null)).toBe(false);
   });
 });

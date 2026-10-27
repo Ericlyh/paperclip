@@ -69,6 +69,7 @@ import {
   isClaudePoisonedPreviousMessageIdError,
   isClaudeImageProcessingError,
   isClaudeModelNotFoundError,
+  isClaudeContextOverflowError,
 } from "./parse.js";
 import {
   materializeRemoteClaudeConfig,
@@ -1100,6 +1101,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
         ...(workspaceRepoRef ? { repoRef: workspaceRepoRef } : {}),
       } as Record<string, unknown>)
       : null;
+    const contextOverflow = failed && isClaudeContextOverflowError(parsed);
     const errorMessage = failed
       ? describeClaudeFailure(parsed) ?? `Claude exited with code ${proc.exitCode ?? -1}`
       : null;
@@ -1120,6 +1122,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
       !clearSessionForMaxTurns &&
       !poisonedPreviousMessageId &&
       !providerQuota &&
+      !contextOverflow &&
       isClaudeTransientUpstreamError({
         parsed,
         stdout: proc.stdout,
@@ -1149,6 +1152,8 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
       ? "claude_poisoned_previous_message_id"
       : providerQuota
       ? "provider_quota"
+      : contextOverflow
+      ? "claude_context_overflow"
       : transientUpstream
       ? "claude_transient_upstream"
       : claudeRefusal
@@ -1167,6 +1172,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
       ...(failed && poisonedPreviousMessageId ? { stopReason: "claude_poisoned_previous_message_id" } : {}),
       ...(claudeRefusal ? { stopReason: "refusal", errorFamily: "model_refusal" } : {}),
       ...(errorFamily ? { errorFamily } : {}),
+      ...(contextOverflow ? { stopReason: "context_overflow" } : {}),
       ...(transientRetryNotBefore ? { retryNotBefore: transientRetryNotBefore.toISOString() } : {}),
       ...(transientRetryNotBefore ? { transientRetryNotBefore: transientRetryNotBefore.toISOString() } : {}),
       ...(providerQuota && transientRetryNotBefore ? { providerQuotaRetryNotBefore: transientRetryNotBefore.toISOString() } : {}),
@@ -1200,6 +1206,7 @@ export async function execute(ctx: AdapterExecutionContext): Promise<AdapterExec
         // state error. Force the server to drop persisted session state for
         // this issue so the next continuation starts from a clean slate.
         poisonedPreviousMessageId ||
+        contextOverflow ||
         Boolean(opts.clearSessionOnMissingSession && !resolvedSessionId),
     };
   };

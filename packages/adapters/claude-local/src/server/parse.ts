@@ -53,6 +53,12 @@ export function claudeModelUsageTotals(modelUsage: unknown): UsageSummary | null
   if (!sawEntry) return null;
   return { inputTokens, outputTokens, cachedInputTokens };
 }
+// Provider-side "the conversation no longer fits" rejections. Anthropic answers
+// "prompt is too long"; Anthropic-compatible gateways (e.g. MiniMax) answer
+// "invalid params, context window exceeds limit (2013)". Resuming the session
+// replays the same oversized transcript, so these never recover on retry.
+const CLAUDE_CONTEXT_OVERFLOW_RE =
+  /(?:context\s+window\s+exceeds\s+limit|context\s+window\s+exceeded|context[_\s-]?length[_\s-]?exceeded|prompt\s+is\s+too\s+long|input\s+length\s+and\s+`?max_tokens`?\s+exceed\s+context\s+limit|exceeds?\s+(?:the\s+)?(?:model'?s\s+)?maximum\s+context\s+length)/i;
 
 export function parseClaudeStreamJson(stdout: string) {
   let sessionId: string | null = null;
@@ -307,6 +313,22 @@ export function isClaudeRefusalResult(parsed: Record<string, unknown> | null | u
   return structuredStopReasons.some((reason) => reason === "refusal");
 }
 
+export function isClaudeContextOverflowError(parsed: Record<string, unknown> | null | undefined): boolean {
+  if (!parsed) return false;
+  // Only classify from the structured result event: an oversized session is
+  // unrecoverable on resume, so the caller drops the session. Matching raw
+  // stdout/stderr would let tool output trigger that drop.
+  if (!asBoolean(parsed.is_error, false)) return false;
+
+  const messages = [
+    asString(parsed.result, ""),
+    asString(parsed.summary, ""),
+    ...extractClaudeErrorMessages(parsed),
+  ];
+
+  return messages.some((message) => CLAUDE_CONTEXT_OVERFLOW_RE.test(message));
+}
+
 export function isClaudeUnknownSessionError(parsed: Record<string, unknown>): boolean {
   const resultText = asString(parsed.result, "").trim();
   const allMessages = [resultText, ...extractClaudeErrorMessages(parsed)]
@@ -524,6 +546,7 @@ export function isClaudeTransientUpstreamError(input: {
   if (parsed && (isClaudeMaxTurnsResult(parsed) || isClaudeUnknownSessionError(parsed) || isClaudePoisonedPreviousMessageIdError(parsed) || isClaudeImageProcessingError(parsed))) {
     return false;
   }
+  if (isClaudeContextOverflowError(parsed)) return false;
   const loginMeta = detectClaudeLoginRequired({
     parsed,
     stdout: input.stdout ?? "",
