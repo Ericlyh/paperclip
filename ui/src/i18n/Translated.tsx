@@ -9,6 +9,5 @@ import { useTranslation } from ".";
  * subscription cost proportional to the number of translated labels.
  */
 export function Translated({ k }: { k: string }) {
-  const { t } = useTranslation();
   return <>{t(k)}</>;
 }
