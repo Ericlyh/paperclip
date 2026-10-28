@@ -8849,46 +8849,54 @@
     "yesterday": "yesterday"
   },
   "timeline": {
-    "days30": "30 days",
-    "days7": "7 days",
-    "emptyEntries": "No timeline entries yet.",
-    "endDateAria": "Timeline end date",
-    "legend": {
-      "automation": "Automation",
-      "cancelled": "Cancelled",
-      "delegated": "Delegated",
-      "now": "Now"
+    "connectorHint": {
+      "dashed": "dashed handoff: retry or changes requested",
+      "solid": "solid handoff: delegation or assignment"
     },
-    "loadError": "Couldn't load the timeline. The aggregation endpoint may be unavailable.",
-    "noActivity": "No activity in this window.",
-    "range": "Range",
-    "rangeErrorMissing": "Choose a start and end date.",
-    "rangeErrorOrder": "Start date must be before end date.",
-    "rangeSeparator": "to",
-    "requestedFollowUp": "requested follow-up",
-    "resetZoom": "Reset zoom",
-    "runCount_one": "{{count}} run",
-    "runCount_other": "{{count}} runs",
-    "selectCompany": "Select a company to view its work timeline.",
-    "startDateAria": "Timeline start date",
-    "stats": {
-      "agents": "Agents",
-      "notTracked": "Not tracked",
-      "runTime": "Run time",
-      "runs": "Runs",
-      "tokensUsed": "Tokens used"
+    "minimapHandle": {
+      "dragLeftEdge": "Drag left edge to resize visible range",
+      "dragRightEdge": "Drag right edge to resize visible range"
     },
     "title": "Work Timeline",
+    "selectCompany": "Select a company to view its work timeline.",
+    "range": "Range",
     "today": "Today",
+    "days7": "7 days",
+    "days30": "30 days",
+    "startDateAria": "Timeline start date",
+    "endDateAria": "Timeline end date",
+    "zoomControlsAria": "Timeline zoom controls",
+    "zoomOut": "Zoom out",
+    "zoomIn": "Zoom in",
+    "resetZoom": "Reset zoom",
+    "requestedFollowUp": "requested follow-up",
+    "updatedThisTask": "updated this task",
+    "emptyEntries": "No timeline entries yet.",
+    "stats": {
+      "runs": "Runs",
+      "agents": "Agents",
+      "runTime": "Run time",
+      "tokensUsed": "Tokens used",
+      "notTracked": "Not tracked"
+    },
+    "legend": {
+      "delegated": "Delegated",
+      "automation": "Automation",
+      "cancelled": "Cancelled",
+      "now": "Now"
+    },
+    "rangeSeparator": "to",
+    "rangeErrorMissing": "Choose a start and end date.",
+    "rangeErrorOrder": "Start date must be before end date.",
+    "loadError": "Couldn't load the timeline. The aggregation endpoint may be unavailable.",
+    "noActivity": "No activity in this window.",
+    "runCount_one": "{{count}} run",
+    "runCount_other": "{{count}} runs",
+    "windowRange": "{{from}} to {{to}}",
+    "windowCapped": "window capped",
     "tooltip": {
       "unnamedRun": "run"
-    },
-    "updatedThisTask": "updated this task",
-    "windowCapped": "window capped",
-    "windowRange": "{{from}} to {{to}}",
-    "zoomControlsAria": "Timeline zoom controls",
-    "zoomIn": "Zoom in",
-    "zoomOut": "Zoom out"
+    }
   },
   "toasts": {
     "actorBoard": "Board",
@@ -11192,16 +11200,6 @@
     "label": {
       "liveStates": "Live states",
       "tierB": "Tier-B (synthetic)"
-    }
-  },
-  "timeline": {
-    "connectorHint": {
-      "dashed": "dashed handoff: retry or changes requested",
-      "solid": "solid handoff: delegation or assignment"
-    },
-    "minimapHandle": {
-      "dragLeftEdge": "Drag left edge to resize visible range",
-      "dragRightEdge": "Drag right edge to resize visible range"
     }
   },
   "taskChatBlockerLinks": {
