@@ -476,6 +476,50 @@ describe.sequential("agent permission routes", () => {
     expect(res.body.permissions).toMatchObject({ trustPreset: LOW_TRUST_REVIEW_PRESET });
   }, 20_000);
 
+  it.each([
+    { kind: "skill_test" as const, issueId: "33333333-3333-4333-8333-333333333333" },
+    { kind: "task_bridge" as const, parentIssueId: "33333333-3333-4333-8333-333333333333" },
+  ])(
+    "returns the minimal identity view to a %s key before the trust-preset gate",
+    async (keyScope) => {
+      mockAgentService.getById.mockResolvedValue({
+        ...baseAgent,
+        permissions: {
+          ...baseAgent.permissions,
+          trustPreset: LOW_TRUST_REVIEW_PRESET,
+          authorizationPolicy: {
+            trustBoundary: {
+              mode: LOW_TRUST_REVIEW_PRESET,
+              issueIds: ["33333333-3333-4333-8333-333333333333"],
+            },
+          },
+        },
+      });
+
+      const app = await createApp({
+        type: "agent",
+        agentId,
+        companyId,
+        source: "agent_key",
+        keyScope,
+      });
+
+      const res = await requestApp(app, (baseUrl) => request(baseUrl).get("/api/agents/me"));
+
+      expect(res.status, JSON.stringify(res.body)).toBe(200);
+      expect(res.body).toMatchObject({
+        id: agentId,
+        companyId,
+        keyScope,
+      });
+      expect(res.body).not.toHaveProperty("trustPreset");
+      expect(res.body).not.toHaveProperty("permissions");
+      expect(res.body).not.toHaveProperty("adapterConfig");
+      expect(res.body).not.toHaveProperty("runtimeConfig");
+    },
+    20_000,
+  );
+
   it("redacts company agent list for authenticated company members without agent admin permission", async () => {
     mockAccessService.canUser.mockResolvedValue(false);
     mockAccessService.decide.mockImplementation(async (input: { action?: string }) => ({

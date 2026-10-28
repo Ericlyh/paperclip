@@ -1081,6 +1081,33 @@ describeEmbeddedPostgres("low-trust red-team HTTP route regression suite", () =>
     expect(issueScopedLowTrustRes.body).not.toHaveProperty("runtimeConfig");
     expectNoCanary(issueScopedLowTrustRes.body, fixture.canaries.agentConfig);
 
+    // Scoped keys get the minimal identity view before the trust-preset gate,
+    // so a low-trust boundary never turns a scoped key's self read into a 403.
+    for (const restrictedActor of [
+      skillTestActor(fixture),
+      {
+        ...standardActor,
+        source: "agent_key" as const,
+        keyScope: {
+          kind: "task_bridge" as const,
+          parentIssueId: fixture.issues.assignedReview.id,
+        },
+      },
+    ]) {
+      const restrictedRes = await request(createApp(db, restrictedActor)).get("/api/agents/me");
+      expect(restrictedRes.status, JSON.stringify(restrictedRes.body)).toBe(200);
+      expect(restrictedRes.body).toMatchObject({
+        id: fixture.agents.standard.id,
+        companyId: fixture.company.id,
+        keyScope: restrictedActor.keyScope,
+      });
+      expect(restrictedRes.body).not.toHaveProperty("adapterConfig");
+      expect(restrictedRes.body).not.toHaveProperty("runtimeConfig");
+      expect(restrictedRes.body).not.toHaveProperty("permissions");
+      expect(restrictedRes.body).not.toHaveProperty("access");
+      expectNoCanary(restrictedRes.body, fixture.canaries.agentConfig);
+    }
+
     await db.update(issues).set({ executionPolicy: null }).where(eq(issues.id, fixture.issues.assignedReview.id));
 
     await db.update(projects).set({

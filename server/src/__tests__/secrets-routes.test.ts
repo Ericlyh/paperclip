@@ -42,10 +42,17 @@ const mockSecretService = vi.hoisted(() => ({
   resolveSecretValueForAgentAccess: vi.fn(),
 }));
 const mockLogActivity = vi.hoisted(() => vi.fn());
+const mockAccessService = vi.hoisted(() => ({
+  decide: vi.fn(),
+}));
 
 vi.mock("../services/index.js", () => ({
   secretService: () => mockSecretService,
   logActivity: mockLogActivity,
+}));
+
+vi.mock("../services/access.js", () => ({
+  accessService: () => mockAccessService,
 }));
 
 function createApp(actor: Record<string, unknown> = {
@@ -72,6 +79,12 @@ describe("secret routes", () => {
       mock.mockReset();
     }
     mockLogActivity.mockReset();
+    mockAccessService.decide.mockReset();
+    mockAccessService.decide.mockResolvedValue({
+      allowed: true,
+      reason: "allow_standard_agent",
+      explanation: "Allowed by test policy",
+    });
   });
 
   it("returns an opaque secretRef in agent secret metadata without internal binding details", async () => {
@@ -1096,5 +1109,52 @@ describe("secret routes", () => {
 
       expect(res.status).toBe(403);
     });
+
+    it("rejects a company-2 member from reading company-1 secret names", async () => {
+      mockSecretService.list.mockResolvedValue(fullSecrets);
+
+      const res = await request(createApp({
+        type: "board",
+        userId: "user-2",
+        source: "session",
+        companyIds: ["company-2"],
+        memberships: [{ companyId: "company-2", status: "active", membershipRole: "admin" }],
+      })).get("/api/companies/company-1/secrets/catalog");
+
+      expect(res.status).toBe(403);
+      expect(res.body).not.toHaveProperty("name");
+      expect(res.body).not.toHaveProperty("key");
+      expect(JSON.stringify(res.body)).not.toContain("MY_API_KEY");
+      expect(JSON.stringify(res.body)).not.toContain("DB_PASSWORD");
+      expect(mockSecretService.list).not.toHaveBeenCalled();
+    });
+
+    it.each(["skill_test", "task_bridge"])(
+      "rejects %s keys from the company secret catalog",
+      async (kind) => {
+        mockSecretService.list.mockResolvedValue(fullSecrets);
+        mockAccessService.decide.mockResolvedValue({
+          allowed: false,
+          reason: "deny_key_scope",
+          explanation: "Restricted keys cannot read the company secret catalog.",
+        });
+
+        const res = await request(createApp({
+          type: "agent",
+          agentId: "agent-1",
+          companyId: "company-1",
+          source: "agent_key",
+          keyScope: { kind },
+        })).get("/api/companies/company-1/secrets/catalog");
+
+        expect(res.status).toBe(403);
+        expect(JSON.stringify(res.body)).not.toContain("MY_API_KEY");
+        expect(mockSecretService.list).not.toHaveBeenCalled();
+        expect(mockAccessService.decide).toHaveBeenCalledWith(expect.objectContaining({
+          action: "secrets:read",
+          resource: { type: "company", companyId: "company-1" },
+        }));
+      },
+    );
   });
 });

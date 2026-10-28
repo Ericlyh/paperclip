@@ -9,11 +9,26 @@ const mockAgentService = vi.hoisted(() => ({
 const mockHeartbeatService = vi.hoisted(() => ({
   buildRunOutputSilence: vi.fn(),
   decorateActiveRunStatus: vi.fn(),
+  getRun: vi.fn(),
   getRunIssueSummary: vi.fn(),
   getActiveRunIssueSummaryForAgent: vi.fn(),
   getRunLogAccess: vi.fn(),
+  list: vi.fn(),
+  listEvents: vi.fn(),
   readLog: vi.fn(),
   wakeup: vi.fn(),
+}));
+
+const mockAccessService = vi.hoisted(() => ({
+  canUser: vi.fn(),
+  decide: vi.fn(),
+  hasPermission: vi.fn(),
+}));
+
+const mockWorkspaceOperationService = vi.hoisted(() => ({
+  getById: vi.fn(),
+  listForRun: vi.fn(),
+  readLog: vi.fn(),
 }));
 
 const mockIssueService = vi.hoisted(() => ({
@@ -60,16 +75,7 @@ function registerModuleMocks() {
   vi.doMock("../services/index.js", () => ({
     agentService: () => mockAgentService,
     agentInstructionsService: () => ({}),
-    accessService: () => ({
-      canUser: vi.fn(async () => true),
-      decide: vi.fn(async (input: { action?: string }) => ({
-        allowed: true,
-        action: input.action,
-        reason: "allow_explicit_grant",
-        explanation: "Allowed by test grant.",
-      })),
-      hasPermission: vi.fn(async () => true),
-    }),
+    accessService: () => mockAccessService,
     approvalService: () => ({}),
     builtInAgentService: () => ({ ensureCompanyDefaultAgentGrants: vi.fn() }),
     companySkillService: () => ({ listRuntimeSkillEntries: vi.fn() }),
@@ -80,7 +86,7 @@ function registerModuleMocks() {
     logActivity: vi.fn(),
     secretService: () => ({}),
     syncInstructionsBundleConfigFromFilePath: vi.fn((_agent, config) => config),
-    workspaceOperationService: () => ({}),
+    workspaceOperationService: () => mockWorkspaceOperationService,
   }));
 
   vi.doMock("../adapters/index.js", () => ({
@@ -92,7 +98,16 @@ function registerModuleMocks() {
   }));
 }
 
-async function createApp(db: Record<string, unknown> = {}) {
+async function createApp(
+  db: Record<string, unknown> = {},
+  actor: Record<string, unknown> = {
+    type: "board",
+    userId: "local-board",
+    companyIds: ["company-1"],
+    source: "local_implicit",
+    isInstanceAdmin: false,
+  },
+) {
   const [{ agentRoutes }, { errorHandler }] = await Promise.all([
     vi.importActual<typeof import("../routes/agents.js")>("../routes/agents.js"),
     vi.importActual<typeof import("../middleware/index.js")>("../middleware/index.js"),
@@ -100,13 +115,7 @@ async function createApp(db: Record<string, unknown> = {}) {
   const app = express();
   app.use(express.json());
   app.use((req, _res, next) => {
-    (req as any).actor = {
-      type: "board",
-      userId: "local-board",
-      companyIds: ["company-1"],
-      source: "local_implicit",
-      isInstanceAdmin: false,
-    };
+    (req as any).actor = actor;
     next();
   });
   app.use("/api", agentRoutes(db as any));
@@ -176,6 +185,25 @@ describe("agent live run routes", () => {
     vi.doUnmock("../middleware/index.js");
     registerModuleMocks();
     vi.clearAllMocks();
+    mockAccessService.canUser.mockResolvedValue(true);
+    mockAccessService.decide.mockImplementation(async (input: { action?: string }) => ({
+      allowed: true,
+      action: input.action,
+      reason: "allow_explicit_grant",
+      explanation: "Allowed by test grant.",
+    }));
+    mockAccessService.hasPermission.mockResolvedValue(true);
+    mockWorkspaceOperationService.getById.mockResolvedValue({
+      id: "operation-1",
+      companyId: "company-1",
+      runId: "run-1",
+    });
+    mockHeartbeatService.getRun.mockResolvedValue({
+      id: "run-1",
+      companyId: "company-1",
+      agentId: "agent-1",
+      status: "running",
+    });
     mockIssueService.getByIdentifier.mockResolvedValue({
       id: "issue-1",
       companyId: "company-1",
@@ -373,6 +401,96 @@ describe("agent live run routes", () => {
       content: "chunk",
       nextOffset: 5,
     });
+  });
+
+  it.each(["skill_test", "task_bridge"])(
+    "denies %s keys from company-wide run and workspace logs",
+    async (kind) => {
+      mockAccessService.decide.mockImplementation(async (input: { action?: string }) => ({
+        allowed: input.action !== "company_scope:read",
+        action: input.action,
+        reason: input.action === "company_scope:read" ? "deny_key_scope" : "allow_explicit_grant",
+        explanation: input.action === "company_scope:read"
+          ? "Restricted keys cannot read company-wide run telemetry."
+          : "Allowed by test grant.",
+      }));
+      const actor = {
+        type: "agent",
+        agentId: routeAgentId,
+        companyId: "company-1",
+        source: "agent_key",
+        keyScope: kind === "skill_test"
+          ? { kind, issueId: "issue-1" }
+          : { kind, parentIssueId: "issue-1" },
+      };
+      const app = await createApp({}, actor);
+      const paths = [
+        "/api/companies/company-1/heartbeat-runs",
+        "/api/companies/company-1/live-runs",
+        "/api/heartbeat-runs/run-1",
+        "/api/heartbeat-runs/run-1/events",
+        "/api/heartbeat-runs/run-1/log",
+        "/api/heartbeat-runs/run-1/workspace-operations",
+        "/api/workspace-operations/operation-1/log",
+      ];
+
+      for (const path of paths) {
+        const res = await requestApp(app, (baseUrl) => request(baseUrl).get(path));
+        expect(res.status, `${path}: ${JSON.stringify(res.body)}`).toBe(403);
+        expect(res.body.error).toContain("Run telemetry");
+      }
+
+      expect(mockHeartbeatService.list).not.toHaveBeenCalled();
+      expect(mockHeartbeatService.readLog).not.toHaveBeenCalled();
+      expect(mockWorkspaceOperationService.readLog).not.toHaveBeenCalled();
+      expect(mockAccessService.decide).toHaveBeenCalledWith(expect.objectContaining({
+        action: "company_scope:read",
+        resource: { type: "company", companyId: "company-1" },
+      }));
+    },
+  );
+
+  it("rejects a company-2 member from reading company-1 run telemetry", async () => {
+    const actor = {
+      type: "board",
+      userId: "user-2",
+      companyIds: ["company-2"],
+      memberships: [{ companyId: "company-2", status: "active", membershipRole: "admin" }],
+      source: "session",
+      isInstanceAdmin: false,
+    };
+    const app = await createApp({}, actor);
+
+    const heartbeatRunsRes = await requestApp(
+      app,
+      (baseUrl) => request(baseUrl).get("/api/companies/company-1/heartbeat-runs"),
+    );
+    expect(heartbeatRunsRes.status, JSON.stringify(heartbeatRunsRes.body)).toBe(403);
+
+    const liveRunsRes = await requestApp(
+      app,
+      (baseUrl) => request(baseUrl).get("/api/companies/company-1/live-runs"),
+    );
+    expect(liveRunsRes.status, JSON.stringify(liveRunsRes.body)).toBe(403);
+
+    // Run-detail routes stay opaque across companies: the existence of a
+    // company-1 run is never confirmed to a company-2 member.
+    const runRes = await requestApp(
+      app,
+      (baseUrl) => request(baseUrl).get("/api/heartbeat-runs/run-1"),
+    );
+    expect(runRes.status, JSON.stringify(runRes.body)).toBe(404);
+    expect(JSON.stringify(runRes.body)).not.toContain("run-1");
+
+    const runLogRes = await requestApp(
+      app,
+      (baseUrl) => request(baseUrl).get("/api/heartbeat-runs/run-1/log"),
+    );
+    expect(runLogRes.status, JSON.stringify(runLogRes.body)).toBe(404);
+
+    expect(mockHeartbeatService.list).not.toHaveBeenCalled();
+    expect(mockHeartbeatService.readLog).not.toHaveBeenCalled();
+    expect(mockWorkspaceOperationService.readLog).not.toHaveBeenCalled();
   });
 
   it("caps company live run polling by default", async () => {
