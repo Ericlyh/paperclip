@@ -15,6 +15,7 @@ const apiPrefixes: Record<string, string> = {
   "access.ts": "/api",
   "activity.ts": "/api",
   "adapters.ts": "/api",
+  "agent-refine.ts": "/api",
   "agents.ts": "/api",
   "attention.ts": "/api",
   "approvals.ts": "/api",
@@ -61,6 +62,7 @@ const apiPrefixes: Record<string, string> = {
   "tool-access.ts": "/api",
   "tool-gateway.ts": "/api",
   "user-profiles.ts": "/api",
+  "workspace-context.ts": "/api",
 };
 
 const ROUTE_LITERAL_PATTERN = /router\.(get|post|put|patch|delete)\(\s*["'`]([^"'`]+)["'`]/g;

@@ -4965,12 +4965,11 @@ describe("company portability", () => {
     }, "user-1");
 
     const roundTrippedDescription = fullDescription.replace(/\r\n/g, "\n").trim();
-    expect(issueSvc.create).toHaveBeenCalledWith(
-      "company-imported",
-      expect.objectContaining({
-        description: roundTrippedDescription,
-      }),
-    );
+    // Import goes through the batched writer (issueSvc.importIssues), not the
+    // single-row issueSvc.create. Assert on the imported row directly so a
+    // future truncation of any other row cannot hide behind arrayContaining.
+    const importedDescription = (issueSvc.importIssues.mock.calls[0]![1] as Array<{ description: string }>)[0]!.description;
+    expect(importedDescription).toBe(roundTrippedDescription);
   });
 
   it("preserves issue comment presentation fields through export and import", async () => {

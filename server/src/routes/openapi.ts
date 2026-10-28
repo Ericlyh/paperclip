@@ -10,6 +10,8 @@ import {
   updateAgentInstructionsBundleSchema,
   upsertAgentInstructionsFileSchema,
   createAgentKeySchema,
+  proposeRefinementInputSchema,
+  rollbackRefinementInputSchema,
   builtInAgentEmptyMutationSchema,
   builtInAgentProvisionSchema,
   generateSummarySlotSchema,
@@ -7818,6 +7820,75 @@ registry.registerPath({
   tags: ["issues"],
   summary: "End the unlock session (re-lock issues in this browser)",
   responses: { 200: r.ok(), 401: r.unauthorized },
+});
+
+// ─── Agent refinement proposals ───────────────────────────────────────────────
+
+registerCurrentRoute({
+  method: "post",
+  path: "/api/companies/{companyId}/agents/{agentId}/refine",
+  tags: ["agent-refine"],
+  summary: "Propose a refinement for an agent",
+  body: proposeRefinementInputSchema,
+});
+
+registerCurrentRoute({
+  method: "get",
+  path: "/api/companies/{companyId}/agents/{agentId}/refine-proposals",
+  tags: ["agent-refine"],
+  summary: "List refinement proposals for an agent",
+});
+
+registerCurrentRoute({
+  method: "get",
+  path: "/api/companies/{companyId}/refine-proposals/{id}",
+  tags: ["agent-refine"],
+  summary: "Get a single refinement proposal",
+});
+
+registerCurrentRoute({
+  method: "post",
+  path: "/api/companies/{companyId}/refine-proposals/{id}/approve",
+  tags: ["agent-refine"],
+  summary: "Approve a refinement proposal",
+});
+
+registerCurrentRoute({
+  method: "post",
+  path: "/api/companies/{companyId}/refine-proposals/{id}/reject",
+  tags: ["agent-refine"],
+  summary: "Reject a refinement proposal",
+});
+
+registerCurrentRoute({
+  method: "post",
+  path: "/api/companies/{companyId}/refine-proposals/{id}/rollback",
+  tags: ["agent-refine"],
+  summary: "Roll a refinement proposal back",
+  body: rollbackRefinementInputSchema,
+});
+
+// ─── Workspace context ────────────────────────────────────────────────────────
+
+registerCurrentRoute({
+  method: "get",
+  path: "/api/companies/{companyId}/projects/{projectId}/workspace-context",
+  tags: ["workspace-context"],
+  summary: "Get the workspace context bundle for a project",
+});
+
+registerCurrentRoute({
+  method: "get",
+  path: "/api/companies/{companyId}/projects/{projectId}/workspace-members",
+  tags: ["workspace-context"],
+  summary: "List the workspace members of a project",
+});
+
+registerCurrentRoute({
+  method: "get",
+  path: "/api/issues/{id}/workspace-context",
+  tags: ["workspace-context"],
+  summary: "Get the workspace context bundle for an issue",
 });
 
 // ─── Spec builder ─────────────────────────────────────────────────────────────
