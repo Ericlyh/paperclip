@@ -1294,9 +1294,21 @@ export function environmentService(db: Db) {
       environmentId: string,
       filters: {
         status?: string;
+        /**
+         * Company scope for the caller. Pass null to read every company
+         * (instance admin); an empty array returns no rows. Internal callers
+         * that reconcile leases across companies omit it.
+         */
+        companyIds?: string[] | null;
       } = {},
     ): Promise<EnvironmentLease[]> => {
+      if (filters.companyIds && filters.companyIds.length === 0) {
+        return [];
+      }
       const conditions = [eq(environmentLeases.environmentId, environmentId)];
+      if (filters.companyIds) {
+        conditions.push(inArray(environmentLeases.companyId, filters.companyIds));
+      }
       if (filters.status) conditions.push(eq(environmentLeases.status, filters.status));
       const rows = await db
         .select()

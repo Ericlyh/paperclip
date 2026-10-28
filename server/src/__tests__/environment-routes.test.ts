@@ -2463,8 +2463,32 @@ describe("environment routes", () => {
     const res = await request(app).get(`/api/environments/${environment.id}/leases?status=active`);
 
     expect(res.status).toBe(200);
+    // companyIds is the caller's company scope: null means "every company",
+    // which is what a local_implicit actor gets.
     expect(mockEnvironmentService.listLeases).toHaveBeenCalledWith(environment.id, {
       status: "active",
+      companyIds: null,
+    });
+  });
+
+  it("scopes the lease listing to a board member's own companies", async () => {
+    const environment = createEnvironment();
+    mockEnvironmentService.getById.mockResolvedValue(environment);
+    mockEnvironmentService.listLeases.mockResolvedValue([]);
+    const app = createApp({
+      type: "board",
+      userId: "user-1",
+      source: "session",
+      companyIds: ["company-1"],
+      memberships: [{ companyId: "company-1", membershipRole: "owner", status: "active" }],
+    });
+
+    const res = await request(app).get(`/api/environments/${environment.id}/leases`);
+
+    expect(res.status).toBe(200);
+    expect(mockEnvironmentService.listLeases).toHaveBeenCalledWith(environment.id, {
+      status: undefined,
+      companyIds: ["company-1"],
     });
   });
 
@@ -2501,6 +2525,44 @@ describe("environment routes", () => {
     expect(res.status).toBe(200);
     expect(res.body.provider).toBe("ssh");
     expect(mockEnvironmentService.getLeaseById).toHaveBeenCalledWith("lease-1");
+  });
+
+  it("returns 404 for a lease belonging to another company", async () => {
+    mockEnvironmentService.getLeaseById.mockResolvedValue({
+      id: "lease-1",
+      companyId: "company-2",
+      environmentId: "env-1",
+      executionWorkspaceId: "workspace-1",
+      issueId: null,
+      heartbeatRunId: null,
+      status: "active",
+      leasePolicy: "ephemeral",
+      provider: "ssh",
+      providerLeaseId: "ssh://ssh-user@example.test:22/workspace",
+      acquiredAt: new Date("2026-04-16T05:00:00.000Z"),
+      lastUsedAt: new Date("2026-04-16T05:05:00.000Z"),
+      expiresAt: null,
+      releasedAt: null,
+      failureReason: null,
+      cleanupStatus: null,
+      metadata: { remoteCwd: "/workspace" },
+      createdAt: new Date("2026-04-16T05:00:00.000Z"),
+      updatedAt: new Date("2026-04-16T05:00:00.000Z"),
+    } as any);
+    const app = createApp({
+      type: "board",
+      userId: "user-1",
+      source: "session",
+      companyIds: ["company-1"],
+      memberships: [{ companyId: "company-1", membershipRole: "owner", status: "active" }],
+    });
+
+    const res = await request(app).get("/api/environment-leases/lease-1");
+
+    // 404, not 403: a 403 would disclose that the lease exists.
+    expect(res.status).toBe(404);
+    expect(res.body.error).toBe("Environment lease not found");
+    expect(res.body.provider).toBeUndefined();
   });
 
   it("rejects agent access regardless of company when environment management is instance-scoped", async () => {

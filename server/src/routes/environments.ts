@@ -320,6 +320,29 @@ function assertNoClientPlatformProvisionedMarkers(metadata: unknown): void {
   }
 }
 
+/**
+ * Company scope for environment lease reads.
+ *
+ * Environment rows are instance-level (they have no company_id), but every
+ * lease does: environment_leases.company_id is NOT NULL. A lease therefore
+ * belongs to exactly one company, while the environment it points at may be
+ * shared. Reading leases without a company filter lets a board member of any
+ * company read every other company's lease rows.
+ *
+ * Returns the company ids the caller may read leases for, or null when the
+ * caller is entitled to every company (instance admin / local implicit).
+ * An empty array means "no companies readable".
+ */
+export function environmentLeaseReadCompanyIds(req: Request): string[] | null {
+  if (req.actor.type !== "board") {
+    return [];
+  }
+  if (req.actor.source === "local_implicit" || req.actor.isInstanceAdmin) {
+    return null;
+  }
+  return req.actor.companyIds ?? [];
+}
+
 export function environmentRoutes(
   db: Db,
   options: {
@@ -1091,8 +1114,11 @@ export function environmentRoutes(
       res.status(404).json({ error: "Environment not found" });
       return;
     }
+    // The environment may be shared across companies, but each lease belongs
+    // to exactly one. Scope the listing to the caller's companies.
     const leases = await svc.listLeases(environment.id, {
       status: req.query.status as string | undefined,
+      companyIds: environmentLeaseReadCompanyIds(req),
     });
     res.json(leases);
   });
@@ -1101,6 +1127,13 @@ export function environmentRoutes(
     assertCanReadInstanceEnvironments(req);
     const lease = await svc.getLeaseById(req.params.leaseId as string);
     if (!lease) {
+      res.status(404).json({ error: "Environment lease not found" });
+      return;
+    }
+    // A lease carries its owning company. A cross-tenant caller must get the
+    // same 404 as a missing lease rather than a 403 that discloses it exists.
+    const leaseCompanyIds = environmentLeaseReadCompanyIds(req);
+    if (leaseCompanyIds && !leaseCompanyIds.includes(lease.companyId)) {
       res.status(404).json({ error: "Environment lease not found" });
       return;
     }
