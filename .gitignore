@@ -70,3 +70,11 @@ tests/storybook-visual/playwright-report/
 .superpowers/
 .claude/worktrees/
 .herenow
+
+# Local round-trip validation harness: resolves DB credentials from the
+# environment, but is a developer-only tool that must never be committed.
+cli/validate-roundtrip.mjs
+
+# Agent scratch directories
+run-scratch/
+packages/db/run-scratch/
