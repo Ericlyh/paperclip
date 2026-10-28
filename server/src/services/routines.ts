@@ -29,6 +29,7 @@ import {
 import type {
   CreateRoutine,
   CreateRoutineTrigger,
+  ModelProfileKey,
   Routine,
   RoutineDetail,
   RoutineDescriptionDocument,
@@ -46,6 +47,7 @@ import type {
 } from "@paperclipai/shared";
 import {
   WORKSPACE_BRANCH_ROUTINE_VARIABLE,
+  MODEL_PROFILE_KEYS,
   getBuiltinRoutineVariableValues,
   extractRoutineVariableNames,
   interpolateRoutineTemplate,
@@ -579,6 +581,20 @@ function routineUsesWorkspaceBranch(routine: typeof routines.$inferSelect) {
     || extractRoutineVariableNames([routine.title, routine.description]).includes(WORKSPACE_BRANCH_ROUTINE_VARIABLE);
 }
 
+/**
+ * A routine can pin a model profile (e.g. "cheap"). A schedule trigger fires with no
+ * wake payload, so the pinned profile is stamped onto the execution issue as an
+ * assignee adapter override — the same shape an operator can set by hand on an issue.
+ * Returns null when the routine pins nothing, leaving the agent's default config.
+ */
+function routineModelProfileAdapterOverrides(
+  modelProfile: string | null | undefined,
+): Record<string, unknown> | null {
+  if (!modelProfile) return null;
+  if (!MODEL_PROFILE_KEYS.includes(modelProfile as ModelProfileKey)) return null;
+  return { modelProfile };
+}
+
 function routineRevisionSnapshotRoutine(routine: RoutineRow): RoutineRevisionSnapshotV1["routine"] {
   return {
     id: routine.id,
@@ -595,6 +611,7 @@ function routineRevisionSnapshotRoutine(routine: RoutineRow): RoutineRevisionSna
     catchUpPolicy: routine.catchUpPolicy as RoutineRevisionSnapshotV1["routine"]["catchUpPolicy"],
     activityGatePolicy: routine.activityGatePolicy as RoutineRevisionSnapshotV1["routine"]["activityGatePolicy"],
     activityGateScope: routine.activityGateScope as RoutineRevisionSnapshotV1["routine"]["activityGateScope"],
+    modelProfile: (routine.modelProfile as ModelProfileKey | null) ?? null,
     variables: routine.variables ?? [],
     env: routine.env ?? null,
     responsibleUserId: routine.responsibleUserId ?? null,
@@ -1914,6 +1931,7 @@ export function routineService(
             status: "todo",
             priority: input.routine.priority,
             assigneeAgentId,
+            assigneeAdapterOverrides: routineModelProfileAdapterOverrides(input.routine.modelProfile),
             createdByAgentId: input.source === "manual" ? input.actor?.agentId ?? null : null,
             createdByUserId: manualRunnerUserId,
             responsibleUserId,
@@ -2227,6 +2245,7 @@ export function routineService(
             catchUpPolicy: input.catchUpPolicy,
             activityGatePolicy: input.activityGatePolicy ?? "always",
             activityGateScope: input.activityGateScope ?? "company",
+            modelProfile: input.modelProfile ?? null,
             variables,
             env,
             responsibleUserId,
@@ -2342,6 +2361,7 @@ export function routineService(
           catchUpPolicy: patch.catchUpPolicy ?? locked.catchUpPolicy,
           activityGatePolicy: patch.activityGatePolicy ?? locked.activityGatePolicy,
           activityGateScope: patch.activityGateScope ?? locked.activityGateScope,
+          modelProfile: patch.modelProfile === undefined ? locked.modelProfile : patch.modelProfile,
           variables: nextVariables,
           env: nextEnv,
           responsibleUserId: locked.responsibleUserId ?? responsibleUserId,
@@ -2407,6 +2427,7 @@ export function routineService(
             catchUpPolicy: candidate.catchUpPolicy,
             activityGatePolicy: candidate.activityGatePolicy,
             activityGateScope: candidate.activityGateScope,
+            modelProfile: candidate.modelProfile,
             variables: candidate.variables,
             env: candidate.env,
             responsibleUserId: candidate.responsibleUserId,
@@ -2745,6 +2766,7 @@ export function routineService(
             catchUpPolicy: routineSnapshot.catchUpPolicy,
             activityGatePolicy: routineSnapshot.activityGatePolicy,
             activityGateScope: routineSnapshot.activityGateScope,
+            modelProfile: routineSnapshot.modelProfile,
             variables: routineSnapshot.variables,
             env: routineSnapshot.env,
             updatedByAgentId: actor.agentId ?? null,

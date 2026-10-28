@@ -45,6 +45,7 @@ describe("routine validators", () => {
     expect(parsed.triggers[0]?.publicId).toBe("routine_webhook_123");
     expect(parsed.routine.activityGatePolicy).toBe("always");
     expect(parsed.routine.activityGateScope).toBe("company");
+    expect(parsed.routine.modelProfile).toBeNull();
   });
 
   it("rejects secret-bearing trigger fields in routine revision snapshots", () => {
@@ -85,6 +86,12 @@ describe("routine validators", () => {
       title: "Daily triage",
       baseRevisionId,
     }).baseRevisionId).toBe(baseRevisionId);
+  });
+
+  it("validates routine model profile values", () => {
+    expect(updateRoutineSchema.parse({ modelProfile: "cheap" }).modelProfile).toBe("cheap");
+    expect(updateRoutineSchema.parse({ modelProfile: null }).modelProfile).toBeNull();
+    expect(() => updateRoutineSchema.parse({ modelProfile: "turbo" })).toThrow();
   });
 
   it("validates routine activity gate values", () => {

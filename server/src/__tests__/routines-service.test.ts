@@ -670,6 +670,56 @@ describeEmbeddedPostgres("routine service live-execution coalescing", () => {
     await expect(svc.evaluateActivityGate(projectRoutine, now)).resolves.toMatchObject({ fire: true });
   });
 
+  it("stamps a routine's pinned model profile onto its execution issue", async () => {
+    const { companyId, routine, svc } = await seedFixture();
+    const cheapRoutine = await svc.create(
+      companyId,
+      {
+        projectId: routine.projectId,
+        goalId: null,
+        parentIssueId: null,
+        title: "hourly cheap routine",
+        description: "Runs on the cheap model profile",
+        assigneeAgentId: routine.assigneeAgentId,
+        priority: "medium",
+        status: "active",
+        concurrencyPolicy: "coalesce_if_active",
+        catchUpPolicy: "skip_missed",
+        modelProfile: "cheap",
+      },
+      {},
+    );
+    expect(cheapRoutine.modelProfile).toBe("cheap");
+
+    const run = await svc.runRoutine(cheapRoutine.id, { source: "manual" });
+    expect(run.status).toBe("issue_created");
+
+    const executionIssue = await db
+      .select({ assigneeAdapterOverrides: issues.assigneeAdapterOverrides })
+      .from(issues)
+      .where(eq(issues.id, run.linkedIssueId!))
+      .then((rows) => rows[0] ?? null);
+    expect(executionIssue?.assigneeAdapterOverrides).toEqual({ modelProfile: "cheap" });
+
+    const cleared = await svc.update(cheapRoutine.id, { modelProfile: null }, {});
+    expect(cleared?.modelProfile).toBeNull();
+  });
+
+  it("leaves the execution issue without a model profile when the routine pins none", async () => {
+    const { companyId, routine, svc } = await seedFixture();
+    expect(routine.modelProfile).toBeNull();
+
+    const run = await svc.runRoutine(routine.id, { source: "manual" });
+    expect(run.status).toBe("issue_created");
+
+    const executionIssue = await db
+      .select({ assigneeAdapterOverrides: issues.assigneeAdapterOverrides })
+      .from(issues)
+      .where(eq(issues.id, run.linkedIssueId!))
+      .then((rows) => rows[0] ?? null);
+    expect(executionIssue?.assigneeAdapterOverrides).toBeNull();
+  });
+
   it("creates a fresh execution issue when the previous routine issue is open but idle", async () => {
     const { companyId, issueSvc, routine, svc } = await seedFixture();
     const previousRunId = randomUUID();

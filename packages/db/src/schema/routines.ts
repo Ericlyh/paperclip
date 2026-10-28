@@ -38,6 +38,7 @@ export const routines = pgTable(
     catchUpPolicy: text("catch_up_policy").notNull().default("skip_missed"),
     activityGatePolicy: text("activity_gate_policy").notNull().default("always"),
     activityGateScope: text("activity_gate_scope").notNull().default("company"),
+    modelProfile: text("model_profile"),
     originKind: text("origin_kind").notNull().default("manual"),
     originId: text("origin_id"),
     variables: jsonb("variables").$type<RoutineVariable[]>().notNull().default([]),

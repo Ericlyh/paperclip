@@ -444,6 +444,24 @@ async function constraintExists(
   return rows[0]?.exists ?? false;
 }
 
+async function columnIsNullable(
+  sql: ReturnType<typeof postgres>,
+  tableName: string,
+  columnName: string,
+): Promise<boolean | null> {
+  const rows = await sql<{ is_nullable: string }[]>`
+    SELECT is_nullable
+    FROM information_schema.columns
+    WHERE table_schema = 'public'
+      AND table_name = ${tableName}
+      AND column_name = ${columnName}
+  `;
+  const isNullable = rows[0]?.is_nullable;
+  if (isNullable === "YES") return true;
+  if (isNullable === "NO") return false;
+  return null;
+}
+
 async function migrationStatementAlreadyApplied(
   sql: ReturnType<typeof postgres>,
   statement: string,
@@ -470,6 +488,30 @@ async function migrationStatementAlreadyApplied(
   const addConstraintMatch = normalized.match(/^ALTER TABLE "([^"]+)" ADD CONSTRAINT "([^"]+)"/i);
   if (addConstraintMatch) {
     return constraintExists(sql, addConstraintMatch[2]);
+  }
+
+  const alterColumnNullabilityMatch = normalized.match(
+    /^ALTER TABLE "([^"]+)" ALTER COLUMN "([^"]+)" (DROP|SET) NOT NULL/i,
+  );
+  if (alterColumnNullabilityMatch) {
+    const nullable = await columnIsNullable(
+      sql,
+      alterColumnNullabilityMatch[1],
+      alterColumnNullabilityMatch[2],
+    );
+    if (nullable === null) return false;
+    return alterColumnNullabilityMatch[3].toUpperCase() === "DROP" ? nullable : !nullable;
+  }
+
+  // Guarded DO blocks ("IF NOT EXISTS (...) THEN ALTER TABLE ... ADD CONSTRAINT ...") are
+  // idempotent by construction, so a block whose named constraints all exist is a no-op.
+  if (/^DO \$\$/i.test(normalized)) {
+    const constraintNames = [...normalized.matchAll(/ADD CONSTRAINT "([^"]+)"/gi)].map((match) => match[1]);
+    if (constraintNames.length === 0) return false;
+    for (const constraintName of constraintNames) {
+      if (!(await constraintExists(sql, constraintName))) return false;
+    }
+    return true;
   }
 
   // If we cannot reason about a statement safely, require manual migration.

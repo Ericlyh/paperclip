@@ -1,6 +1,7 @@
 import type {
   IssueOriginKind,
   IssuePriority,
+  ModelProfileKey,
   RoutineActivityGatePolicy,
   RoutineActivityGateScope,
   RoutineCatchUpPolicy,
@@ -85,6 +86,7 @@ export interface Routine {
   catchUpPolicy: string;
   activityGatePolicy: string;
   activityGateScope: string;
+  modelProfile: string | null;
   originKind?: string;
   originId?: string | null;
   variables: RoutineVariable[];
@@ -130,6 +132,7 @@ export interface RoutineRevisionSnapshotRoutineV1 {
   catchUpPolicy: RoutineCatchUpPolicy;
   activityGatePolicy: RoutineActivityGatePolicy;
   activityGateScope: RoutineActivityGateScope;
+  modelProfile: ModelProfileKey | null;
   originKind?: string;
   originId?: string | null;
   variables: RoutineVariable[];

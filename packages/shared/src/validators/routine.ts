@@ -1,6 +1,7 @@
 import { z } from "zod";
 import {
   ISSUE_PRIORITIES,
+  MODEL_PROFILE_KEYS,
   ROUTINE_ACTIVITY_GATE_POLICIES,
   ROUTINE_ACTIVITY_GATE_SCOPES,
   ROUTINE_CATCH_UP_POLICIES,
@@ -75,6 +76,7 @@ export const createRoutineSchema = z.object({
   catchUpPolicy: z.enum(ROUTINE_CATCH_UP_POLICIES).optional().default("skip_missed"),
   activityGatePolicy: z.enum(ROUTINE_ACTIVITY_GATE_POLICIES).optional(),
   activityGateScope: z.enum(ROUTINE_ACTIVITY_GATE_SCOPES).optional(),
+  modelProfile: z.enum(MODEL_PROFILE_KEYS).optional().nullable(),
   variables: z.array(routineVariableSchema).optional().default([]),
   env: envConfigSchema.optional().nullable(),
 });
@@ -102,6 +104,7 @@ export const routineRevisionSnapshotRoutineV1Schema = z.object({
   catchUpPolicy: z.enum(ROUTINE_CATCH_UP_POLICIES),
   activityGatePolicy: z.enum(ROUTINE_ACTIVITY_GATE_POLICIES).default("always"),
   activityGateScope: z.enum(ROUTINE_ACTIVITY_GATE_SCOPES).default("company"),
+  modelProfile: z.enum(MODEL_PROFILE_KEYS).nullable().default(null),
   variables: z.array(routineVariableSchema),
   env: envConfigSchema.nullable().default(null),
   responsibleUserId: z.string().nullable().default(null),
