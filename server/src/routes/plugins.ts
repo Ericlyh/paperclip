@@ -25,7 +25,7 @@ import { randomUUID } from "node:crypto";
 import { fileURLToPath } from "node:url";
 import { Router } from "express";
 import type { Request, Response } from "express";
-import { and, desc, eq, gte } from "drizzle-orm";
+import { and, desc, eq, gte, inArray } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import {
   agents,
@@ -164,6 +164,29 @@ const PLUGIN_SCOPED_API_RESPONSE_HEADER_ALLOWLIST = new Set([
 ]);
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
+/**
+ * Company scope for plugin operational reads (logs, job runs, dashboard).
+ *
+ * Returns the company ids the caller may read rows for, or null when the
+ * caller is entitled to every company (instance admin / local implicit).
+ * An empty array means "no companies readable" and the caller must not see
+ * any rows.
+ *
+ * Plugin rows are keyed by plugin or job id, which carries no company scope
+ * of its own, so without this the operational rows of every company would be
+ * readable by any board member.
+ */
+export function pluginOperationalReadCompanyIds(req: Request): string[] | null {
+  if (req.actor.type !== "board") {
+    return [];
+  }
+  if (req.actor.source === "local_implicit" || req.actor.isInstanceAdmin) {
+    return null;
+  }
+  return req.actor.companyIds ?? [];
+}
+
 const EXPERIMENTAL_BUNDLED_PLUGIN_PACKAGE_NAMES = new Set([
   "@paperclipai/plugin-llm-wiki",
   "@paperclipai/plugin-modal",
@@ -2163,7 +2186,19 @@ export function pluginRoutes(
     const level = req.query.level as string | undefined;
     const since = req.query.since as string | undefined;
 
+    // Plugin logs carry a company_id, but the plugin id alone does not scope
+    // them. Scope the query to the caller's companies so a board member of
+    // one company cannot read another company's log rows.
+    const companyIds = pluginOperationalReadCompanyIds(req);
+    if (companyIds && companyIds.length === 0) {
+      res.json([]);
+      return;
+    }
+
     const conditions = [eq(pluginLogs.pluginId, plugin.id)];
+    if (companyIds) {
+      conditions.push(inArray(pluginLogs.companyId, companyIds));
+    }
     if (level) {
       conditions.push(eq(pluginLogs.level, level));
     }
@@ -2589,7 +2624,12 @@ export function pluginRoutes(
     }
 
     try {
-      const runs = await jobDeps.jobStore.listRunsByJob(jobId, limit);
+      // Job runs carry a company_id but the job id alone does not scope them.
+      const runs = await jobDeps.jobStore.listRunsByJob(
+        jobId,
+        limit,
+        pluginOperationalReadCompanyIds(req),
+      );
       res.json(runs);
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -2972,6 +3012,10 @@ export function pluginRoutes(
       return;
     }
 
+    // Scope the operational rows below (job runs, webhook deliveries) to the
+    // caller's companies. The plugin id alone carries no company scope.
+    const companyIds = pluginOperationalReadCompanyIds(req);
+
     // --- Worker diagnostics ---
     let worker: {
       status: string;
@@ -3019,7 +3063,7 @@ export function pluginRoutes(
 
     if (jobDeps) {
       try {
-        const runs = await jobDeps.jobStore.listRunsByPlugin(plugin.id, undefined, 10);
+        const runs = await jobDeps.jobStore.listRunsByPlugin(plugin.id, undefined, 10, companyIds);
         // Also fetch job definitions so we can include jobKey
         const jobs = await jobDeps.jobStore.listJobs(plugin.id);
         const jobKeyMap = new Map(jobs.map((j) => [j.id, j.jobKey]));
@@ -3056,6 +3100,12 @@ export function pluginRoutes(
     }> = [];
 
     try {
+      // Webhook deliveries carry a company_id but the plugin id alone does not
+      // scope them, so scope the read to the caller's companies.
+      const deliveryConditions = [eq(pluginWebhookDeliveries.pluginId, plugin.id)];
+      if (companyIds) {
+        deliveryConditions.push(inArray(pluginWebhookDeliveries.companyId, companyIds));
+      }
       const deliveries = await db
         .select({
           id: pluginWebhookDeliveries.id,
@@ -3068,7 +3118,7 @@ export function pluginRoutes(
           createdAt: pluginWebhookDeliveries.createdAt,
         })
         .from(pluginWebhookDeliveries)
-        .where(eq(pluginWebhookDeliveries.pluginId, plugin.id))
+        .where(and(...deliveryConditions))
         .orderBy(desc(pluginWebhookDeliveries.createdAt))
         .limit(10);
 

@@ -30,7 +30,7 @@
  * @see PLUGIN_SPEC.md §21.3 — `plugin_jobs` / `plugin_job_runs` tables
  */
 
-import { and, desc, eq } from "drizzle-orm";
+import { and, desc, eq, inArray } from "drizzle-orm";
 import type { Db } from "@paperclipai/db";
 import { plugins, pluginJobs, pluginJobRuns } from "@paperclipai/db";
 import type {
@@ -422,15 +422,25 @@ export function pluginJobStore(db: Db) {
      *
      * @param jobId - UUID of the job
      * @param limit - Maximum number of rows to return (default: 50)
+     * @param companyIds - Company scope for the caller. Pass null to read every
+     *   company (instance admin); an empty array returns no rows.
      */
     async listRunsByJob(
       jobId: string,
       limit = 50,
+      companyIds: string[] | null = null,
     ): Promise<(typeof pluginJobRuns.$inferSelect)[]> {
+      if (companyIds && companyIds.length === 0) {
+        return [];
+      }
+      const conditions = [eq(pluginJobRuns.jobId, jobId)];
+      if (companyIds) {
+        conditions.push(inArray(pluginJobRuns.companyId, companyIds));
+      }
       return db
         .select()
         .from(pluginJobRuns)
-        .where(eq(pluginJobRuns.jobId, jobId))
+        .where(and(...conditions))
         .orderBy(desc(pluginJobRuns.createdAt))
         .limit(limit);
     },
@@ -441,13 +451,22 @@ export function pluginJobStore(db: Db) {
      * @param pluginId - UUID of the owning plugin
      * @param status - Optional status filter
      * @param limit - Maximum number of rows to return (default: 50)
+     * @param companyIds - Company scope for the caller. Pass null to read every
+     *   company (instance admin); an empty array returns no rows.
      */
     async listRunsByPlugin(
       pluginId: string,
       status?: PluginJobRunStatus,
       limit = 50,
+      companyIds: string[] | null = null,
     ): Promise<(typeof pluginJobRuns.$inferSelect)[]> {
+      if (companyIds && companyIds.length === 0) {
+        return [];
+      }
       const conditions = [eq(pluginJobRuns.pluginId, pluginId)];
+      if (companyIds) {
+        conditions.push(inArray(pluginJobRuns.companyId, companyIds));
+      }
       if (status) {
         conditions.push(eq(pluginJobRuns.status, status));
       }
