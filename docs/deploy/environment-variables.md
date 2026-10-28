@@ -20,6 +20,12 @@ All environment variables that Paperclip uses for server configuration.
 | `PAPERCLIP_DEPLOYMENT_EXPOSURE` | `private` | Exposure policy when deployment mode is `authenticated` |
 | `PAPERCLIP_API_URL` | (auto-derived) | Paperclip API base URL. When set externally (e.g., via Kubernetes ConfigMap, load balancer, or reverse proxy), the server preserves the value instead of deriving it from the listen host and port. Useful for deployments where the public-facing URL differs from the local bind address. |
 
+## HTTP Adapter Egress
+
+| Variable | Default | Description |
+|----------|---------|-------------|
+| `PAPERCLIP_HTTP_ADAPTER_PRIVATE_ENDPOINT_ALLOWLIST` | (unset) | Comma-separated exact origins (`scheme://host[:port]`) that HTTP adapters may reach on a private network, e.g. `http://10.0.0.5:8080`. Every other HTTP-adapter URL is resolved and rejected when it points at a loopback, RFC1918, link-local or cloud-metadata address. Link-local and metadata addresses stay blocked even for allowlisted origins. |
+
 ## Secrets
 
 | Variable | Default | Description |

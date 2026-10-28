@@ -9,6 +9,13 @@ export type RemoteHttpEndpointLookup = (hostname: string) => Promise<LookupResul
 
 export type RemoteHttpEndpointGuardOptions = {
   allowPrivateNetwork?: boolean;
+  /**
+   * Deny link-local egress — including the cloud metadata address
+   * 169.254.169.254 — even when `allowPrivateNetwork` is set. Callers that
+   * trust a private endpoint still must not be able to pivot to instance
+   * metadata through it.
+   */
+  denyLinkLocal?: boolean;
   dnsTimeoutMs?: number;
   lookup?: RemoteHttpEndpointLookup;
 };
@@ -39,16 +46,20 @@ export async function assertPublicRemoteHttpEndpoint(
   options: RemoteHttpEndpointGuardOptions,
   error: RemoteHttpEndpointErrorFactory,
 ): Promise<void> {
-  if (options.allowPrivateNetwork) return;
+  const denyLinkLocal = options.denyLinkLocal === true;
+  if (options.allowPrivateNetwork && !denyLinkLocal) return;
 
   const hostname = endpoint.hostname.replace(/^\[|\]$/g, "").toLowerCase();
-  if (hostname === "localhost" || hostname.endsWith(".localhost")) {
+  if (!options.allowPrivateNetwork && (hostname === "localhost" || hostname.endsWith(".localhost"))) {
     throw error("Remote MCP connection URL cannot target private or reserved network addresses", "remote_http_private_endpoint");
   }
 
   const literalVersion = isIP(hostname);
   if (literalVersion !== 0) {
-    if (isPrivateOrReservedIp(hostname)) {
+    if (denyLinkLocal && isAlwaysDeniedLinkLocalIp(hostname)) {
+      throw error("Remote MCP connection URL cannot target link-local or metadata addresses", "remote_http_private_endpoint");
+    }
+    if (!options.allowPrivateNetwork && isPrivateOrReservedIp(hostname)) {
       throw error("Remote MCP connection URL cannot target private or reserved network addresses", "remote_http_private_endpoint");
     }
     return;
@@ -67,7 +78,10 @@ export async function assertPublicRemoteHttpEndpoint(
   if (results.length === 0) {
     throw error("Remote MCP connection hostname did not resolve", "remote_http_dns_failed");
   }
-  if (results.some((result) => isPrivateOrReservedIp(result.address))) {
+  if (denyLinkLocal && results.some((result) => isAlwaysDeniedLinkLocalIp(result.address))) {
+    throw error("Remote MCP connection URL cannot resolve to link-local or metadata addresses", "remote_http_private_endpoint");
+  }
+  if (!options.allowPrivateNetwork && results.some((result) => isPrivateOrReservedIp(result.address))) {
     throw error("Remote MCP connection URL cannot resolve to private or reserved network addresses", "remote_http_private_endpoint");
   }
 }
@@ -91,6 +105,24 @@ async function lookupWithTimeout(hostname: string, lookup: RemoteHttpEndpointLoo
   } finally {
     if (timeout) clearTimeout(timeout);
   }
+}
+
+/**
+ * Link-local egress is denied in every deployment mode: 169.254.0.0/16 carries
+ * the cloud metadata endpoint (169.254.169.254 on AWS, GCP and Azure) and
+ * fe80::/10 its IPv6 equivalent.
+ */
+function isAlwaysDeniedLinkLocalIp(address: string): boolean {
+  const lower = address.toLowerCase().replace(/^\[|\]$/g, "");
+  const mappedIpv4 = lower.match(/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/);
+  if (mappedIpv4?.[1]) return isAlwaysDeniedLinkLocalIp(mappedIpv4[1]);
+  const mappedIpv4Hex = parseMappedIpv4Hex(lower);
+  if (mappedIpv4Hex) return isAlwaysDeniedLinkLocalIp(mappedIpv4Hex);
+  if (isIP(lower) === 4) {
+    const octets = parseIpv4Address(lower);
+    return octets !== null && octets[0] === 169 && octets[1] === 254;
+  }
+  return isIP(lower) === 6 && /^fe[89ab]/.test(lower);
 }
 
 function isPrivateOrReservedIp(address: string): boolean {

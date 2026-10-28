@@ -34,4 +34,32 @@ describe("remote HTTP endpoint guard", () => {
       guardError,
     )).rejects.toMatchObject({ code: "remote_http_private_endpoint" });
   });
+
+  it("denies the metadata address even when private networking is allowed", async () => {
+    await expect(assertPublicRemoteHttpEndpoint(
+      new URL("http://169.254.169.254/latest/meta-data/"),
+      { allowPrivateNetwork: true, denyLinkLocal: true },
+      guardError,
+    )).rejects.toMatchObject({ code: "remote_http_private_endpoint" });
+  });
+
+  it("denies hostnames that resolve to a link-local address", async () => {
+    await expect(assertPublicRemoteHttpEndpoint(
+      new URL("https://metadata.example/mcp"),
+      {
+        allowPrivateNetwork: true,
+        denyLinkLocal: true,
+        lookup: async () => [{ address: "169.254.169.254", family: 4 }],
+      },
+      guardError,
+    )).rejects.toMatchObject({ code: "remote_http_private_endpoint" });
+  });
+
+  it("keeps allowing private addresses when link-local egress is denied", async () => {
+    await expect(assertPublicRemoteHttpEndpoint(
+      new URL("http://10.0.0.12/mcp"),
+      { allowPrivateNetwork: true, denyLinkLocal: true },
+      guardError,
+    )).resolves.toBeUndefined();
+  });
 });
