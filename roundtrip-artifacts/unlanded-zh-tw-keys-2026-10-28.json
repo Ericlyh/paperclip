@@ -1,0 +1,29 @@
+{
+  "_meta": {
+    "purpose": "zh-TW translation keys present on branch oop-2240-filter-productivity-review-dashboard but ABSENT from merge/consolidation-2026-10-27 and from origin/master.",
+    "captured": "2026-10-28",
+    "capturedBy": "P0b cleanup audit before deleting the public branch that leaked the postgres credential",
+    "sourceBranch": "oop-2240-filter-productivity-review-dashboard",
+    "sourceCommit": "7c035140d feat(ui): translate Routines page to Traditional Chinese (OOP-3329 follow-up), 0efbca684 feat(ui): translate sidebar navigation to Traditional Chinese (OOP-3330)",
+    "sourceFile": "ui/src/i18n/locales/zh-TW.json",
+    "landedIn": false,
+    "howToLand": "Copy the `routines` and `sidebar` sub-objects below into ui/src/i18n/locales/zh-TW.json on the target branch. Then port the corresponding t() call sites from the source branch's ui/src/pages/Routines.tsx, ui/src/components/Sidebar.tsx and any other files touched by the two source commits.",
+    "note": "The source branch was deleted from the public fork after the postgres credential rotation. The commits remain reachable locally via branch archive/unlanded-zh-tw-keys-2026-10-28."
+  },
+  "routines": {
+    "addFirstTrigger": "新增第一個觸發條件，將其轉換為即時工作流程。",
+    "couldNotStartRoutine": "無法啟動定期任務執行。",
+    "createFirstRoutine": "建立您的第一個定期任務來自動化工作流程。",
+    "draftSaved": "草稿已儲存。在啟用自動化前，請先設定預設代理。",
+    "failedToUpdate": "更新定期任務失敗",
+    "noRoutines": "尚無定期任務",
+    "routineRuns": "筆執行",
+    "routineRuns_one": "筆執行",
+    "routineRuns_other": "筆執行",
+    "setDefaultAgentBeforeEnabling": "在啟用自動化前，請先設定預設代理。",
+    "titleCol": "標題"
+  },
+  "sidebar": {
+    "openSearch": "開啟搜尋"
+  }
+}
