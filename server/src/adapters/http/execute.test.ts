@@ -42,7 +42,9 @@ describe("http adapter execute", () => {
         taskKey: null,
       },
       config: {
-        url: "https://example.test/webhook",
+        // An IP literal is dialled directly, so the platform fetch handles it
+        // and no name server is consulted.
+        url: "https://93.184.216.34/webhook",
         timeoutMs: 1,
       },
       context: {},

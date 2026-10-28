@@ -21,15 +21,19 @@ afterEach(() => {
 
 describe("http adapter endpoint guard", () => {
   it("rejects cloud metadata endpoints without opening a socket", async () => {
+    const socketFactory = vi.fn(() => {
+      throw new Error("must not dial");
+    });
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(
       guardedHttpAdapterFetch("http://169.254.169.254/latest/meta-data/iam/security-credentials/", {
         method: "POST",
-      }),
+      }, { socketFactory }),
     ).rejects.toMatchObject({ code: "remote_http_private_endpoint" });
 
+    expect(socketFactory).not.toHaveBeenCalled();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -40,39 +44,52 @@ describe("http adapter endpoint guard", () => {
     "http://192.168.1.10/hook",
     "http://[::1]/hook",
   ])("rejects the private endpoint %s", async (url) => {
+    const socketFactory = vi.fn(() => {
+      throw new Error("must not dial");
+    });
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
-    await expect(guardedHttpAdapterFetch(url, { method: "POST" })).rejects.toMatchObject({
+    await expect(guardedHttpAdapterFetch(url, { method: "POST" }, { socketFactory })).rejects.toMatchObject({
       code: "remote_http_private_endpoint",
     });
 
+    expect(socketFactory).not.toHaveBeenCalled();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("rejects a hostname that resolves to a private address", async () => {
     dnsLookupMock.mockImplementation(async () => [{ address: "10.1.2.3", family: 4 }]);
+    const socketFactory = vi.fn(() => {
+      throw new Error("must not dial");
+    });
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(
-      guardedHttpAdapterFetch("https://hooks.example.com/hook", { method: "POST" }),
+      guardedHttpAdapterFetch("https://hooks.example.com/hook", { method: "POST" }, { socketFactory }),
     ).rejects.toMatchObject({ code: "remote_http_private_endpoint" });
 
+    expect(socketFactory).not.toHaveBeenCalled();
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("allows a public endpoint and never follows redirects", async () => {
-    const fetchMock = vi.fn(async () => new Response(null, { status: 204 }));
+    // An IP literal cannot be rebound, so the platform fetch handles it.
+    // Redirects must stay manual so a public endpoint cannot redirect the
+    // adapter into a private address.
+    const unpinnedFetch = vi.fn(async () => new Response(null, { status: 204 }));
+    const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
-    const response = await guardedHttpAdapterFetch("https://hooks.example.com/hook", {
+    const response = await guardedHttpAdapterFetch("https://93.184.216.34/hook", {
       method: "POST",
-    });
+    }, { unpinnedFetch });
 
     expect(response.status).toBe(204);
-    expect(fetchMock).toHaveBeenCalledTimes(1);
-    expect(fetchMock.mock.calls[0]?.[1]).toMatchObject({ redirect: "manual" });
+    expect(unpinnedFetch).toHaveBeenCalledTimes(1);
+    expect(unpinnedFetch.mock.calls[0]?.[1]).toMatchObject({ redirect: "manual" });
+    expect(fetchMock).not.toHaveBeenCalled();
   });
 
   it("allows an operator-allowlisted private origin", async () => {
@@ -88,13 +105,28 @@ describe("http adapter endpoint guard", () => {
     expect(fetchMock).toHaveBeenCalledTimes(1);
   });
 
+  it("does not allow a sibling port of an allowlisted private origin", async () => {
+    const fetchMock = vi.fn();
+    vi.stubGlobal("fetch", fetchMock);
+
+    await expect(
+      guardedHttpAdapterFetch(
+        "http://10.0.0.5:8081/hook",
+        { method: "POST" },
+        { privateEndpointAllowlist: new Set(["http://10.0.0.5:8080"]) },
+      ),
+    ).rejects.toMatchObject({ code: "remote_http_private_endpoint" });
+
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
   it("still blocks the metadata endpoint for an allowlisted origin", async () => {
     const fetchMock = vi.fn();
     vi.stubGlobal("fetch", fetchMock);
 
     await expect(
       guardedHttpAdapterFetch(
-        "http://169.254.169.254/latest/meta-data/",
+        "http://169.254.169.254/latest-meta-data/",
         { method: "POST" },
         { privateEndpointAllowlist: new Set(["http://169.254.169.254"]) },
       ),

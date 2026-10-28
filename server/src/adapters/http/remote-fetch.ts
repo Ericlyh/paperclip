@@ -1,7 +1,8 @@
 import {
-  assertPublicRemoteHttpEndpoint,
-  parseRemoteHttpEndpoint,
-} from "../../services/remote-http-endpoint-guard.js";
+  guardedRemoteHttpFetch,
+  type GuardedRemoteHttpFetchOptions,
+} from "../../services/remote-http-fetch.js";
+import { parseRemoteHttpEndpoint } from "../../services/remote-http-endpoint-guard.js";
 
 const PRIVATE_ENDPOINT_ALLOWLIST_ENV = "PAPERCLIP_HTTP_ADAPTER_PRIVATE_ENDPOINT_ALLOWLIST";
 
@@ -39,7 +40,7 @@ function normalizeAllowlistedOrigin(value: string): string | null {
 
 /**
  * Exact origins an operator trusts to live on a private network. A private
- * HTTP-adapter endpoint is only reachable when its origin is listed here.
+ * HTTP-adapter endpoint is only reachable when its exact origin is listed here.
  */
 export function httpAdapterPrivateEndpointAllowlist(
   raw = process.env[PRIVATE_ENDPOINT_ALLOWLIST_ENV] ?? "",
@@ -52,22 +53,22 @@ export function httpAdapterPrivateEndpointAllowlist(
   );
 }
 
-type HttpAdapterFetchOptions = {
+type HttpAdapterFetchOptions = Omit<
+  GuardedRemoteHttpFetchOptions,
+  "allowPrivateNetwork" | "denyLinkLocal" | "error"
+> & {
   privateEndpointAllowlist?: ReadonlySet<string>;
 };
 
 /**
- * Guard every HTTP-adapter request before the socket is opened.
+ * Guard every HTTP-adapter request at the socket boundary. Public endpoints are
+ * allowed by default. An exact operator-configured origin can opt into private
+ * networking, while link-local metadata targets stay blocked even then.
  *
- * The adapter URL comes from agent configuration, so an unguarded `fetch`
- * lets an agent reach cloud metadata endpoints, loopback and RFC1918 hosts
- * from the Paperclip server. The shared remote-endpoint guard resolves the
- * hostname and rejects private, loopback, link-local and metadata targets;
- * an operator-trusted origin may opt into private networking, but link-local
- * and metadata addresses stay blocked even then.
- *
- * Redirects are never followed: a public endpoint that redirects to a private
- * address would otherwise re-open the path the guard just closed.
+ * The guard resolves the hostname once and the transport dials the approved
+ * address directly, so a name server under the caller's control cannot answer
+ * with a public address for the guard and a loopback, private or link-local
+ * address for the connection.
  */
 export async function guardedHttpAdapterFetch(
   url: string | URL,
@@ -76,13 +77,15 @@ export async function guardedHttpAdapterFetch(
 ): Promise<Response> {
   const endpoint = parseRemoteHttpEndpoint(url.toString(), endpointError);
   const allowlist = options.privateEndpointAllowlist ?? httpAdapterPrivateEndpointAllowlist();
-  await assertPublicRemoteHttpEndpoint(
-    endpoint,
-    {
-      allowPrivateNetwork: allowlist.has(endpoint.origin.toLowerCase()),
-      denyLinkLocal: true,
-    },
-    endpointError,
-  );
-  return fetch(endpoint.toString(), { ...init, redirect: "manual" });
+  return guardedRemoteHttpFetch(endpoint, init, {
+    ...options,
+    // The allowlist matches the exact origin, so allowing one private origin
+    // never allows a sibling port on the same host.
+    allowPrivateNetwork: allowlist.has(endpoint.origin.toLowerCase()),
+    // Link-local egress stays blocked even for an allowlisted private origin:
+    // an operator-trusted endpoint must not become a pivot to instance
+    // metadata.
+    denyLinkLocal: true,
+    error: endpointError,
+  });
 }

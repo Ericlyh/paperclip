@@ -49,6 +49,30 @@ export async function assertPublicRemoteHttpEndpoint(
   const denyLinkLocal = options.denyLinkLocal === true;
   if (options.allowPrivateNetwork && !denyLinkLocal) return;
 
+  await resolveApprovedRemoteHttpAddresses(endpoint, options, error);
+}
+
+/**
+ * Validate a remote endpoint and return the exact address set that was approved.
+ *
+ * Callers must dial one of the returned addresses instead of letting the socket
+ * layer resolve the hostname a second time. A second resolution reopens a
+ * DNS-rebinding TOCTOU window: an attacker-controlled name server can answer
+ * with a public address while this guard is looking, then with a loopback,
+ * private or link-local address a moment later when the connection is made.
+ * Returning the resolved set — rather than a bare `void` — is what lets the
+ * pinned transport close that window.
+ *
+ * Hostnames are always resolved here, including for deployments that allow
+ * private networking: the approved addresses are what the caller dials, so a
+ * hostname that is not resolved cannot be pinned.
+ */
+export async function resolveApprovedRemoteHttpAddresses(
+  endpoint: URL,
+  options: RemoteHttpEndpointGuardOptions,
+  error: RemoteHttpEndpointErrorFactory,
+): Promise<string[]> {
+  const denyLinkLocal = options.denyLinkLocal === true;
   const hostname = endpoint.hostname.replace(/^\[|\]$/g, "").toLowerCase();
   if (!options.allowPrivateNetwork && (hostname === "localhost" || hostname.endsWith(".localhost"))) {
     throw error("Remote MCP connection URL cannot target private or reserved network addresses", "remote_http_private_endpoint");
@@ -62,7 +86,7 @@ export async function assertPublicRemoteHttpEndpoint(
     if (!options.allowPrivateNetwork && isPrivateOrReservedIp(hostname)) {
       throw error("Remote MCP connection URL cannot target private or reserved network addresses", "remote_http_private_endpoint");
     }
-    return;
+    return [hostname];
   }
 
   let results: LookupResult[];
@@ -84,6 +108,7 @@ export async function assertPublicRemoteHttpEndpoint(
   if (!options.allowPrivateNetwork && results.some((result) => isPrivateOrReservedIp(result.address))) {
     throw error("Remote MCP connection URL cannot resolve to private or reserved network addresses", "remote_http_private_endpoint");
   }
+  return results.map((result) => result.address);
 }
 
 function defaultLookup(hostname: string): Promise<LookupResult[]> {
@@ -112,20 +137,31 @@ async function lookupWithTimeout(hostname: string, lookup: RemoteHttpEndpointLoo
  * the cloud metadata endpoint (169.254.169.254 on AWS, GCP and Azure) and
  * fe80::/10 its IPv6 equivalent.
  */
-function isAlwaysDeniedLinkLocalIp(address: string): boolean {
-  const lower = address.toLowerCase().replace(/^\[|\]$/g, "");
-  const mappedIpv4 = lower.match(/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/);
-  if (mappedIpv4?.[1]) return isAlwaysDeniedLinkLocalIp(mappedIpv4[1]);
-  const mappedIpv4Hex = parseMappedIpv4Hex(lower);
-  if (mappedIpv4Hex) return isAlwaysDeniedLinkLocalIp(mappedIpv4Hex);
-  if (isIP(lower) === 4) {
-    const octets = parseIpv4Address(lower);
+export function isAlwaysDeniedLinkLocalIp(address: string): boolean {
+  const normalized = normalizeIpAddress(address);
+  if (isIP(normalized) === 4) {
+    const octets = parseIpv4Address(normalized);
     return octets !== null && octets[0] === 169 && octets[1] === 254;
   }
-  return isIP(lower) === 6 && /^fe[89ab]/.test(lower);
+  return isIP(normalized) === 6 && /^fe[89ab]/.test(normalized);
 }
 
-function isPrivateOrReservedIp(address: string): boolean {
+/**
+ * Reduce an address to the form used for comparing an approved address against
+ * the peer a socket actually connected to. `socket.remoteAddress` may come back
+ * as an IPv4-mapped IPv6 address or carry an IPv6 zone index, neither of which
+ * appears in a DNS answer.
+ */
+export function normalizeIpAddress(address: string): string {
+  const lower = address.trim().toLowerCase().replace(/^\[|\]$/g, "").split("%")[0] ?? "";
+  const mappedIpv4 = lower.match(/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/);
+  if (mappedIpv4?.[1]) return mappedIpv4[1];
+  const mappedIpv4Hex = parseMappedIpv4Hex(lower);
+  if (mappedIpv4Hex) return mappedIpv4Hex;
+  return lower;
+}
+
+export function isPrivateOrReservedIp(address: string): boolean {
   const lower = address.toLowerCase();
   const mappedIpv4 = lower.match(/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/);
   if (mappedIpv4?.[1]) return isPrivateOrReservedIpv4(mappedIpv4[1]);
