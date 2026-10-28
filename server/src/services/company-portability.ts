@@ -504,6 +504,9 @@ function buildSkillExportDirMap(skills: CompanySkill[], companyIssuePrefix: stri
 function isSensitiveEnvKey(key: string) {
   const normalized = key.trim().toLowerCase();
   return (
+    normalized === "key" ||
+    normalized.endsWith("_key") ||
+    normalized.endsWith("-key") ||
     normalized === "token" ||
     normalized.endsWith("_token") ||
     normalized.endsWith("-token") ||

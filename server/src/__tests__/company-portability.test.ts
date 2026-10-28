@@ -690,6 +690,89 @@ describe("company portability", () => {
     });
   });
 
+  it("treats KEY-suffixed env names as secrets in the export bundle", async () => {
+    const portability = companyPortabilityService({} as any);
+    agentSvc.list.mockResolvedValue([
+      {
+        id: "agent-key-env",
+        name: "KeyEnvAgent",
+        status: "idle",
+        role: "engineer",
+        title: null,
+        icon: null,
+        reportsTo: null,
+        capabilities: null,
+        adapterType: "codex_local",
+        adapterConfig: {
+          env: {
+            OPENAI_KEY: {
+              type: "plain",
+              value: "sk-short-key-secret-value",
+            },
+            "GITHUB-KEY": {
+              type: "plain",
+              value: "ghp-dashed-key-secret-value",
+            },
+            MONKEY: {
+              type: "plain",
+              value: "banana",
+            },
+          },
+        },
+        runtimeConfig: {},
+        budgetMonthlyCents: 0,
+        permissions: {
+          canCreateAgents: false,
+        },
+        metadata: null,
+      },
+    ]);
+
+    const exported = await portability.exportBundle("company-1", {
+      include: {
+        company: true,
+        agents: true,
+        projects: false,
+        issues: false,
+      },
+    });
+
+    const serialized = JSON.stringify(exported);
+    expect(serialized).not.toContain("sk-short-key-secret-value");
+    expect(serialized).not.toContain("ghp-dashed-key-secret-value");
+    expect(exported.manifest.envInputs).toContainEqual({
+      key: "OPENAI_KEY",
+      description: "Optional default for OPENAI_KEY on agent keyenvagent",
+      agentSlug: "keyenvagent",
+      projectSlug: null,
+      kind: "secret",
+      requirement: "optional",
+      defaultValue: "",
+      portability: "portable",
+    });
+    expect(exported.manifest.envInputs).toContainEqual({
+      key: "GITHUB-KEY",
+      description: "Optional default for GITHUB-KEY on agent keyenvagent",
+      agentSlug: "keyenvagent",
+      projectSlug: null,
+      kind: "secret",
+      requirement: "optional",
+      defaultValue: "",
+      portability: "portable",
+    });
+    // A name that merely ends in the letters "key" is not a credential.
+    expect(exported.manifest.envInputs).toContainEqual({
+      key: "MONKEY",
+      description: "Optional default for MONKEY on agent keyenvagent",
+      agentSlug: "keyenvagent",
+      projectSlug: null,
+      kind: "plain",
+      requirement: "optional",
+      defaultValue: "banana",
+      portability: "portable",
+    });
+  });
+
   it("exports default sidebar order into the Paperclip extension and manifest", async () => {
     const portability = companyPortabilityService({} as any);
 
