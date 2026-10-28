@@ -138,6 +138,48 @@ export function redactEventPayload(payload: Record<string, unknown> | null): Rec
   return sanitizeRecord(payload);
 }
 
+/**
+ * Redact one adapter `env` entry.
+ *
+ * Unlike the generic payload sanitizer, EVERY env value is treated as
+ * credential-bearing. Adapter env maps hold operator-supplied variables, and
+ * a name like DATABASE_URL or a custom VARNAME does not match the secret
+ * field-name heuristic, so a generic sanitizer would echo it back in
+ * plaintext. Only secret references stay readable, because the reference
+ * itself is not the secret.
+ */
+function redactAgentEnvBinding(value: unknown): unknown {
+  if (isSecretRefBinding(value) || isUserSecretRefBinding(value)) {
+    return sanitizeValue(value);
+  }
+  if (typeof value === "string" || isPlainBinding(value)) {
+    return { type: "plain", value: REDACTED_EVENT_VALUE };
+  }
+  if (value === null || value === undefined) return value;
+  return REDACTED_EVENT_VALUE;
+}
+
+/**
+ * Redact an agent adapterConfig for a response.
+ *
+ * `env` is redacted here and the remaining keys are sanitized separately, so
+ * bindings are never processed twice, and a future change to sanitizeRecord
+ * cannot alter entries this function has already redacted.
+ */
+export function redactAgentAdapterConfig(
+  adapterConfig: Record<string, unknown>,
+): Record<string, unknown> {
+  if (!isPlainObject(adapterConfig)) return adapterConfig;
+  if (!isPlainObject(adapterConfig.env)) return redactEventPayload(adapterConfig) ?? {};
+
+  const { env, ...rest } = adapterConfig;
+  const redactedEnv = Object.fromEntries(
+    Object.entries(env).map(([key, value]) => [key, redactAgentEnvBinding(value)]),
+  );
+
+  return { ...(redactEventPayload(rest) ?? {}), env: redactedEnv };
+}
+
 export function redactSensitiveText(input: string): string {
   if (!maybeContainsSecretText(input)) return input;
   return redactCommandText(
