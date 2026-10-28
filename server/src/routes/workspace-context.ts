@@ -6,7 +6,7 @@ import {
   type WorkspaceContextMembers,
 } from "@paperclipai/shared";
 import { workspaceContextService } from "../services/workspace-context.js";
-import { assertCompanyAccess } from "./authz.js";
+import { assertCompanyAccess, hasCompanyAccess } from "./authz.js";
 import { notFound } from "../errors.js";
 import { issueService } from "../services/issues.js";
 
@@ -79,6 +79,12 @@ export function workspaceContextRoutes(db: Db) {
     const rawId = req.params.id as string;
     const issue = await resolveIssueByRef(rawId);
     if (!issue) {
+      throw notFound("Issue not found");
+    }
+    // Two-step tenant gate: a cross-tenant caller must get the same 404 as a
+    // missing issue, otherwise the distinct 403 from assertCompanyAccess
+    // leaks whether the identifier exists in another company.
+    if (!hasCompanyAccess(req, issue.companyId)) {
       throw notFound("Issue not found");
     }
     assertCompanyAccess(req, issue.companyId);

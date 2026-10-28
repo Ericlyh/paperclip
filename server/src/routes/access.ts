@@ -81,7 +81,7 @@ import {
   collapseDuplicatePendingHumanJoinRequests,
   findReusableHumanJoinRequest,
 } from "../lib/join-request-dedupe.js";
-import { assertAuthenticated, assertCompanyAccess } from "./authz.js";
+import { assertAuthenticated, assertCompanyAccess, hasCompanyAccess } from "./authz.js";
 import {
   claimBoardOwnership,
   inspectBoardClaimChallenge
@@ -2903,6 +2903,12 @@ export function accessRoutes(
         }
         const agentRow = await agents.getById(req.body.agentId);
         if (!agentRow) throw notFound("Agent not found");
+        // Two-step tenant gate: a cross-tenant caller must get the same 404 as
+        // a missing agent, otherwise the distinct 403 from assertCompanyAccess
+        // leaks whether the agent id exists in another company.
+        if (!hasCompanyAccess(req, agentRow.companyId)) {
+          throw notFound("Agent not found");
+        }
         assertCompanyAccess(req, agentRow.companyId);
         // Belt-and-braces: the actor must also have agents:manage (or be an
         // instance admin via isLocalImplicit). assertCompanyAccess already
