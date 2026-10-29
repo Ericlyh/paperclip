@@ -76,7 +76,7 @@ import { ghFetch, gitHubApiBase, resolveRawGitHubUrl } from "./github-fetch.js";
 import type { StorageService } from "../storage/types.js";
 import { accessService } from "./access.js";
 import { agentService } from "./agents.js";
-import { agentInstructionsService } from "./agent-instructions.js";
+import { agentInstructionsBundleMode, agentInstructionsService } from "./agent-instructions.js";
 import { assetService } from "./assets.js";
 import { generateReadme } from "./company-export-readme.js";
 import { renderOrgChartPng, type OrgNode } from "../routes/org-chart-svg.js";
@@ -95,7 +95,7 @@ import {
   readCatalogStringList,
   readPortableCatalogProvenance,
 } from "./catalog-provenance.js";
-import { readBuiltInAgentMarker } from "./built-in-agent-metadata.js";
+import { resolvePortableExportAgentSelection } from "./company-portability-agent-selection.js";
 import { normalizePortablePath } from "./portable-path.js";
 import type {
   ImportIssueRow,
@@ -3741,6 +3741,7 @@ export function companyPortabilityService(db: Db, storage?: StorageService) {
   async function exportBundle(
     companyId: string,
     input: CompanyPortabilityExport,
+    options: { allowExternalInstructions?: boolean } = {},
   ): Promise<CompanyPortabilityExportResult> {
     const include = normalizeInclude({
       ...input.include,
@@ -3783,67 +3784,16 @@ export function companyPortabilityService(db: Db, storage?: StorageService) {
     );
 
     const allAgentRows = include.agents ? await agents.list(companyId, { includeTerminated: true }) : [];
-    const liveAgentRows = allAgentRows.filter((agent) => agent.status !== "terminated");
-    const builtInAgentRows = liveAgentRows.filter((agent) => readBuiltInAgentMarker(agent.metadata));
-    const portableAgentRows = liveAgentRows.filter((agent) => !readBuiltInAgentMarker(agent.metadata));
+    const selection = resolvePortableExportAgentSelection(allAgentRows, input.agents, include.agents);
+    warnings.push(...selection.warnings);
     const companySkillRowsRaw = include.skills || include.agents ? await companySkills.listFull(companyId) : [];
     const managedSkillRows = companySkillRowsRaw.filter((skill) => managedSkillIds.has(skill.id));
     const companySkillRows = companySkillRowsRaw.filter((skill) => !managedSkillIds.has(skill.id));
-    if (include.agents) {
-      const skipped = allAgentRows.length - liveAgentRows.length;
-      if (skipped > 0) {
-        warnings.push(`Skipped ${skipped} terminated agent${skipped === 1 ? "" : "s"} from export.`);
-      }
-      if (builtInAgentRows.length > 0) {
-        warnings.push(`Skipped ${builtInAgentRows.length} built-in managed agent${builtInAgentRows.length === 1 ? "" : "s"} from export.`);
-      }
-    }
     if (include.skills && managedSkillRows.length > 0) {
       warnings.push(`Skipped ${managedSkillRows.length} built-in managed skill${managedSkillRows.length === 1 ? "" : "s"} from export.`);
     }
 
-    const agentByReference = new Map<string, typeof liveAgentRows[number]>();
-    const builtInAgentByReference = new Map<string, typeof liveAgentRows[number]>();
-    const addAgentReferences = (map: Map<string, typeof liveAgentRows[number]>, agent: typeof liveAgentRows[number]) => {
-      map.set(agent.id, agent);
-      map.set(agent.name, agent);
-      const normalizedName = normalizeAgentUrlKey(agent.name);
-      if (normalizedName) {
-        map.set(normalizedName, agent);
-      }
-    };
-    for (const agent of portableAgentRows) {
-      addAgentReferences(agentByReference, agent);
-    }
-    for (const agent of builtInAgentRows) {
-      addAgentReferences(builtInAgentByReference, agent);
-    }
-
-    const selectedAgents = new Map<string, typeof liveAgentRows[number]>();
-    for (const selector of input.agents ?? []) {
-      const trimmed = selector.trim();
-      if (!trimmed) continue;
-      const normalized = normalizeAgentUrlKey(trimmed) ?? trimmed;
-      const match = agentByReference.get(trimmed) ?? agentByReference.get(normalized);
-      if (!match) {
-        const builtInMatch = builtInAgentByReference.get(trimmed) ?? builtInAgentByReference.get(normalized);
-        if (builtInMatch) {
-          warnings.push(`Agent selector "${selector}" is a built-in managed agent and was skipped.`);
-          continue;
-        }
-        warnings.push(`Agent selector "${selector}" was not found and was skipped.`);
-        continue;
-      }
-      selectedAgents.set(match.id, match);
-    }
-
-    if (include.agents && selectedAgents.size === 0) {
-      for (const agent of portableAgentRows) {
-        selectedAgents.set(agent.id, agent);
-      }
-    }
-
-    const agentRows = Array.from(selectedAgents.values())
+    const agentRows = selection.agents
       .sort((left, right) => left.name.localeCompare(right.name));
 
     const usedSlugs = new Set<string>();
@@ -4034,7 +3984,7 @@ export function companyPortabilityService(db: Db, storage?: StorageService) {
       projectSlugById.set(project.id, uniqueSlug(baseSlug, usedProjectSlugs));
     }
     const sidebarOrder = requestedSidebarOrder ?? stripEmptyValues({
-      agents: sortAgentsBySidebarOrder(Array.from(selectedAgents.values()))
+      agents: sortAgentsBySidebarOrder(Array.from(selection.agents))
         .map((agent) => idToSlug.get(agent.id))
         .filter((slug): slug is string => Boolean(slug)),
       projects: selectedProjectRows
@@ -4125,6 +4075,15 @@ export function companyPortabilityService(db: Db, storage?: StorageService) {
     }
 
     if (include.agents) {
+      // An external instructions bundle lives on the host filesystem outside the
+      // instance root, so exporting its contents is an instance-admin
+      // operation. Abort before reading a single file.
+      if (
+        !options.allowExternalInstructions
+        && agentRows.some((agent) => agentInstructionsBundleMode(agent) === "external")
+      ) {
+        throw forbidden("Instance admin access is required to export external instruction bundles");
+      }
       for (const agent of agentRows) {
         const slug = idToSlug.get(agent.id)!;
         const exportedInstructions = await instructions.exportFiles(agent);
@@ -4685,6 +4644,7 @@ export function companyPortabilityService(db: Db, storage?: StorageService) {
   async function previewExport(
     companyId: string,
     input: CompanyPortabilityExport,
+    options: { allowExternalInstructions?: boolean } = {},
   ): Promise<CompanyPortabilityExportPreviewResult> {
     const previewInput: CompanyPortabilityExport = {
       ...input,
@@ -4699,7 +4659,9 @@ export function companyPortabilityService(db: Db, storage?: StorageService) {
     if (previewInput.include && previewInput.include.issues === undefined) {
       previewInput.include.issues = false;
     }
-    const exported = await exportBundle(companyId, previewInput);
+    const exported = await exportBundle(companyId, previewInput, {
+      allowExternalInstructions: options.allowExternalInstructions,
+    });
     return {
       ...exported,
       fileInventory: Object.keys(exported.files)

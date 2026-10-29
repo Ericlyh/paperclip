@@ -327,6 +327,79 @@ describe("agent instructions bundle routes", () => {
     expect(mockAgentInstructionsService.getBundle).not.toHaveBeenCalled();
   });
 
+  it("requires instance-admin access for every external instruction entry point", async () => {
+    mockAgentService.getById.mockResolvedValue({
+      ...makeAgent(),
+      adapterConfig: {
+        instructionsBundleMode: "external",
+        instructionsRootPath: "/srv/paperclip/external-agent",
+        instructionsEntryFile: "AGENTS.md",
+      },
+    });
+    const app = await createApp({
+      type: "board",
+      userId: "company-admin",
+      companyIds: ["company-1"],
+      memberships: [{ companyId: "company-1", status: "active", membershipRole: "admin" }],
+      source: "session",
+      isInstanceAdmin: false,
+    });
+    const requests: Array<(baseUrl: string) => request.Test> = [
+      (baseUrl) => request(baseUrl).get("/api/agents/11111111-1111-4111-8111-111111111111/instructions-bundle"),
+      (baseUrl) => request(baseUrl)
+        .patch("/api/agents/11111111-1111-4111-8111-111111111111/instructions-bundle")
+        .send({ entryFile: "AGENTS.md" }),
+      (baseUrl) => request(baseUrl)
+        .get("/api/agents/11111111-1111-4111-8111-111111111111/instructions-bundle/file")
+        .query({ path: "AGENTS.md" }),
+      (baseUrl) => request(baseUrl)
+        .put("/api/agents/11111111-1111-4111-8111-111111111111/instructions-bundle/file")
+        .send({ path: "AGENTS.md", content: "# changed" }),
+      (baseUrl) => request(baseUrl)
+        .delete("/api/agents/11111111-1111-4111-8111-111111111111/instructions-bundle/file")
+        .query({ path: "AGENTS.md" }),
+    ];
+
+    for (const build of requests) {
+      const res = await requestApp(app, build);
+      expect(res.status, JSON.stringify(res.body)).toBe(403);
+      expect(res.body.error).toContain("Instance admin");
+    }
+    expect(mockAgentInstructionsService.getBundle).not.toHaveBeenCalled();
+    expect(mockAgentInstructionsService.readFile).not.toHaveBeenCalled();
+    expect(mockAgentInstructionsService.updateBundle).not.toHaveBeenCalled();
+    expect(mockAgentInstructionsService.writeFile).not.toHaveBeenCalled();
+    expect(mockAgentInstructionsService.deleteFile).not.toHaveBeenCalled();
+  });
+
+  it("treats a host root mislabeled as managed as external", async () => {
+    mockAgentService.getById.mockResolvedValue({
+      ...makeAgent(),
+      adapterConfig: {
+        instructionsBundleMode: "managed",
+        instructionsRootPath: "/private/host/instructions",
+        instructionsEntryFile: "AGENTS.md",
+      },
+    });
+    const app = await createApp({
+      type: "board",
+      userId: "company-admin",
+      companyIds: ["company-1"],
+      memberships: [{ companyId: "company-1", status: "active", membershipRole: "admin" }],
+      source: "session",
+      isInstanceAdmin: false,
+    });
+
+    const res = await requestApp(
+      app,
+      (baseUrl) => request(baseUrl)
+        .get("/api/agents/11111111-1111-4111-8111-111111111111/instructions-bundle"),
+    );
+
+    expect(res.status).toBe(403);
+    expect(mockAgentInstructionsService.getBundle).not.toHaveBeenCalled();
+  });
+
   it("allows agents to read their own instructions bundles", async () => {
     const res = await requestApp(
       await createApp({

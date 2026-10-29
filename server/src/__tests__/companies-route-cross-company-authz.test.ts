@@ -18,6 +18,7 @@ const mockCompanyService = vi.hoisted(() => ({
 
 const mockAgentService = vi.hoisted(() => ({
   getById: vi.fn(),
+  list: vi.fn(async () => []),
 }));
 
 const mockAccessService = vi.hoisted(() => ({

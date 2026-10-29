@@ -34,6 +34,8 @@ type AgentLike = {
   adapterConfig: unknown;
 };
 
+export type { AgentLike, BundleMode };
+
 type AgentInstructionsFileSummary = {
   path: string;
   size: number;
@@ -271,6 +273,23 @@ function deriveBundleState(agent: AgentLike): BundleState {
     legacyPromptTemplateActive: Boolean(asString(config[PROMPT_KEY])),
     legacyBootstrapPromptTemplateActive: Boolean(asString(config[BOOTSTRAP_PROMPT_KEY])),
   };
+}
+
+/**
+ * Classify the configured bundle without touching the filesystem.
+ *
+ * A bundle is "external" when it is configured as such, or when its root
+ * resolves anywhere other than the instance-managed instructions root for that
+ * agent. External bundles live on the host filesystem outside the instance
+ * root, so reading or exporting them is an instance-admin operation.
+ */
+export function agentInstructionsBundleMode(agent: AgentLike): BundleMode | null {
+  const state = deriveBundleState(agent);
+  if (state.mode === "external") return "external";
+  if (state.rootPath && path.resolve(state.rootPath) !== resolveManagedInstructionsRoot(agent)) {
+    return "external";
+  }
+  return state.mode;
 }
 
 async function recoverManagedBundleState(agent: AgentLike, state: BundleState): Promise<BundleState> {

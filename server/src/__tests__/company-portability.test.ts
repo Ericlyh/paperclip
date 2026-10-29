@@ -148,6 +148,10 @@ vi.mock("../services/secrets.js", () => ({
 
 vi.mock("../services/agent-instructions.js", () => ({
   agentInstructionsService: () => agentInstructionsSvc,
+  agentInstructionsBundleMode: (agent: { adapterConfig?: unknown }) => {
+    const config = agent.adapterConfig as Record<string, unknown> | undefined;
+    return config?.instructionsBundleMode === "external" ? "external" : "managed";
+  },
 }));
 
 vi.mock("../routes/org-chart-svg.js", () => ({
@@ -549,6 +553,51 @@ describe("company portability", () => {
     expect(extension).not.toContain("budgetMonthlyCents: 0");
     expect(exported.warnings).toContain("Agent claudecoder command /Users/dotta/.local/bin/claude was omitted from export because it is system-dependent.");
     expect(exported.warnings).toContain("Agent claudecoder PATH override was omitted from export because it is system-dependent.");
+  });
+
+  it("refuses to read external instruction roots without an instance-admin export grant", async () => {
+    agentSvc.list.mockResolvedValue([{
+      id: "external-agent",
+      companyId: "company-1",
+      name: "ExternalAgent",
+      status: "idle",
+      role: "engineer",
+      title: null,
+      icon: null,
+      reportsTo: null,
+      capabilities: null,
+      adapterType: "codex_local",
+      adapterConfig: {
+        instructionsBundleMode: "external",
+        instructionsRootPath: "/private/host/instructions",
+      },
+      runtimeConfig: {},
+      budgetMonthlyCents: 0,
+      permissions: { canCreateAgents: false },
+      metadata: null,
+    }]);
+
+    await expect(companyPortabilityService({} as any).exportBundle("company-1", {
+      include: {
+        company: true,
+        agents: true,
+        projects: false,
+        issues: false,
+      },
+    })).rejects.toMatchObject({ status: 403 });
+    expect(agentInstructionsSvc.exportFiles).not.toHaveBeenCalled();
+
+    await expect(companyPortabilityService({} as any).exportBundle("company-1", {
+      include: {
+        company: true,
+        agents: true,
+        projects: false,
+        issues: false,
+      },
+    }, { allowExternalInstructions: true })).resolves.toMatchObject({
+      manifest: { agents: [expect.objectContaining({ slug: "externalagent" })] },
+    });
+    expect(agentInstructionsSvc.exportFiles).toHaveBeenCalledTimes(1);
   });
 
   it("exports agent permission grants through the Paperclip extension and manifest", async () => {
