@@ -6,6 +6,8 @@ const mockAgentService = vi.hoisted(() => ({
   getById: vi.fn(),
   update: vi.fn(),
   resolveByReference: vi.fn(),
+  getConfigRevision: vi.fn(),
+  rollbackConfigRevision: vi.fn(),
 }));
 
 const mockBuiltInAgentService = vi.hoisted(() => ({
@@ -370,6 +372,39 @@ describe("agent instructions bundle routes", () => {
     expect(mockAgentInstructionsService.updateBundle).not.toHaveBeenCalled();
     expect(mockAgentInstructionsService.writeFile).not.toHaveBeenCalled();
     expect(mockAgentInstructionsService.deleteFile).not.toHaveBeenCalled();
+  });
+
+  it("requires instance-admin access to roll back onto a revision with an external instructions root", async () => {
+    mockAgentService.getById.mockResolvedValue(makeAgent());
+    mockAgentService.getConfigRevision.mockResolvedValue({
+      id: "44444444-4444-4444-8444-444444444444",
+      agentId: "11111111-1111-4111-8111-111111111111",
+      afterConfig: {
+        adapterConfig: {
+          instructionsBundleMode: "external",
+          instructionsRootPath: "/etc/paperclip-host-root",
+          instructionsEntryFile: "AGENTS.md",
+        },
+      },
+    });
+    const app = await createApp({
+      type: "board",
+      userId: "company-admin",
+      companyIds: ["company-1"],
+      memberships: [{ companyId: "company-1", status: "active", membershipRole: "admin" }],
+      source: "session",
+      isInstanceAdmin: false,
+    });
+
+    const res = await requestApp(
+      app,
+      (baseUrl) => request(baseUrl)
+        .post("/api/agents/11111111-1111-4111-8111-111111111111/config-revisions/44444444-4444-4444-8444-444444444444/rollback"),
+    );
+
+    expect(res.status, JSON.stringify(res.body)).toBe(403);
+    expect(res.body.error).toContain("Instance admin");
+    expect(mockAgentService.rollbackConfigRevision).not.toHaveBeenCalled();
   });
 
   it("treats a host root mislabeled as managed as external", async () => {
