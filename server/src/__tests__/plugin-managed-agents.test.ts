@@ -311,6 +311,62 @@ describeEmbeddedPostgres("plugin-managed agents", () => {
     }
   });
 
+  it("does not read an external instruction root when computing managed agent drift", async () => {
+    const previousHome = process.env.PAPERCLIP_HOME;
+    const previousInstance = process.env.PAPERCLIP_INSTANCE_ID;
+    const tempHome = await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-managed-agent-external-home-"));
+    const externalRoot = await fs.realpath(await fs.mkdtemp(path.join(os.tmpdir(), "paperclip-managed-agent-external-")));
+    process.env.PAPERCLIP_HOME = tempHome;
+    process.env.PAPERCLIP_INSTANCE_ID = "test";
+    try {
+      await fs.writeFile(path.join(externalRoot, "AGENTS.md"), "# External instructions\n", "utf8");
+      await fs.writeFile(path.join(externalRoot, "EXTRA.md"), "# External extra\n", "utf8");
+
+      const pluginManifest = manifest();
+      pluginManifest.agents![0] = {
+        ...pluginManifest.agents![0]!,
+        adapterType: "claude_local",
+        adapterConfig: {},
+        instructions: {
+          entryFile: "AGENTS.md",
+          content: "# Declared instructions\n",
+        },
+      };
+      const { companyId, services } = await seedCompanyAndPlugin({ manifest: pluginManifest });
+      const created = await services.agents.managedReconcile({ companyId, agentKey: "wiki-maintainer" });
+      const agentId = created.agent?.id;
+      expect(agentId).toBeTruthy();
+
+      await db
+        .update(agents)
+        .set({
+          adapterConfig: {
+            ...(created.agent?.adapterConfig ?? {}),
+            instructionsBundleMode: "external",
+            instructionsRootPath: externalRoot,
+            instructionsEntryFile: "AGENTS.md",
+          },
+        })
+        .where(eq(agents.id, agentId!));
+
+      const reconciled = await services.agents.managedReconcile({ companyId, agentKey: "wiki-maintainer" });
+
+      // The external root is on the host filesystem. Drift must be reported
+      // from the declaration alone, never by reading the external tree.
+      expect(reconciled.defaultDrift).toEqual({
+        entryFile: "AGENTS.md",
+        changedFiles: ["AGENTS.md"],
+      });
+    } finally {
+      if (previousHome === undefined) delete process.env.PAPERCLIP_HOME;
+      else process.env.PAPERCLIP_HOME = previousHome;
+      if (previousInstance === undefined) delete process.env.PAPERCLIP_INSTANCE_ID;
+      else process.env.PAPERCLIP_INSTANCE_ID = previousInstance;
+      await fs.rm(tempHome, { recursive: true, force: true });
+      await fs.rm(externalRoot, { recursive: true, force: true });
+    }
+  });
+
   it("repairs a missing binding by relinking a same-company managed agent marker", async () => {
     const { companyId, pluginId, pluginManifest, services } = await seedCompanyAndPlugin();
     const agentId = randomUUID();
