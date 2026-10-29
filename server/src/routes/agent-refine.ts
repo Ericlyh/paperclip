@@ -10,8 +10,9 @@ import {
   proposeRefinementInputSchema,
   rollbackRefinementInputSchema,
 } from "@paperclipai/shared";
-import { assertCompanyAccess, getActorInfo } from "./authz.js";
+import { assertCompanyAccess, assertInstanceAdmin, getActorInfo } from "./authz.js";
 import { agentService } from "../services/agents.js";
+import { agentInstructionsBundleMode } from "../services/agent-instructions.js";
 
 type RefineProposalStatus = "pending" | "approved" | "rejected" | "superseded" | "rolled_back";
 
@@ -53,6 +54,19 @@ export function agentRefineRoutes(db: Db) {
   const svc = agentRefineService(db);
   const agents = agentService(db);
 
+  /**
+   * An agent whose instruction bundle resolves outside the instance-managed
+   * root points at host files. Reading, refining or rolling back that bundle
+   * is an instance-admin operation, the same boundary the bundle routes in
+   * routes/agents.ts enforce.
+   */
+  async function assertExternalBundleAdmin(req: Request, agentId: string): Promise<void> {
+    const agent = await agents.getById(agentId);
+    if (agent && agentInstructionsBundleMode(agent) === "external") {
+      assertInstanceAdmin(req);
+    }
+  }
+
   router.post(
     "/companies/:companyId/agents/:agentId/refine",
     validate(proposeRefinementInputSchema),
@@ -64,6 +78,7 @@ export function agentRefineRoutes(db: Db) {
         return;
       }
       await assertCompanyAccess(req, companyId);
+      await assertExternalBundleAdmin(req, agentId);
       const actor = getActorInfo(req);
       const result = await svc.propose(agentId, req.body, readActor(actor));
 
@@ -103,6 +118,7 @@ export function agentRefineRoutes(db: Db) {
         return;
       }
       await assertCompanyAccess(req, companyId);
+      await assertExternalBundleAdmin(req, agentId);
       const status = parseStatus(req);
       const proposals = await svc.list(agentId, status);
       res.json(proposals);
@@ -117,6 +133,7 @@ export function agentRefineRoutes(db: Db) {
       return;
     }
     await assertCompanyAccess(req, companyId);
+    await assertExternalBundleAdmin(req, detail.proposal.agentId);
     res.json(detail);
   });
 
@@ -128,6 +145,7 @@ export function agentRefineRoutes(db: Db) {
       return;
     }
     await assertCompanyAccess(req, companyId);
+    await assertExternalBundleAdmin(req, existing.proposal.agentId);
     const actor = getActorInfo(req);
     const note = typeof req.body?.decisionNote === "string" ? req.body.decisionNote : undefined;
     const result = await svc.approve(id, readActor(actor), note);
@@ -163,6 +181,7 @@ export function agentRefineRoutes(db: Db) {
       return;
     }
     await assertCompanyAccess(req, companyId);
+    await assertExternalBundleAdmin(req, existing.proposal.agentId);
     const actor = getActorInfo(req);
     const note = typeof req.body?.decisionNote === "string" ? req.body.decisionNote : undefined;
     const proposal = await svc.reject(id, readActor(actor), note);
@@ -194,6 +213,7 @@ export function agentRefineRoutes(db: Db) {
         return;
       }
       await assertCompanyAccess(req, companyId);
+      await assertExternalBundleAdmin(req, existing.proposal.agentId);
       const actor = getActorInfo(req);
       const result = await svc.rollback(id, req.body, readActor(actor));
 

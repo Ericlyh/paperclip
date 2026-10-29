@@ -16,7 +16,7 @@ import {
   type RefineProposedDelta,
   type RollbackRefinementInput,
 } from "@paperclipai/shared";
-import { agentInstructionsService } from "./agent-instructions.js";
+import { agentInstructionsService, agentInstructionsBundleMode } from "./agent-instructions.js";
 import { agentService } from "./agents.js";
 import { badRequest, forbidden, notFound, unprocessable } from "../errors.js";
 
@@ -89,12 +89,24 @@ export function agentRefineService(db: Db) {
   async function captureBundleContent(agentId: string): Promise<BundleSnapshotContent> {
     const agent = await svc.getById(agentId);
     if (!agent) throw notFound("Agent not found");
-    const exported = await instructions.exportFiles(agent);
     const adapterConfig = asRecord(agent.adapterConfig);
+    const mode = (asString(adapterConfig.instructionsBundleMode) as "managed" | "external" | null) ?? null;
+    if (agentInstructionsBundleMode(agent) === "external") {
+      // An external bundle points at host files outside the instance root. The
+      // refine subsystem must not read them, and it must not persist their
+      // contents into a snapshot that later becomes readable over the API.
+      return {
+        rootPath: null,
+        entryFile: "",
+        mode: "external",
+        files: {},
+      };
+    }
+    const exported = await instructions.exportFiles(agent);
     return {
       rootPath: asString(adapterConfig.instructionsRootPath),
       entryFile: exported.entryFile,
-      mode: (asString(adapterConfig.instructionsBundleMode) as "managed" | "external" | null) ?? null,
+      mode,
       files: exported.files,
     };
   }
