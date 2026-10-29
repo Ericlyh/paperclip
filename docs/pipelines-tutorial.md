@@ -26,6 +26,14 @@ export FEATURE_PIPELINE="feature-content-$RUN_KEY"
 export CONTENT_PIPELINE="content-production-$RUN_KEY"
 ```
 
+> **Stage kinds.** `pipeline_stages.kind` accepts exactly `working`, `review`,
+> `done`, `cancelled` — the live CHECK constraint is
+> `('working','review','done','cancelled')`. There is no `open` kind: migration
+> `0120_pipeline_stage_working_primitives.sql` converted the old `open` stages
+> to `working`. The server still coerces a legacy `"open"` to `"working"` rather
+> than rejecting it, so a stale `"open"` in a stage file does not fail loudly —
+> it just silently means `working`. Write `"working"`.
+
 ## Step 1: Setup The Three Pipelines
 
 Create Release Coverage. It is thin on purpose: the release case stays in `intake` until its feature children are terminal, then `autoAdvanceOnChildrenTerminal` moves it to `covered`.
@@ -36,7 +44,7 @@ cat > /tmp/release-stages.json <<'JSON'
   {
     "key": "intake",
     "name": "Intake",
-    "kind": "open",
+    "kind": "working",
     "position": 100,
     "config": { "autoAdvanceOnChildrenTerminal": "covered" }
   },
@@ -57,7 +65,7 @@ Create Feature Content. The review stage lets the human approve features into pr
 ```sh
 cat > /tmp/feature-stages.json <<'JSON'
 [
-  { "key": "suggesting", "name": "Suggesting", "kind": "open", "position": 100 },
+  { "key": "suggesting", "name": "Suggesting", "kind": "working", "position": 100 },
   {
     "key": "suggestion_review",
     "name": "Suggestion Review",

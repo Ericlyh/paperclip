@@ -3311,6 +3311,10 @@ export function accessRoutes(
         {
           name: "paperclip-converting-plans-to-tasks",
           path: "/api/skills/paperclip-converting-plans-to-tasks"
+        },
+        {
+          name: "paperclip-role-handoff",
+          path: "/api/skills/paperclip-role-handoff"
         }
       ]
     });
