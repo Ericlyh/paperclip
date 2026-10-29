@@ -1,5 +1,6 @@
 import { lookup as dnsLookup } from "node:dns/promises";
 import { isIP } from "node:net";
+import { classifyRemoteConnectionError, markRemoteConnectionFailure, readRemoteConnectionFailure } from "./remote-connection-failure.js";
 
 const DEFAULT_DNS_TIMEOUT_MS = 5_000;
 
@@ -9,13 +10,6 @@ export type RemoteHttpEndpointLookup = (hostname: string) => Promise<LookupResul
 
 export type RemoteHttpEndpointGuardOptions = {
   allowPrivateNetwork?: boolean;
-  /**
-   * Deny link-local egress — including the cloud metadata address
-   * 169.254.169.254 — even when `allowPrivateNetwork` is set. Callers that
-   * trust a private endpoint still must not be able to pivot to instance
-   * metadata through it.
-   */
-  denyLinkLocal?: boolean;
   dnsTimeoutMs?: number;
   lookup?: RemoteHttpEndpointLookup;
 };
@@ -46,9 +40,6 @@ export async function assertPublicRemoteHttpEndpoint(
   options: RemoteHttpEndpointGuardOptions,
   error: RemoteHttpEndpointErrorFactory,
 ): Promise<void> {
-  const denyLinkLocal = options.denyLinkLocal === true;
-  if (options.allowPrivateNetwork && !denyLinkLocal) return;
-
   await resolveApprovedRemoteHttpAddresses(endpoint, options, error);
 }
 
@@ -59,20 +50,20 @@ export async function assertPublicRemoteHttpEndpoint(
  * layer resolve the hostname a second time. A second resolution reopens a
  * DNS-rebinding TOCTOU window: an attacker-controlled name server can answer
  * with a public address while this guard is looking, then with a loopback,
- * private or link-local address a moment later when the connection is made.
- * Returning the resolved set — rather than a bare `void` — is what lets the
- * pinned transport close that window.
+ * private or link-local address a moment later when the connection is made
+ * (PAP-17098). Returning the resolved set — rather than a bare `void` — is what
+ * lets `guardedRemoteHttpFetch` close that window.
  *
- * Hostnames are always resolved here, including for deployments that allow
- * private networking: the approved addresses are what the caller dials, so a
- * hostname that is not resolved cannot be pinned.
+ * Hostnames are always resolved and pinned, including in deployments that
+ * allow private networking. Link-local addresses remain outside that allowance,
+ * so handing an allowed hostname back to platform fetch would reopen a DNS
+ * rebinding path to instance metadata.
  */
 export async function resolveApprovedRemoteHttpAddresses(
   endpoint: URL,
   options: RemoteHttpEndpointGuardOptions,
   error: RemoteHttpEndpointErrorFactory,
 ): Promise<string[]> {
-  const denyLinkLocal = options.denyLinkLocal === true;
   const hostname = endpoint.hostname.replace(/^\[|\]$/g, "").toLowerCase();
   if (!options.allowPrivateNetwork && (hostname === "localhost" || hostname.endsWith(".localhost"))) {
     throw error("Remote MCP connection URL cannot target private or reserved network addresses", "remote_http_private_endpoint");
@@ -80,10 +71,7 @@ export async function resolveApprovedRemoteHttpAddresses(
 
   const literalVersion = isIP(hostname);
   if (literalVersion !== 0) {
-    if (denyLinkLocal && isAlwaysDeniedLinkLocalIp(hostname)) {
-      throw error("Remote MCP connection URL cannot target link-local or metadata addresses", "remote_http_private_endpoint");
-    }
-    if (!options.allowPrivateNetwork && isPrivateOrReservedIp(hostname)) {
+    if (isAlwaysDeniedLinkLocalIp(hostname) || (!options.allowPrivateNetwork && isPrivateOrReservedIp(hostname))) {
       throw error("Remote MCP connection URL cannot target private or reserved network addresses", "remote_http_private_endpoint");
     }
     return [hostname];
@@ -96,54 +84,21 @@ export async function resolveApprovedRemoteHttpAddresses(
       options.lookup ?? defaultLookup,
       options.dnsTimeoutMs ?? DEFAULT_DNS_TIMEOUT_MS,
     );
-  } catch {
-    throw error("Remote MCP connection hostname could not be resolved", "remote_http_dns_failed");
+  } catch (cause) {
+    const failure = error("Remote MCP connection hostname could not be resolved", "remote_http_dns_failed");
+    const reason = readRemoteConnectionFailure(cause) ?? classifyRemoteConnectionError(cause);
+    if (reason === "dns_failure" || reason === "connection_timeout") markRemoteConnectionFailure(failure, reason);
+    throw failure;
   }
   if (results.length === 0) {
-    throw error("Remote MCP connection hostname did not resolve", "remote_http_dns_failed");
+    throw markRemoteConnectionFailure(error("Remote MCP connection hostname did not resolve", "remote_http_dns_failed"), "dns_failure");
   }
-  if (denyLinkLocal && results.some((result) => isAlwaysDeniedLinkLocalIp(result.address))) {
-    throw error("Remote MCP connection URL cannot resolve to link-local or metadata addresses", "remote_http_private_endpoint");
-  }
-  if (!options.allowPrivateNetwork && results.some((result) => isPrivateOrReservedIp(result.address))) {
+  if (results.some((result) =>
+    isAlwaysDeniedLinkLocalIp(result.address)
+    || (!options.allowPrivateNetwork && isPrivateOrReservedIp(result.address)))) {
     throw error("Remote MCP connection URL cannot resolve to private or reserved network addresses", "remote_http_private_endpoint");
   }
   return results.map((result) => result.address);
-}
-
-function defaultLookup(hostname: string): Promise<LookupResult[]> {
-  return dnsLookup(hostname, { all: true, verbatim: true });
-}
-
-async function lookupWithTimeout(hostname: string, lookup: RemoteHttpEndpointLookup, timeoutMs: number) {
-  let timeout: NodeJS.Timeout | undefined;
-  try {
-    return await Promise.race([
-      lookup(hostname),
-      new Promise<never>((_, reject) => {
-        timeout = setTimeout(() => {
-          reject(new Error(`DNS lookup timed out for ${hostname}`));
-        }, timeoutMs);
-        timeout.unref?.();
-      }),
-    ]);
-  } finally {
-    if (timeout) clearTimeout(timeout);
-  }
-}
-
-/**
- * Link-local egress is denied in every deployment mode: 169.254.0.0/16 carries
- * the cloud metadata endpoint (169.254.169.254 on AWS, GCP and Azure) and
- * fe80::/10 its IPv6 equivalent.
- */
-export function isAlwaysDeniedLinkLocalIp(address: string): boolean {
-  const normalized = normalizeIpAddress(address);
-  if (isIP(normalized) === 4) {
-    const octets = parseIpv4Address(normalized);
-    return octets !== null && octets[0] === 169 && octets[1] === 254;
-  }
-  return isIP(normalized) === 6 && /^fe[89ab]/.test(normalized);
 }
 
 /**
@@ -161,6 +116,27 @@ export function normalizeIpAddress(address: string): string {
   return lower;
 }
 
+function defaultLookup(hostname: string): Promise<LookupResult[]> {
+  return dnsLookup(hostname, { all: true, verbatim: true });
+}
+
+async function lookupWithTimeout(hostname: string, lookup: RemoteHttpEndpointLookup, timeoutMs: number) {
+  let timeout: NodeJS.Timeout | undefined;
+  try {
+    return await Promise.race([
+      lookup(hostname),
+      new Promise<never>((_, reject) => {
+        timeout = setTimeout(() => {
+          reject(markRemoteConnectionFailure(new Error(`DNS lookup timed out for ${hostname}`), "connection_timeout"));
+        }, timeoutMs);
+        timeout.unref?.();
+      }),
+    ]);
+  } finally {
+    if (timeout) clearTimeout(timeout);
+  }
+}
+
 export function isPrivateOrReservedIp(address: string): boolean {
   const lower = address.toLowerCase();
   const mappedIpv4 = lower.match(/^::ffff:(\d{1,3}(?:\.\d{1,3}){3})$/);
@@ -170,6 +146,16 @@ export function isPrivateOrReservedIp(address: string): boolean {
   if (isIP(address) === 4) return isPrivateOrReservedIpv4(address);
   if (isIP(address) === 6) return isPrivateOrReservedIpv6(lower);
   return true;
+}
+
+/** Link-local egress is denied in every deployment mode. */
+export function isAlwaysDeniedLinkLocalIp(address: string): boolean {
+  const normalized = normalizeIpAddress(address);
+  if (isIP(normalized) === 4) {
+    const octets = parseIpv4Address(normalized);
+    return octets !== null && octets[0] === 169 && octets[1] === 254;
+  }
+  return isIP(normalized) === 6 && /^fe[89ab]/.test(normalized);
 }
 
 function isPrivateOrReservedIpv4(address: string): boolean {

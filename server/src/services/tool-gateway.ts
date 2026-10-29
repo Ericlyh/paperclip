@@ -54,7 +54,8 @@ import type { AgentToolDescriptor, PluginToolDispatcher } from "./plugin-tool-di
 import { logActivity, type LogActivityInput } from "./activity-log.js";
 import { secretService } from "./secrets.js";
 import { mcpHttpRequestHeaders, parseMcpHttpResponseBody } from "./mcp-http.js";
-import { assertPublicRemoteHttpEndpoint, parseRemoteHttpEndpoint } from "./remote-http-endpoint-guard.js";
+import { assertPublicRemoteHttpEndpoint, parseRemoteHttpEndpoint, type RemoteHttpEndpointLookup } from "./remote-http-endpoint-guard.js";
+import { guardedRemoteHttpFetch, type GuardedRemoteHttpFetchOptions } from "./remote-http-fetch.js";
 import { toolAccessPolicyService } from "./tool-access-policy.js";
 import { issueThreadInteractionService } from "./issue-thread-interactions.js";
 import {
@@ -763,6 +764,15 @@ export function createToolGatewayService(
       sessionSetup: Partial<McpGatewayRateLimitConfig>;
     }>;
     now?: () => number;
+    /**
+     * Test seam: performs the outbound request instead of the pinned transport.
+     * Production leaves this unset so the request is guarded and pinned.
+     */
+    remoteHttpRequest?: (url: string, init: RequestInit) => Promise<Response>;
+    /**
+     * Test seam: resolves the hostname instead of the platform resolver.
+     */
+    remoteHttpEndpointLookup?: RemoteHttpEndpointLookup;
   } = {},
 ) {
   const runtimeSupervisor = createToolRuntimeSupervisor(db, {
@@ -2143,10 +2153,26 @@ export function createToolGatewayService(
     const endpoint = new URL(remoteEndpoint(config));
     await assertPublicRemoteHttpEndpoint(
       endpoint,
-      { allowPrivateNetwork: allowPrivateRemoteEndpoints() },
+      { allowPrivateNetwork: allowPrivateRemoteEndpoints(), lookup: options.remoteHttpEndpointLookup },
       (message, code) => new ToolGatewayHttpError(422, message, code),
     );
     return endpoint.toString();
+  }
+
+  /**
+   * Guard options for every outbound call to an operator-supplied MCP endpoint.
+   *
+   * The private-network check no longer runs as a standalone pre-flight: it is
+   * part of `guardedRemoteHttpFetch`, which keeps the approved address and
+   * dials it directly. Splitting validation from dispatch is what created the
+   * DNS-rebinding TOCTOU.
+   */
+  function remoteHttpFetchOptions(): GuardedRemoteHttpFetchOptions {
+    return {
+      allowPrivateNetwork: allowPrivateRemoteEndpoints(),
+      lookup: options.remoteHttpEndpointLookup,
+      error: (message, code) => new ToolGatewayHttpError(422, message, code),
+    };
   }
 
   function headerName(value: unknown): string | null {
@@ -3074,7 +3100,7 @@ export function createToolGatewayService(
     const timer = setTimeout(() => controller.abort(), ms);
     timer.unref?.();
     try {
-      const response = await fetch(endpoint, {
+      const requestInit: RequestInit = {
         method: "POST",
         redirect: "manual",
         // MCP Streamable HTTP requires the Accept header advertising both a JSON
@@ -3090,7 +3116,19 @@ export function createToolGatewayService(
             arguments: parameters ?? {},
           },
         }),
-      });
+      };
+      // The guard runs inside this call and the connection is pinned to the
+      // address it approved, so an operator-supplied hostname cannot be rebound
+      // onto a loopback or metadata address between validation and dispatch.
+      const response = await (options.remoteHttpRequest
+        ? options.remoteHttpRequest(endpoint, requestInit)
+        : guardedRemoteHttpFetch(new URL(endpoint), requestInit, {
+            ...remoteHttpFetchOptions(),
+            // This call site owns a caller-set budget that can exceed the
+            // transport's default response deadline, so hand it down rather than
+            // letting the tighter default cut a legitimately slow tool short.
+            responseTimeoutMs: ms,
+          }));
       const body = await readBoundedRemoteResponse(response);
       execution.response = {
         httpStatus: response.status,

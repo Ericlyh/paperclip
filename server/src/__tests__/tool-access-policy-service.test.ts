@@ -1649,7 +1649,11 @@ describeEmbeddedPostgres("tool access policy service", () => {
       key: `secret-${randomUUID()}`,
       name: `Secret ${randomUUID()}`,
     }).returning();
-    const svc = toolAccessService(db);
+    // The guard resolves the endpoint hostname before the cross-company check
+    // runs, so the fixture endpoint needs a lookup that answers.
+    const svc = toolAccessService(db, {
+      remoteHttpEndpointLookup: async () => [{ address: "8.8.8.8", family: 4 }],
+    });
 
     await expect(svc.createApplication(company.id, {
       name: "Wrong owner",

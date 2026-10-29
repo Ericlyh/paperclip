@@ -111,7 +111,8 @@ import { CLASS3_STATIC_LEASE_ALLOWLIST, credentialConfigPath, getAvailableConnec
 import { badRequest, conflict, forbidden, HttpError, notFound, unprocessable } from "../errors.js";
 import { logActivity } from "./activity-log.js";
 import { mcpHttpRequestHeaders, parseMcpHttpResponseBody } from "./mcp-http.js";
-import { assertPublicRemoteHttpEndpoint, parseRemoteHttpEndpoint } from "./remote-http-endpoint-guard.js";
+import { assertPublicRemoteHttpEndpoint, parseRemoteHttpEndpoint, type RemoteHttpEndpointLookup } from "./remote-http-endpoint-guard.js";
+import { guardedRemoteHttpFetch, type GuardedRemoteHttpFetchOptions } from "./remote-http-fetch.js";
 import { secretService } from "./secrets.js";
 import { toolAccessPolicyService } from "./tool-access-policy.js";
 import { readSignedToolArgumentsPayload } from "./tool-content-guards.js";
@@ -169,6 +170,15 @@ type ToolAccessServiceOptions = {
   deploymentExposure?: DeploymentExposure;
   trustedLocalStdioRuntimeHost?: string | null;
   now?: () => Date;
+  /**
+   * Test seam: resolves the hostname instead of the platform resolver.
+   */
+  remoteHttpEndpointLookup?: RemoteHttpEndpointLookup;
+  /**
+   * Test seam: performs the outbound request instead of the pinned transport.
+   * Production leaves this unset so the request is guarded and pinned.
+   */
+  remoteHttpRequest?: (url: string, init: RequestInit) => Promise<Response>;
 };
 
 type DbTransaction = Parameters<Parameters<Db["transaction"]>[0]>[0];
@@ -1359,6 +1369,19 @@ function remoteEndpoint(config: Record<string, unknown>): string {
   return parsed.toString();
 }
 
+function normalizeTokenBrokerAllowedHost(value: string): string | null {
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = new URL(trimmed.includes("://") ? trimmed : `http://${trimmed}`);
+    return parsed.hostname.replace(/^\[|\]$/g, "").replace(/\.$/, "").toLowerCase() || null;
+  } catch {
+    // Invalid allowlist entries grant no access. The configured broker URL is
+    // still evaluated under the public-only policy.
+    return null;
+  }
+}
+
 function readStdioTemplateId(config: Record<string, unknown>): string {
   const templateId = config.templateId;
   if (typeof templateId !== "string" || templateId.trim().length === 0) {
@@ -1384,18 +1407,34 @@ export function toolAccessService(db: Db, options: ToolAccessServiceOptions = {}
     const endpoint = parseRemoteHttpEndpoint(value, (message, code) => badRequest(message, { code }));
     await assertPublicRemoteHttpEndpoint(
       endpoint,
-      { allowPrivateNetwork: allowPrivateRemoteEndpoints() },
+      { allowPrivateNetwork: allowPrivateRemoteEndpoints(), lookup: options.remoteHttpEndpointLookup },
       (message, code) => badRequest(message, { code }),
     );
     return endpoint.toString();
+  }
+
+  /**
+   * Guard options for every outbound call to an operator-supplied endpoint.
+   *
+   * The private-network check no longer runs as a standalone pre-flight: it is
+   * part of `guardedRemoteHttpFetch`, which keeps the approved address and
+   * dials it directly. Splitting validation from dispatch is what created the
+   * DNS-rebinding TOCTOU.
+   */
+  function remoteHttpFetchOptions(): GuardedRemoteHttpFetchOptions {
+    return {
+      allowPrivateNetwork: allowPrivateRemoteEndpoints(),
+      lookup: options.remoteHttpEndpointLookup,
+      error: (message, code) => badRequest(message, { code }),
+    };
   }
 
   async function fetchRemoteHttpUrl(value: string, init: RequestInit = {}): Promise<Response> {
     let currentUrl = value;
     const method = (init.method ?? "GET").toUpperCase();
     for (let redirectCount = 0; redirectCount <= MAX_REMOTE_HTTP_REDIRECTS; redirectCount += 1) {
-      const safeUrl = await assertRemoteHttpUrlAllowed(currentUrl);
-      const response = await fetch(safeUrl, { ...init, redirect: "manual" });
+      const endpoint = parseRemoteHttpEndpoint(currentUrl, (message, code) => badRequest(message, { code }));
+      const response = await requestRemoteHttpEndpoint(endpoint, init);
       const location = REMOTE_HTTP_REDIRECT_STATUSES.has(response.status)
         ? response.headers?.get?.("location") ?? null
         : null;
@@ -1406,13 +1445,96 @@ export function toolAccessService(db: Db, options: ToolAccessServiceOptions = {}
       if (redirectCount >= MAX_REMOTE_HTTP_REDIRECTS) {
         throw new HttpError(502, "Remote OAuth endpoint redirected too many times", { code: "oauth_redirect_limit" });
       }
-      currentUrl = new URL(location, safeUrl).toString();
+      currentUrl = new URL(location, endpoint).toString();
     }
     throw new HttpError(502, "Remote OAuth endpoint redirected too many times", { code: "oauth_redirect_limit" });
   }
 
   async function assertRemoteEndpointAllowed(config: Record<string, unknown>): Promise<string> {
     return assertRemoteHttpUrlAllowed(remoteEndpoint(config));
+  }
+
+  async function requestRemoteHttpEndpoint(endpoint: URL, init: RequestInit): Promise<Response> {
+    return options.remoteHttpRequest
+      ? options.remoteHttpRequest(endpoint.toString(), { ...init, redirect: "manual" })
+      : guardedRemoteHttpFetch(endpoint, init, remoteHttpFetchOptions());
+  }
+
+  /**
+   * Every token-broker exchange URL a connection configures. The broker URL is
+   * dialled by the server with a parent credential attached, so it is an
+   * operator-supplied egress target like the connection endpoint itself.
+   */
+  function configuredTokenBrokerExchangeUrls(config: Record<string, unknown>): string[] {
+    const broker = asRecord(config.tokenBroker);
+    const brokerConfig = Object.keys(broker).length > 0 ? broker : asRecord(config.broker);
+    return [
+      ...new Set(
+        [
+          readConfigString(brokerConfig, "tokenUrl"),
+          readConfigString(brokerConfig, "exchangeTokenUrl"),
+          readConfigString(config, "tokenExchangeUrl"),
+          readConfigString(config, "pagesTokenExchangeUrl"),
+        ].filter((url): url is string => url !== null),
+      ),
+    ];
+  }
+
+  /**
+   * Validate a connection's remote endpoint and every token-broker endpoint it
+   * configures. A broker URL is operator-supplied and is dialled by the server
+   * with a parent credential attached, so it needs the same guard as the
+   * connection endpoint itself.
+   */
+  async function assertRemoteConnectionEndpointsAllowed(config: Record<string, unknown>): Promise<string> {
+    const endpoint = await assertRemoteEndpointAllowed(config);
+    for (const url of configuredTokenBrokerExchangeUrls(config)) {
+      await assertTokenBrokerHttpUrlAllowed(url);
+    }
+    return endpoint;
+  }
+
+  /**
+   * Hosts an operator has explicitly trusted to live on a private network. A
+   * private token-broker endpoint is only reachable when its host is listed.
+   */
+  function tokenBrokerAllowedPrivateHosts(): Set<string> {
+    const configured = (process.env.PAPERCLIP_TOKEN_BROKER_ALLOWED_HOSTS ?? "")
+      .split(/[,\s]+/)
+      .map(normalizeTokenBrokerAllowedHost)
+      .filter((host): host is string => host !== null);
+    const pagesApiHost = normalizeTokenBrokerAllowedHost(process.env.PAPERCLIP_PAGES_API_URL ?? "");
+    if (pagesApiHost) configured.push(pagesApiHost);
+    return new Set(configured);
+  }
+
+  function tokenBrokerAllowsPrivateNetwork(endpoint: URL): boolean {
+    const hostname = endpoint.hostname
+      .replace(/^\[|\]$/g, "")
+      .replace(/\.$/, "")
+      .toLowerCase();
+    return tokenBrokerAllowedPrivateHosts().has(hostname);
+  }
+
+  function tokenBrokerHttpFetchOptions(endpoint: URL): GuardedRemoteHttpFetchOptions {
+    return {
+      allowPrivateNetwork: tokenBrokerAllowsPrivateNetwork(endpoint),
+      lookup: options.remoteHttpEndpointLookup,
+      error: (message, code) => badRequest(message, { code }),
+    };
+  }
+
+  async function assertTokenBrokerHttpUrlAllowed(value: string): Promise<string> {
+    const endpoint = parseRemoteHttpEndpoint(value, (message, code) => badRequest(message, { code }));
+    await assertPublicRemoteHttpEndpoint(
+      endpoint,
+      {
+        allowPrivateNetwork: tokenBrokerAllowsPrivateNetwork(endpoint),
+        lookup: options.remoteHttpEndpointLookup,
+      },
+      (message, code) => badRequest(message, { code }),
+    );
+    return endpoint.toString();
   }
 
   function trustedRuntimeHost() {
@@ -1867,6 +1989,17 @@ export function toolAccessService(db: Db, options: ToolAccessServiceOptions = {}
     throw unprocessable("Connection token exchange URL is not configured", { code: "exchange_url_missing" });
   }
 
+  /**
+   * Dispatch a token-broker exchange request. The broker URL is
+   * operator-supplied, so it goes through the same guard as any other remote
+   * endpoint, with the stricter private-host policy applied on top.
+   */
+  async function requestTokenBrokerEndpoint(endpoint: URL, init: RequestInit): Promise<Response> {
+    return options.remoteHttpRequest
+      ? options.remoteHttpRequest(endpoint.toString(), { ...init, redirect: "manual" })
+      : guardedRemoteHttpFetch(endpoint, init, tokenBrokerHttpFetchOptions(endpoint));
+  }
+
   function pagesNamespaceFromScope(scope: string[]): string | null {
     const first = scope[0];
     if (!first) return null;
@@ -1907,7 +2040,8 @@ export function toolAccessService(db: Db, options: ToolAccessServiceOptions = {}
       body.set("requested_token_type", readConfigString(broker, "requestedTokenType") ?? "urn:ietf:params:oauth:token-type:access_token");
       body.set("actor_token", Buffer.from(JSON.stringify(actor)).toString("base64url"));
       body.set("actor_token_type", readConfigString(broker, "actorTokenType") ?? "urn:ietf:params:oauth:token-type:jwt");
-      response = await fetch(url, {
+      const endpoint = parseRemoteHttpEndpoint(url, (message, code) => badRequest(message, { code }));
+      response = await requestTokenBrokerEndpoint(endpoint, {
         method: "POST",
         headers: { "content-type": "application/x-www-form-urlencoded" },
         body,
@@ -1917,7 +2051,8 @@ export function toolAccessService(db: Db, options: ToolAccessServiceOptions = {}
       const body = isPages && namespace
         ? { namespace, ttlSeconds: input.ttlSeconds, actions: ["publish"], actor }
         : { scope: input.scope, ttlSeconds: input.ttlSeconds, actor, audience: readConfigString(broker, "audience") };
-      response = await fetch(url, {
+      const endpoint = parseRemoteHttpEndpoint(url, (message, code) => badRequest(message, { code }));
+      response = await requestTokenBrokerEndpoint(endpoint, {
         method: "POST",
         headers: { authorization: `Bearer ${parentToken}`, "content-type": "application/json" },
         body: JSON.stringify(body),
@@ -2865,7 +3000,7 @@ export function toolAccessService(db: Db, options: ToolAccessServiceOptions = {}
   async function remoteTools(connection: typeof toolConnections.$inferSelect): Promise<McpToolDescriptor[]> {
     const headers = await resolveCredentialHeaders(connection);
     const endpoint = await assertRemoteEndpointAllowed(connection.config);
-    const response = await fetch(endpoint, {
+    const response = await requestRemoteHttpEndpoint(new URL(endpoint), {
       method: "POST",
       // MCP Streamable HTTP requires advertising that we accept both a JSON body
       // and an SSE stream; spec-compliant servers 406 without it (see mcp-http.ts).
@@ -4864,7 +4999,7 @@ export function toolAccessService(db: Db, options: ToolAccessServiceOptions = {}
       config = normalizeGoogleSheetsConnectionConfig(config);
       await assertGoogleSheetsSpreadsheetOwnership(companyId, config);
     }
-    if (transport === "mcp_remote") await assertRemoteEndpointAllowed(config);
+    if (transport === "mcp_remote") await assertRemoteConnectionEndpointsAllowed(config);
     if (transport === "local_stdio") await stdioTemplateId(companyId, config);
     assertLocalStdioCanBeEnabled(transport, false);
 
@@ -6312,7 +6447,7 @@ export function toolAccessService(db: Db, options: ToolAccessServiceOptions = {}
       const transport = input.transport;
       if (!transport) throw badRequest("Tool connection transport is required");
       const config = normalizeGoogleSheetsConnectionConfig(input.config ?? input.transportConfig ?? {});
-      if (transport === "mcp_remote") await assertRemoteEndpointAllowed(config);
+      if (transport === "mcp_remote") await assertRemoteConnectionEndpointsAllowed(config);
       if (transport === "local_stdio") await stdioTemplateId(companyId, config);
       assertLocalStdioCanBeEnabled(transport, input.enabled ?? false);
       await assertGoogleSheetsSpreadsheetOwnership(companyId, config);
@@ -6548,7 +6683,7 @@ export function toolAccessService(db: Db, options: ToolAccessServiceOptions = {}
     updateConnection: async (connectionId: string, input: UpdateToolConnection): Promise<ToolConnection> => {
       const existing = await getConnectionRow(connectionId);
       const config = normalizeGoogleSheetsConnectionConfig(input.config ?? input.transportConfig ?? existing.config);
-      if (existing.transport === "mcp_remote") await assertRemoteEndpointAllowed(config);
+      if (existing.transport === "mcp_remote") await assertRemoteConnectionEndpointsAllowed(config);
       if (existing.transport === "local_stdio") await stdioTemplateId(existing.companyId, config);
       assertLocalStdioCanBeEnabled(existing.transport, input.enabled ?? existing.enabled);
       await assertGoogleSheetsSpreadsheetOwnership(existing.companyId, config, { excludeConnectionId: existing.id });

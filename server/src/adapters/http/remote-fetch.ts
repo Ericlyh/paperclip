@@ -38,10 +38,6 @@ function normalizeAllowlistedOrigin(value: string): string | null {
   return endpoint.origin.toLowerCase();
 }
 
-/**
- * Exact origins an operator trusts to live on a private network. A private
- * HTTP-adapter endpoint is only reachable when its exact origin is listed here.
- */
 export function httpAdapterPrivateEndpointAllowlist(
   raw = process.env[PRIVATE_ENDPOINT_ALLOWLIST_ENV] ?? "",
 ): ReadonlySet<string> {
@@ -55,20 +51,16 @@ export function httpAdapterPrivateEndpointAllowlist(
 
 type HttpAdapterFetchOptions = Omit<
   GuardedRemoteHttpFetchOptions,
-  "allowPrivateNetwork" | "denyLinkLocal" | "error"
+  "allowPrivateNetwork" | "error"
 > & {
   privateEndpointAllowlist?: ReadonlySet<string>;
 };
 
 /**
- * Guard every HTTP-adapter request at the socket boundary. Public endpoints are
- * allowed by default. An exact operator-configured origin can opt into private
- * networking, while link-local metadata targets stay blocked even then.
- *
- * The guard resolves the hostname once and the transport dials the approved
- * address directly, so a name server under the caller's control cannot answer
- * with a public address for the guard and a loopback, private or link-local
- * address for the connection.
+ * Guard every HTTP-adapter request at the actual socket boundary. Public
+ * endpoints are allowed by default. An exact operator-configured origin can
+ * opt into private networking, while the shared guard continues to reject
+ * link-local metadata targets and pins DNS results to prevent rebinding.
  */
 export async function guardedHttpAdapterFetch(
   url: string | URL,
@@ -79,13 +71,7 @@ export async function guardedHttpAdapterFetch(
   const allowlist = options.privateEndpointAllowlist ?? httpAdapterPrivateEndpointAllowlist();
   return guardedRemoteHttpFetch(endpoint, init, {
     ...options,
-    // The allowlist matches the exact origin, so allowing one private origin
-    // never allows a sibling port on the same host.
     allowPrivateNetwork: allowlist.has(endpoint.origin.toLowerCase()),
-    // Link-local egress stays blocked even for an allowlisted private origin:
-    // an operator-trusted endpoint must not become a pivot to instance
-    // metadata.
-    denyLinkLocal: true,
     error: endpointError,
   });
 }

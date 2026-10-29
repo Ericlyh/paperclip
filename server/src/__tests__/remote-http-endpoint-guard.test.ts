@@ -1,11 +1,33 @@
 import { describe, expect, it } from "vitest";
 import { assertPublicRemoteHttpEndpoint } from "../services/remote-http-endpoint-guard.js";
+import { readRemoteConnectionFailure } from "../services/remote-connection-failure.js";
 
 function guardError(message: string, code: string) {
   return Object.assign(new Error(message), { code });
 }
 
 describe("remote HTTP endpoint guard", () => {
+  it.each(["ENOTFOUND", "ENODATA", "EAI_AGAIN"])("retains proven DNS failure %s across the public wrapper", async (code) => {
+    const failure = await assertPublicRemoteHttpEndpoint(new URL("https://missing.example.test/mcp"), {
+      lookup: async () => { throw Object.assign(new Error("lookup failed"), { code }); },
+    }, guardError).catch((error) => error);
+    expect(failure).toMatchObject({ code: "remote_http_dns_failed" });
+    expect(readRemoteConnectionFailure(failure)).toBe("dns_failure");
+  });
+
+  it("marks its exact DNS deadline without trusting unknown lookup exceptions", async () => {
+    const timedOut = await assertPublicRemoteHttpEndpoint(new URL("https://silent.example.test/mcp"), {
+      lookup: async () => new Promise(() => {}), dnsTimeoutMs: 1,
+    }, guardError).catch((error) => error);
+    expect(timedOut).toMatchObject({ code: "remote_http_dns_failed" });
+    expect(readRemoteConnectionFailure(timedOut)).toBe("connection_timeout");
+    const unknown = await assertPublicRemoteHttpEndpoint(new URL("https://broken.example.test/mcp"), {
+      lookup: async () => { throw new TypeError("internal lookup bug: ENOTFOUND"); },
+    }, guardError).catch((error) => error);
+    expect(unknown).toMatchObject({ code: "remote_http_dns_failed" });
+    expect(readRemoteConnectionFailure(unknown)).toBeNull();
+  });
+
   it("blocks hostnames that resolve to private network addresses", async () => {
     await expect(assertPublicRemoteHttpEndpoint(
       new URL("https://metadata.example/mcp"),
@@ -23,6 +45,45 @@ describe("remote HTTP endpoint guard", () => {
   });
 
   it.each([
+    "169.254.0.1",
+    "169.254.169.254",
+    "::ffff:169.254.169.254",
+    "::ffff:a9fe:a9fe",
+    "fe80::1",
+    "febf::1",
+  ])("always rejects link-local literal %s when private networking is allowed", async (address) => {
+    const url = address.includes(":") ? `http://[${address}]/mcp` : `http://${address}/mcp`;
+    await expect(assertPublicRemoteHttpEndpoint(
+      new URL(url),
+      { allowPrivateNetwork: true },
+      guardError,
+    )).rejects.toMatchObject({ code: "remote_http_private_endpoint" });
+  });
+
+  it.each(["169.254.42.1", "fe80::1234"])(
+    "always rejects link-local DNS answer %s when private networking is allowed",
+    async (address) => {
+      await expect(assertPublicRemoteHttpEndpoint(
+        new URL("https://operator-endpoint.example/mcp"),
+        { allowPrivateNetwork: true, lookup: async () => [{ address, family: address.includes(":") ? 6 : 4 }] },
+        guardError,
+      )).rejects.toMatchObject({ code: "remote_http_private_endpoint" });
+    },
+  );
+
+  it.each(["127.0.0.1", "10.1.2.3", "fd00::1"])(
+    "allows intended private address %s when private networking is allowed",
+    async (address) => {
+      const url = address.includes(":") ? `http://[${address}]/mcp` : `http://${address}/mcp`;
+      await expect(assertPublicRemoteHttpEndpoint(
+        new URL(url),
+        { allowPrivateNetwork: true },
+        guardError,
+      )).resolves.toBeUndefined();
+    },
+  );
+
+  it.each([
     "http://[2001::1]/mcp",
     "http://[2001:20::1]/mcp",
     "http://[2001:2f::1]/mcp",
@@ -33,33 +94,5 @@ describe("remote HTTP endpoint guard", () => {
       {},
       guardError,
     )).rejects.toMatchObject({ code: "remote_http_private_endpoint" });
-  });
-
-  it("denies the metadata address even when private networking is allowed", async () => {
-    await expect(assertPublicRemoteHttpEndpoint(
-      new URL("http://169.254.169.254/latest/meta-data/"),
-      { allowPrivateNetwork: true, denyLinkLocal: true },
-      guardError,
-    )).rejects.toMatchObject({ code: "remote_http_private_endpoint" });
-  });
-
-  it("denies hostnames that resolve to a link-local address", async () => {
-    await expect(assertPublicRemoteHttpEndpoint(
-      new URL("https://metadata.example/mcp"),
-      {
-        allowPrivateNetwork: true,
-        denyLinkLocal: true,
-        lookup: async () => [{ address: "169.254.169.254", family: 4 }],
-      },
-      guardError,
-    )).rejects.toMatchObject({ code: "remote_http_private_endpoint" });
-  });
-
-  it("keeps allowing private addresses when link-local egress is denied", async () => {
-    await expect(assertPublicRemoteHttpEndpoint(
-      new URL("http://10.0.0.12/mcp"),
-      { allowPrivateNetwork: true, denyLinkLocal: true },
-      guardError,
-    )).resolves.toBeUndefined();
   });
 });

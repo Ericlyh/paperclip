@@ -39,6 +39,8 @@ type ToolGatewayServiceOptions = NonNullable<Parameters<typeof createToolGateway
 
 function createTestToolGatewayService(db: ReturnType<typeof createDb>, options: ToolGatewayServiceOptions = {}) {
   return createToolGatewayService(db, {
+    remoteHttpEndpointLookup: async () => [{ address: "8.8.8.8", family: 4 }],
+    remoteHttpRequest: async (url, init) => fetch(url, init),
     ...options,
     toolActionSigningSecret: options.toolActionSigningSecret ?? testToolActionSigningSecret,
   });
