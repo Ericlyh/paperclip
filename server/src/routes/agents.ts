@@ -1045,8 +1045,12 @@ export function agentRoutes(
       buildAgentAccessState(agent),
     ]);
 
+    const baseAgent = redactAgentRowForResponse(
+      options?.restricted ? redactForRestrictedAgentView(agent) : agent,
+    );
+
     return {
-      ...(options?.restricted ? redactForRestrictedAgentView(agent) : agent),
+      ...baseAgent,
       chainOfCommand,
       access: accessState,
     };
@@ -3137,6 +3141,20 @@ export function agentRoutes(
     await assertCanUpdateAgent(req, existing);
     assertExternalInstructionsAdmin(req, existing);
 
+    // The restored snapshot can carry a different instructions bundle than the
+    // live config, so the TARGET config needs the same gate as the current one.
+    // Without this an actor with agent_config:update but no instance-admin
+    // rights could roll the agent onto a revision whose adapterConfig points
+    // at an external (host) instructions root.
+    const rollbackRevision = await svc.getConfigRevision(id, revisionId);
+    if (rollbackRevision) {
+      const rollbackAdapterConfig = asRecord(asRecord(rollbackRevision.afterConfig)?.adapterConfig) ?? {};
+      assertExternalInstructionsAdmin(req, {
+        ...existing,
+        adapterConfig: rollbackAdapterConfig,
+      });
+    }
+
     const actor = getActorInfo(req);
     const updated = await svc.rollbackConfigRevision(id, revisionId, {
       agentId: actor.agentId,
@@ -3428,7 +3446,7 @@ export function agentRoutes(
       });
     }
 
-    res.status(201).json({ agent, approval });
+    res.status(201).json({ agent: redactAgentRowForResponse(agent), approval });
   });
 
   router.post("/companies/:companyId/agents", validate(createAgentSchema), async (req, res) => {
@@ -3582,7 +3600,7 @@ export function agentRoutes(
       );
     }
 
-    res.status(201).json(agent);
+    res.status(201).json(redactAgentRowForResponse(agent));
   });
 
   router.patch("/agents/:id/permissions", validate(updateAgentPermissionsSchema), async (req, res) => {

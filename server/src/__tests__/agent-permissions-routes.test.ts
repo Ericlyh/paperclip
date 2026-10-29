@@ -439,7 +439,7 @@ describe.sequential("agent permission routes", () => {
     expect(res.body.runtimeConfig).toEqual({});
   }, 20_000);
 
-  it("keeps board agent detail unredacted for low-trust agents", async () => {
+  it("redacts env values in board agent detail responses for low-trust agents", async () => {
     mockAgentService.getById.mockResolvedValue({
       ...baseAgent,
       permissions: {
@@ -470,8 +470,9 @@ describe.sequential("agent permission routes", () => {
     expect(res.status).toBe(200);
     expect(res.body.adapterConfig).toMatchObject({
       command: "pnpm agent:run",
-      env: { PAPERCLIP_API_KEY: "secret-test-key" },
+      env: { PAPERCLIP_API_KEY: { type: "plain", value: "***REDACTED***" } },
     });
+    expect(JSON.stringify(res.body)).not.toContain("secret-test-key");
     expect(res.body.runtimeConfig).toMatchObject({
       modelProfiles: {
         default: { enabled: true, adapterConfig: { model: "openai/gpt-5.4-mini" } },
@@ -923,6 +924,41 @@ describe.sequential("agent permission routes", () => {
       "agent-admin-user",
     );
     expect(mockBuiltInAgentService.ensureCompanyDefaultAgentGrants).toHaveBeenCalledWith(companyId);
+  });
+
+  it("redacts env values in agent creation responses", async () => {
+    mockAccessService.canUser.mockResolvedValue(true);
+    mockAgentService.create.mockResolvedValue({
+      ...baseAgent,
+      adapterConfig: {
+        command: "pnpm agent:run",
+        env: { PAPERCLIP_API_KEY: "secret-test-key" },
+      },
+    });
+
+    const app = await createApp({
+      type: "board",
+      userId: "agent-admin-user",
+      source: "session",
+      isInstanceAdmin: false,
+      companyIds: [companyId],
+    });
+
+    const res = await requestApp(app, (baseUrl) => request(baseUrl)
+      .post(`/api/companies/${companyId}/agents`)
+      .send({
+        name: "Builder",
+        role: "engineer",
+        adapterType: "process",
+        adapterConfig: {},
+      }));
+
+    expect(res.status, JSON.stringify(res.body)).toBe(201);
+    expect(res.body.adapterConfig).toMatchObject({
+      command: "pnpm agent:run",
+      env: { PAPERCLIP_API_KEY: { type: "plain", value: "***REDACTED***" } },
+    });
+    expect(JSON.stringify(res.body)).not.toContain("secret-test-key");
   });
 
   it("rejects direct agent creation when new agents require board approval", async () => {
