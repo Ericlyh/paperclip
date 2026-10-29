@@ -87,6 +87,13 @@ const MAX_CATCH_UP_RUNS = 25;
 const MAX_ROUTINE_REVISIONS = 100;
 const EXECUTION_ISSUE_TRANSIENT_FAILURE_CODE = "execution_issue_status";
 const EXECUTION_ISSUE_TRANSIENT_FAILURE_STATUSES = ["blocked", "cancelled"] as const;
+// Issue states that terminate the routine run they belong to. `blocked` is included
+// because a blocked execution issue finalizes its run as `failed`; the run is revived
+// to `issue_created` if the issue is later unblocked (see the transient-failure round trip).
+const ROUTINE_RUN_TERMINAL_ISSUE_STATUSES = ["done", "blocked", "cancelled"] as const;
+// Routine run states that mean "this run has not reached a terminal state yet".
+const ROUTINE_RUN_NON_TERMINAL_STATUSES = ["received", "issue_created"] as const;
+const MAX_ROUTINE_RUN_RECONCILE_BATCH = 500;
 const ACTIVITY_GATE_IGNORED_ACTIONS = [
   "issue.read_marked",
   "issue.read_unmarked",
@@ -105,6 +112,11 @@ const WEEKDAY_INDEX: Record<string, number> = {
 };
 
 type ExecutionIssueTransientFailureStatus = (typeof EXECUTION_ISSUE_TRANSIENT_FAILURE_STATUSES)[number];
+
+type RoutineRunForIssueSync = Pick<
+  typeof routineRuns.$inferSelect,
+  "id" | "status" | "failureReason" | "triggerPayload"
+>;
 
 function executionIssueTransientFailureReason(status: ExecutionIssueTransientFailureStatus) {
   return `Execution issue moved to ${status}`;
@@ -1608,6 +1620,75 @@ export function routineService(
       .where(eq(routineRuns.id, runId))
       .returning()
       .then((rows) => rows[0] ?? null);
+  }
+
+  /**
+   * Finalize a routine run from the status of its execution issue.
+   *
+   * Shared by the issue-driven `syncRunStatusForIssue` and the sweep-driven
+   * `reconcileStuckRoutineRuns` so both paths agree on what an issue status
+   * means for the run it belongs to.
+   */
+  async function applyIssueStatusToRun(run: RoutineRunForIssueSync, issueStatus: string) {
+    if (issueStatus === "done") {
+      const transientFailureStatus = executionIssueTransientFailureStatusFromPayload(run.triggerPayload)
+        ?? legacyExecutionIssueTransientFailureStatus(run.failureReason);
+      const transientFailureClearedAt = executionIssueTransientFailureClearedAtFromPayload(run.triggerPayload);
+      return finalizeRun(run.id, {
+        status: "completed",
+        failureReason: null,
+        completedAt: new Date(),
+        ...(transientFailureStatus
+          ? {
+            triggerPayload: {
+              ...(run.triggerPayload ?? {}),
+              transientFailure: {
+                code: EXECUTION_ISSUE_TRANSIENT_FAILURE_CODE,
+                status: transientFailureStatus,
+                reason: executionIssueTransientFailureReason(transientFailureStatus),
+                clearedAt: transientFailureClearedAt ?? new Date().toISOString(),
+              },
+            },
+          }
+          : {}),
+      });
+    }
+    if (issueStatus === "blocked" || issueStatus === "cancelled") {
+      const failureReason = executionIssueTransientFailureReason(issueStatus);
+      return finalizeRun(run.id, {
+        status: "failed",
+        failureReason,
+        completedAt: new Date(),
+        triggerPayload: {
+          ...(run.triggerPayload ?? {}),
+          transientFailure: {
+            code: EXECUTION_ISSUE_TRANSIENT_FAILURE_CODE,
+            status: issueStatus,
+            reason: failureReason,
+            recordedAt: new Date().toISOString(),
+          },
+        },
+      });
+    }
+    const transientFailureStatus = executionIssueTransientFailureStatusFromPayload(run.triggerPayload)
+      ?? legacyExecutionIssueTransientFailureStatus(run.failureReason);
+    if (run.status === "failed" && transientFailureStatus) {
+      return finalizeRun(run.id, {
+        status: "issue_created",
+        failureReason: null,
+        completedAt: null,
+        triggerPayload: {
+          ...(run.triggerPayload ?? {}),
+          transientFailure: {
+            code: EXECUTION_ISSUE_TRANSIENT_FAILURE_CODE,
+            status: transientFailureStatus,
+            reason: executionIssueTransientFailureReason(transientFailureStatus),
+            clearedAt: new Date().toISOString(),
+          },
+        },
+      });
+    }
+    return null;
   }
 
   async function createWebhookSecret(
@@ -3232,65 +3313,66 @@ export function routineService(
         .where(eq(routineRuns.id, issue.originRunId))
         .then((rows) => rows[0] ?? null);
       if (!run) return null;
-      if (issue.status === "done") {
-        const transientFailureStatus = executionIssueTransientFailureStatusFromPayload(run.triggerPayload)
-          ?? legacyExecutionIssueTransientFailureStatus(run.failureReason);
-        const transientFailureClearedAt = executionIssueTransientFailureClearedAtFromPayload(run.triggerPayload);
-        return finalizeRun(issue.originRunId, {
-          status: "completed",
-          failureReason: null,
-          completedAt: new Date(),
-          ...(transientFailureStatus
-            ? {
-              triggerPayload: {
-                ...(run.triggerPayload ?? {}),
-                transientFailure: {
-                  code: EXECUTION_ISSUE_TRANSIENT_FAILURE_CODE,
-                  status: transientFailureStatus,
-                  reason: executionIssueTransientFailureReason(transientFailureStatus),
-                  clearedAt: transientFailureClearedAt ?? new Date().toISOString(),
-                },
-              },
-            }
-            : {}),
-        });
-      }
-      if (issue.status === "blocked" || issue.status === "cancelled") {
-        const failureReason = executionIssueTransientFailureReason(issue.status);
-        return finalizeRun(issue.originRunId, {
-          status: "failed",
-          failureReason,
-          completedAt: new Date(),
-          triggerPayload: {
-            ...(run.triggerPayload ?? {}),
-            transientFailure: {
-              code: EXECUTION_ISSUE_TRANSIENT_FAILURE_CODE,
-              status: issue.status,
-              reason: failureReason,
-              recordedAt: new Date().toISOString(),
+      return applyIssueStatusToRun(run, issue.status);
+    },
+
+    /**
+     * Reconcile routine runs whose execution issue reached a terminal state without
+     * the run being finalized.
+     *
+     * `syncRunStatusForIssue` is only invoked from the issue PATCH route, so a status
+     * change made through the service layer (for example the stranded-issue recovery
+     * escalation in `services/recovery/service.ts`) leaves the routine run stuck in a
+     * non-terminal state forever. This sweep re-derives the run status from the linked
+     * issue for any run that is still non-terminal while its issue is terminal.
+     */
+    reconcileStuckRoutineRuns: async (options?: { limit?: number }) => {
+      const limit = Math.max(1, Math.min(options?.limit ?? MAX_ROUTINE_RUN_RECONCILE_BATCH, MAX_ROUTINE_RUN_RECONCILE_BATCH));
+      const candidates = await db
+        .select({
+          runId: routineRuns.id,
+          runStatus: routineRuns.status,
+          failureReason: routineRuns.failureReason,
+          triggerPayload: routineRuns.triggerPayload,
+          issueStatus: issues.status,
+        })
+        .from(routineRuns)
+        .innerJoin(issues, eq(routineRuns.linkedIssueId, issues.id))
+        .where(
+          and(
+            inArray(routineRuns.status, [...ROUTINE_RUN_NON_TERMINAL_STATUSES]),
+            isNull(routineRuns.completedAt),
+            inArray(issues.status, [...ROUTINE_RUN_TERMINAL_ISSUE_STATUSES]),
+          ),
+        )
+        .limit(limit);
+      const finalizedRunIds: string[] = [];
+      const failedRunIds: string[] = [];
+      for (const candidate of candidates) {
+        // One bad row must not abort the rest of the batch: this sweep runs unattended.
+        try {
+          const updated = await applyIssueStatusToRun(
+            {
+              id: candidate.runId,
+              status: candidate.runStatus,
+              failureReason: candidate.failureReason,
+              triggerPayload: candidate.triggerPayload,
             },
-          },
-        });
+            candidate.issueStatus,
+          );
+          if (updated) finalizedRunIds.push(candidate.runId);
+        } catch (err) {
+          logger.error({ err, runId: candidate.runId }, "failed to reconcile stuck routine run");
+          failedRunIds.push(candidate.runId);
+        }
       }
-      const transientFailureStatus = executionIssueTransientFailureStatusFromPayload(run.triggerPayload)
-        ?? legacyExecutionIssueTransientFailureStatus(run.failureReason);
-      if (run.status === "failed" && transientFailureStatus) {
-        return finalizeRun(issue.originRunId, {
-          status: "issue_created",
-          failureReason: null,
-          completedAt: null,
-          triggerPayload: {
-            ...(run.triggerPayload ?? {}),
-            transientFailure: {
-              code: EXECUTION_ISSUE_TRANSIENT_FAILURE_CODE,
-              status: transientFailureStatus,
-              reason: executionIssueTransientFailureReason(transientFailureStatus),
-              clearedAt: new Date().toISOString(),
-            },
-          },
-        });
-      }
-      return null;
+      return {
+        scanned: candidates.length,
+        finalized: finalizedRunIds.length,
+        failed: failedRunIds.length,
+        runIds: finalizedRunIds,
+        failedRunIds,
+      };
     },
   };
 }

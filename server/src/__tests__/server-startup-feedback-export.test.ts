@@ -107,6 +107,7 @@ const {
   const externalObjectsServiceFactoryMock = vi.fn(() => externalObjectsServiceMock);
   const routineServiceMock = {
     tickScheduledTriggers: vi.fn(async () => ({ triggered: 0 })),
+    reconcileStuckRoutineRuns: vi.fn(async () => ({ scanned: 0, finalized: 0, runIds: [] })),
   };
   const routineServiceFactoryMock = vi.fn(() => routineServiceMock);
   const feedbackExportServiceMock = {

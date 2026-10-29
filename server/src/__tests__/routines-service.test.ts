@@ -369,6 +369,126 @@ describeEmbeddedPostgres("routine service live-execution coalescing", () => {
     });
   });
 
+  it("reconciles routine runs left non-terminal after their execution issue reached a terminal state", async () => {
+    const { companyId, issueSvc, routine, svc } = await seedFixture();
+
+    async function seedRun(issueStatus: string, runStatus = "issue_created") {
+      const runId = randomUUID();
+      const executionIssue = await issueSvc.create(companyId, {
+        projectId: routine.projectId,
+        title: routine.title,
+        description: routine.description,
+        status: issueStatus,
+        priority: routine.priority,
+        assigneeAgentId: routine.assigneeAgentId,
+        originKind: "routine_execution",
+        originId: routine.id,
+        originRunId: runId,
+      });
+      await db.insert(routineRuns).values({
+        id: runId,
+        companyId,
+        routineId: routine.id,
+        source: "manual",
+        status: runStatus,
+        triggeredAt: new Date("2026-07-16T12:00:00.000Z"),
+        linkedIssueId: executionIssue.id,
+      });
+      return { runId, executionIssue };
+    }
+
+    const done = await seedRun("done");
+    const blocked = await seedRun("blocked");
+    const cancelled = await seedRun("cancelled");
+    const stillOpen = await seedRun("in_progress");
+
+    const result = await svc.reconcileStuckRoutineRuns();
+    expect(result.scanned).toBe(3);
+    expect(result.finalized).toBe(3);
+    expect(result.runIds.sort()).toEqual([done.runId, blocked.runId, cancelled.runId].sort());
+
+    const [doneRun] = await db.select().from(routineRuns).where(eq(routineRuns.id, done.runId));
+    expect(doneRun).toMatchObject({ status: "completed", failureReason: null });
+    expect(doneRun?.completedAt).toBeInstanceOf(Date);
+
+    const [blockedRun] = await db.select().from(routineRuns).where(eq(routineRuns.id, blocked.runId));
+    expect(blockedRun).toMatchObject({
+      status: "failed",
+      failureReason: "Execution issue moved to blocked",
+      triggerPayload: {
+        transientFailure: {
+          code: "execution_issue_status",
+          status: "blocked",
+        },
+      },
+    });
+    expect(blockedRun?.completedAt).toBeInstanceOf(Date);
+
+    const [cancelledRun] = await db.select().from(routineRuns).where(eq(routineRuns.id, cancelled.runId));
+    expect(cancelledRun).toMatchObject({
+      status: "failed",
+      failureReason: "Execution issue moved to cancelled",
+    });
+
+    // A run whose execution issue is still open stays non-terminal.
+    const [openRun] = await db.select().from(routineRuns).where(eq(routineRuns.id, stillOpen.runId));
+    expect(openRun).toMatchObject({ status: "issue_created" });
+    expect(openRun?.completedAt).toBeNull();
+
+    // The sweep is idempotent: a second pass finds nothing left to finalize.
+    const second = await svc.reconcileStuckRoutineRuns();
+    expect(second.scanned).toBe(0);
+    expect(second.finalized).toBe(0);
+  });
+
+  it("revives a reconciled failed run when its execution issue resumes", async () => {
+    const { companyId, issueSvc, routine, svc } = await seedFixture();
+    const runId = randomUUID();
+    const executionIssue = await issueSvc.create(companyId, {
+      projectId: routine.projectId,
+      title: routine.title,
+      description: routine.description,
+      status: "blocked",
+      priority: routine.priority,
+      assigneeAgentId: routine.assigneeAgentId,
+      originKind: "routine_execution",
+      originId: routine.id,
+      originRunId: runId,
+    });
+    await db.insert(routineRuns).values({
+      id: runId,
+      companyId,
+      routineId: routine.id,
+      source: "manual",
+      status: "issue_created",
+      triggeredAt: new Date("2026-07-16T12:00:00.000Z"),
+      linkedIssueId: executionIssue.id,
+    });
+
+    await svc.reconcileStuckRoutineRuns();
+    const [failedRun] = await db.select().from(routineRuns).where(eq(routineRuns.id, runId));
+    expect(failedRun).toMatchObject({ status: "failed", failureReason: "Execution issue moved to blocked" });
+
+    // The issue is unblocked: the next sync clears the transient failure and puts the
+    // run back into `issue_created` instead of leaving it failed forever.
+    await db.update(issues).set({ status: "in_progress" }).where(eq(issues.id, executionIssue.id));
+    await svc.syncRunStatusForIssue(executionIssue.id);
+
+    const [revivedRun] = await db.select().from(routineRuns).where(eq(routineRuns.id, runId));
+    expect(revivedRun).toMatchObject({
+      status: "issue_created",
+      failureReason: null,
+      completedAt: null,
+      triggerPayload: {
+        transientFailure: {
+          code: "execution_issue_status",
+          status: "blocked",
+          clearedAt: expect.any(String),
+        },
+      },
+    });
+  });
+
   it("filters listed routines by project", async () => {
     const { companyId, agentId, projectId, routine, svc } = await seedFixture();
     const otherProjectId = randomUUID();

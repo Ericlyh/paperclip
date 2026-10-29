@@ -1258,6 +1258,17 @@ export async function startServer(): Promise<StartedServer> {
 
         const promotion = await heartbeat.promoteDueScheduledRetries();
         await heartbeat.resumeQueuedRuns();
+        try {
+          const routineReconciled = await routines.reconcileStuckRoutineRuns();
+          if (routineReconciled.finalized > 0) {
+            logger.warn(
+              { scanned: routineReconciled.scanned, finalized: routineReconciled.finalized },
+              "startup routine run reconciliation finalized runs whose execution issue reached a terminal state",
+            );
+          }
+        } catch (err) {
+          logger.error({ err }, "startup routine run reconciliation failed");
+        }
         const reconciled = await heartbeat.reconcileStrandedAssignedIssues();
         if (
           promotion.promoted > 0 ||
@@ -1416,6 +1427,22 @@ export async function startServer(): Promise<StartedServer> {
           .catch((err) => {
             logger.error({ err }, "routine scheduler tick failed");
           }));
+
+        if (heartbeatSchedulerStopped) return;
+        trackHeartbeatSchedulerWork((async () => {
+          // Wrapped so a throw here cannot abort the rest of the scheduler tick.
+          try {
+            const result = await routines.reconcileStuckRoutineRuns();
+            if (result.finalized > 0) {
+              logger.warn(
+                { scanned: result.scanned, finalized: result.finalized, runIds: result.runIds },
+                "routine run reconciliation finalized runs whose execution issue reached a terminal state",
+              );
+            }
+          } catch (err) {
+            logger.error({ err }, "routine run reconciliation failed");
+          }
+        })());
 
         if (heartbeatSchedulerStopped) return;
         trackHeartbeatSchedulerWork((async () => {
