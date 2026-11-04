@@ -1292,23 +1292,6 @@ export function JsonSchemaForm({
     onChange(newVal as Record<string, unknown>);
   }, [onChange]);
 
-  // If it's a scalar at root, render a single FormField
-  if (type !== "object") {
-    return (
-      <div className={className}>
-        <FormField
-          propSchema={schema}
-          value={values}
-          label=""
-          path=""
-          onChange={handleRootScalarChange}
-          disabled={disabled}
-          errors={errors}
-        />
-      </div>
-    );
-  }
-
   // Memoize to avoid re-renders when parent provides new object references
   const properties = useMemo(() => schema.properties ?? {}, [schema.properties]);
   const requiredFields = useMemo(
@@ -1380,6 +1363,28 @@ export function JsonSchemaForm({
   useEffect(() => {
     if (hasAdvancedError) setIsAdvancedOpen(true);
   }, [hasAdvancedError]);
+
+  // The early returns below must stay *after* every hook in this component:
+  // React compares the hook count between renders, and `schema` can change
+  // shape between renders (object -> scalar), which would otherwise crash
+  // with "Rendered more hooks than during the previous render".
+
+  // If it's a scalar at root, render a single FormField
+  if (type !== "object") {
+    return (
+      <div className={className}>
+        <FormField
+          propSchema={schema}
+          value={values}
+          label=""
+          path=""
+          onChange={handleRootScalarChange}
+          disabled={disabled}
+          errors={errors}
+        />
+      </div>
+    );
+  }
 
   if (Object.keys(properties).length === 0) {
     return (

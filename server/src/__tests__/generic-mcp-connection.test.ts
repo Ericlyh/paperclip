@@ -460,6 +460,7 @@ describeEmbeddedPostgres("generic remote MCP connections", () => {
   async function notebookContextFixture() {
     const settings = instanceSettingsService(db);
     await settings.updateExperimental({ enablePaperclipNotebook: true });
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- `useNotebookFixtureEndpoint` is a test fixture that installs an MCP endpoint, not a React hook.
     useNotebookFixtureEndpoint();
     const fixture = installMcpOAuthFixture({ auth: "oauth", notebookAccount: { id: "cloud-owner", email: "owner@example.test", emailVerified: true },
       tools: [{ name: "notebook_get_account", annotations: { readOnlyHint: true } }],

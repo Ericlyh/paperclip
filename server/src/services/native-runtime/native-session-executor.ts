@@ -13524,6 +13524,7 @@ async function createRunnerdBackendWithinSessionClaim(
         return;
       }
       await remoteNativeArtifacts?.verifyRemoteRunner(requiredMode, undefined, true);
+      // eslint-disable-next-line react-hooks/rules-of-hooks -- `useInstalledProviderPack` is a plain async helper (`const … = async () => {`) in server code, not a React hook.
       if (requiresRemoteProviderPack && await useInstalledProviderPack()) {
         remotePrepared = true;
         return;
@@ -13536,6 +13537,7 @@ async function createRunnerdBackendWithinSessionClaim(
       return;
     }
     await remoteNativeArtifacts?.prepare(requiredMode);
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- `useInstalledProviderPack` is a plain async helper (`const … = async () => {`) in server code, not a React hook.
     if (requiresRemoteProviderPack && await useInstalledProviderPack()) {
       remotePrepared = true;
       return;

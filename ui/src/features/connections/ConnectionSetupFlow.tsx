@@ -2458,6 +2458,9 @@ function StandardConnectionSetupFlow({
       ? stepLabels.length
       : STEP_INDEX[step];
 
+  // eslint-disable-next-line react-hooks/rules-of-hooks -- `useMatchedGalleryEntry` is a plain callback that calls setState, not a React hook.
+  const onUseMatchedEntry = linkMatchedEntry ? () => useMatchedGalleryEntry(linkMatchedEntry) : undefined;
+
   return (
     <div className="max-w-5xl">
       {step !== "success" && (
@@ -2737,7 +2740,7 @@ function StandardConnectionSetupFlow({
           onAdvancedOpenChange={setLinkAdvancedOpen}
           guidance={linkGuidance}
           matchedEntry={linkMatchedEntry}
-          onUseMatchedEntry={linkMatchedEntry ? () => useMatchedGalleryEntry(linkMatchedEntry) : undefined}
+          onUseMatchedEntry={onUseMatchedEntry}
           submitting={connectMutation.isPending || genericOAuthPending}
           defaults={connectionDefaults}
           onBack={backToGallery}

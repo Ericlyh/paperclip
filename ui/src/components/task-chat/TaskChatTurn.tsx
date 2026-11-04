@@ -77,6 +77,19 @@ export function TaskChatTurn({
 }: TaskChatTurnProps) {
   const streamlined = useStreamlinedTaskChatPresentation();
   const parentRow = !item.settled && item.liveStatus != null;
+  // These four state hooks must stay above the `item.standaloneHeader` early
+  // return below: React compares the hook count between renders, and that flag
+  // can flip between renders, which would otherwise crash the component.
+  // Parent-row live turns and settled turns start as their one-line header;
+  // only the headerless legacy live turn starts expanded.
+  const [open, setOpen] = useState(
+    () => !item.settled && item.liveStatus == null,
+  );
+  // Historical folds can contain thousands of tool/reasoning rows. Mount them
+  // on first inspection, then retain them for closing motion and child state.
+  const [historyMounted, setHistoryMounted] = useState(open);
+  const [prevSettled, setPrevSettled] = useState(item.settled);
+  const [wasParentRow, setWasParentRow] = useState(parentRow);
   // The new Paperclip Runner task surface owns one durable chronological
   // timeline. The Worked/Stopped row is its stable header, so it stays directly
   // below the preceding human bubble and above commentary, activity phases,
@@ -152,17 +165,7 @@ export function TaskChatTurn({
     persistentItems.length > 0
       ? item.items.filter((child) => !persistentItemIds.has(child.id))
       : item.items;
-  // Parent-row live turns and settled turns start as their one-line header;
-  // only the headerless legacy live turn starts expanded.
-  const [open, setOpen] = useState(
-    () => !item.settled && item.liveStatus == null,
-  );
-  // Historical folds can contain thousands of tool/reasoning rows. Mount them
-  // on first inspection, then retain them for closing motion and child state.
-  const [historyMounted, setHistoryMounted] = useState(open);
   if (open && !historyMounted) setHistoryMounted(true);
-  const [prevSettled, setPrevSettled] = useState(item.settled);
-  const [wasParentRow, setWasParentRow] = useState(parentRow);
 
   // Render-adjusted state (not effects) so transitions land in the same
   // commit — no flash of the wrong fold state.

@@ -1496,9 +1496,11 @@ function IssueChatRollingToolPart({
   toolParts: ToolCallMessagePart[];
 }) {
   const latest = toolParts[toolParts.length - 1];
-  if (!latest) return null;
-
-  const fullText = cleanToolDisplayText(latest);
+  // `latest` flips from undefined to defined as the agent streams its tool
+  // calls, so the hooks below have to stay above the `!latest` early return.
+  // Otherwise React sees a different hook count on the next render and
+  // throws "Rendered more hooks than during the previous render".
+  const fullText = latest ? cleanToolDisplayText(latest) : "";
 
   const prevRef = useRef(fullText);
   const [ticker, setTicker] = useState<{
@@ -1508,12 +1510,15 @@ function IssueChatRollingToolPart({
   }>({ key: 0, current: fullText, exiting: null });
 
   useEffect(() => {
+    if (!latest) return;
     if (fullText !== prevRef.current) {
       const prev = prevRef.current;
       prevRef.current = fullText;
       setTicker((t) => ({ key: t.key + 1, current: fullText, exiting: prev }));
     }
-  }, [fullText]);
+  }, [fullText, latest]);
+
+  if (!latest) return null;
 
   const ToolIcon = getToolIcon(latest.toolName);
   const isRunning = latest.result === undefined;

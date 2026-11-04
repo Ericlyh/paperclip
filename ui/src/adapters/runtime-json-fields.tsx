@@ -60,16 +60,19 @@ export function RuntimeServicesJsonField({
   config,
   mark,
 }: JsonFieldProps) {
-  if (!SHOW_EXPERIMENTAL_ISSUE_WORKTREE_UI) {
-    return null;
-  }
-
   const existing = formatJsonObject(config.workspaceRuntime);
   const [draft, setDraft] = useState(existing);
 
   useEffect(() => {
     if (!isCreate) setDraft(existing);
   }, [existing, isCreate]);
+
+  // The hooks stay above this early return: React compares the hook count
+  // between renders, so a hook below a conditional return would crash as soon
+  // as the flag flipped.
+  if (!SHOW_EXPERIMENTAL_ISSUE_WORKTREE_UI) {
+    return null;
+  }
 
   const value = isCreate ? values?.runtimeServicesJson ?? "" : draft;
 
