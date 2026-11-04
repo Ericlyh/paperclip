@@ -1683,6 +1683,114 @@ describeEmbeddedPostgres("heartbeat comment wake batching", () => {
       expect(payloads).toHaveLength(2);
       expect(runs[1]?.contextSnapshot).toMatchObject({
         retryReason: "missing_issue_comment",
+      });
+      // The retry continues the original run's work, so it inherits the original
+      // run's model. The original run was not on the cheap lane here, so the
+      // retry must not be downgraded onto it -- handing the accumulated context
+      // to a model with a smaller window reproduces the overflow it is meant
+      // to clear.
+      expect(
+        (runs[1]?.contextSnapshot as Record<string, unknown> | null | undefined)?.modelProfile,
+      ).toBeUndefined();
+    } finally {
+      gateway.releaseFirstWait();
+      await gateway.close();
+    }
+  }, 20_000);
+
+  it("keeps a missing-comment retry on the cheap lane when the original run used it", async () => {
+    const gateway = await createControlledGatewayServer();
+    const companyId = randomUUID();
+    const agentId = randomUUID();
+    const issueId = randomUUID();
+    const issuePrefix = `T${companyId.replace(/-/g, "").slice(0, 6).toUpperCase()}`;
+    const heartbeat = heartbeatService(db);
+
+    try {
+      await db.insert(companies).values({
+        id: companyId,
+        name: "Paperclip",
+        issuePrefix,
+        requireBoardApprovalForNewAgents: false,
+        defaultResponsibleUserId: "responsible-user",
+      });
+
+      await db.insert(agents).values({
+        id: agentId,
+        companyId,
+        name: "Gateway Agent",
+        role: "engineer",
+        status: "idle",
+        adapterType: "openclaw_gateway",
+        adapterConfig: {
+          url: gateway.url,
+          headers: {
+            "x-openclaw-token": "gateway-token",
+          },
+          payloadTemplate: {
+            message: "wake now",
+          },
+          waitTimeoutMs: 2_000,
+        },
+        runtimeConfig: {},
+        permissions: {},
+      });
+
+      await db.insert(issues).values({
+        id: issueId,
+        companyId,
+        title: "Require a comment",
+        status: "todo",
+        priority: "medium",
+        responsibleUserId: "responsible-user",
+        assigneeAgentId: agentId,
+        issueNumber: 1,
+        identifier: `${issuePrefix}-1`,
+      });
+
+      const firstRun = await heartbeat.wakeup(agentId, {
+        source: "assignment",
+        triggerDetail: "system",
+        reason: "issue_assigned",
+        payload: { issueId },
+        contextSnapshot: {
+          issueId,
+          taskId: issueId,
+          wakeReason: "issue_assigned",
+          modelProfile: "cheap",
+        },
+        requestedByActorType: "system",
+        requestedByActorId: null,
+      });
+
+      expect(firstRun).not.toBeNull();
+      await waitFor(() => gateway.getAgentPayloads().length === 1);
+      gateway.releaseFirstWait();
+      await waitFor(async () => {
+        const runs = await db
+          .select()
+          .from(heartbeatRuns)
+          .where(eq(heartbeatRuns.agentId, agentId))
+          .orderBy(asc(heartbeatRuns.createdAt));
+        return (
+          runs.length === 2 &&
+          runs.every((run) => run.status === "succeeded") &&
+          runs[0]?.issueCommentStatus === "retry_queued" &&
+          runs[1]?.issueCommentStatus === "retry_exhausted"
+        );
+      });
+
+      const runs = await db
+        .select()
+        .from(heartbeatRuns)
+        .where(eq(heartbeatRuns.agentId, agentId))
+        .orderBy(asc(heartbeatRuns.createdAt));
+
+      // The original run was on the cheap lane and did not die of a context
+      // overflow, so the retry stays on it -- the cheap lane is preserved where
+      // it is safe to use.
+      expect(runs[1]?.contextSnapshot).toMatchObject({
+        retryReason: "missing_issue_comment",
         modelProfile: "cheap",
       });
     } finally {
@@ -1887,7 +1995,11 @@ describeEmbeddedPostgres("heartbeat comment wake batching", () => {
           ),
       );
       expect(missingCommentRetries).toHaveLength(1);
-      expect(missingCommentRetries[0]?.payload).toMatchObject({ modelProfile: "cheap" });
+      // Same rule as above: the missing-comment retry inherits the original
+      // run's model instead of being forced onto the cheap lane.
+      expect(
+        (missingCommentRetries[0]?.payload as Record<string, unknown> | null | undefined)?.modelProfile,
+      ).toBeUndefined();
     } finally {
       gateway.releaseFirstWait();
       await gateway.close();

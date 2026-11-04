@@ -234,7 +234,9 @@ import {
   buildWorkspaceValidationRecoveryNoticeSeed,
 } from "./recovery/stranded-notice.js";
 import {
+  isContextOverflowRunError,
   recoveryAssigneeAdapterOverrides,
+  resolveRecoveryWorkClass,
   withRecoveryModelProfileHint,
 } from "./recovery/model-profile-hint.js";
 import { ACTIVE_RUN_OUTPUT_SUSPICION_THRESHOLD_MS as RECOVERY_ACTIVE_RUN_OUTPUT_SUSPICION_THRESHOLD_MS, recoveryService } from "./recovery/service.js";
@@ -10050,13 +10052,26 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
     const contextSnapshot = parseObject(run.contextSnapshot);
     const taskKey = deriveTaskKeyWithHeartbeatFallback(contextSnapshot, null);
     const sessionBefore = await resolveSessionBeforeForWakeup(agent, taskKey);
+    // The retry continues the original run's work, so it inherits the original
+    // run's model. Downgrading it onto the cheap lane hands the accumulated
+    // context to a model with a smaller window, which reproduces the overflow
+    // instead of clearing it.
+    const recoveryWorkClass = resolveRecoveryWorkClass({
+      originalModelProfile: readContextModelProfile(contextSnapshot),
+      originalRunError: run.error,
+    });
+    const originalRunOverflowed = isContextOverflowRunError(run.error);
     const retryContextSnapshot = withRecoveryModelProfileHint({
       ...contextSnapshot,
       retryOfRunId: run.id,
       wakeReason: "missing_issue_comment",
       retryReason: "missing_issue_comment",
       missingIssueCommentForRunId: run.id,
-    }, "status_only");
+      // A run that died of a context overflow left behind a session whose
+      // accumulated context already exceeds the window. Resuming it fails on
+      // the first request, so the retry starts from a fresh session.
+      ...(originalRunOverflowed ? { forceFreshSession: true } : {}),
+    }, recoveryWorkClass);
     const responsibleUserId = await resolveResponsibleUserIdForRunContext(run, retryContextSnapshot);
     const now = new Date();
 
@@ -10084,7 +10099,7 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
             issueId,
             retryOfRunId: run.id,
             retryReason: "missing_issue_comment",
-          }, "status_only"),
+          }, recoveryWorkClass),
           status: "queued",
           requestedByActorType: "system",
           requestedByActorId: null,
