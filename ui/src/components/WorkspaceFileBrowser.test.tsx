@@ -43,6 +43,7 @@ vi.mock("@tanstack/react-query", async () => {
   return {
     ...actual,
     useQuery: (options: unknown) => useQueryMock(options),
+    // eslint-disable-next-line react-hooks/rules-of-hooks -- `useQueryMock` is a `vi.fn()` test double, not a React hook; the rule matches any `use`-prefixed name.
     useQueries: ({ queries }: { queries: unknown[] }) => queries.map((options) => useQueryMock(options)),
     useQueryClient: () => ({ cancelQueries: cancelQueriesMock }),
   };
