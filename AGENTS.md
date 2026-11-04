@@ -91,6 +91,9 @@ When you are creating a plan file in the repository itself, new plan documents b
 6. Attach inspectable generated artifacts.
 When your task produces a user-inspectable deliverable file, follow the Paperclip skill's "Generated Artifacts and Work Products" workflow before final disposition. In this repo, prefer the self-contained skill helper at `skills/paperclip/scripts/paperclip-upload-artifact.sh` so the file is available through the Paperclip API, create/update an artifact work product when the file is the deliverable, link the uploaded artifact in the final issue comment, and then set status. Do not rely on local filesystem paths as the only access path. If an important file intentionally remains workspace-only, create/update a work product with `metadata.resourceRef.kind: "workspace_file"` and a workspace-relative path, then name that work product and path in the final comment. Treat browse/search as a fallback for recovering workspace files, not the preferred deliverable path. See `doc/AGENT-ARTIFACTS.md` for details and `.mp4`/`.webm` examples.
 
+7. Type data that crosses a trust boundary as `unknown`, not `any`.
+Modules that take data from outside the process — HTTP routes and middleware, the plugin SDK, external service and MCP clients, and import/export manifests — must type that data `unknown` and narrow it at the point of use. `any` is tolerated inside the process as a deliberate escape hatch for a type the codebase has not modelled, and it is exempt in test code, where mocking with `as any` is idiomatic. `pnpm run check:explicit-any` fails on any explicit `any` in a boundary module beyond the recorded baseline (`scripts/check-explicit-any.baseline.json`); the boundary modules are listed in `scripts/check-explicit-any.mjs`. Do not add eslint to this repo to enforce it.
+
 ## 6. Database Change Workflow
 
 When changing data model:

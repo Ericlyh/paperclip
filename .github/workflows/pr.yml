@@ -52,8 +52,14 @@ jobs:
       - name: Reject git push in adapter/runtime code
         run: node ./scripts/check-no-git-push.mjs
 
+      - name: Reject new explicit `any` at trust boundaries
+        run: node ./scripts/check-explicit-any.mjs --enforce
+
       - name: Test no-git-push check
         run: node --test ./scripts/check-no-git-push.test.mjs
+
+      - name: Test explicit-any check
+        run: node --test ./scripts/check-explicit-any.test.mjs
 
       - name: Test general-server shard partition
         run: node --test ./scripts/__tests__/run-vitest-stable-shard.test.mjs

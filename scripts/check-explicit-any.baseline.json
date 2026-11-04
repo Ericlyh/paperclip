@@ -1,0 +1,50 @@
+{
+  "server/src/middleware/error-handler.ts": {
+    "explicit-any-cast": 2
+  },
+  "server/src/middleware/logger.ts": {
+    "explicit-any-cast": 6
+  },
+  "server/src/routes/access.ts": {
+    "explicit-any-type": 1
+  },
+  "server/src/routes/activity.ts": {
+    "explicit-any-type": 2
+  },
+  "server/src/routes/approvals.ts": {
+    "explicit-any-type": 2
+  },
+  "server/src/routes/board-chat.ts": {
+    "explicit-any-type": 1
+  },
+  "server/src/routes/costs.ts": {
+    "explicit-any-type": 2
+  },
+  "server/src/routes/issues.ts": {
+    "explicit-any-type": 1
+  },
+  "server/src/routes/openapi.ts": {
+    "explicit-any-type": 4
+  },
+  "server/src/routes/pipelines.ts": {
+    "explicit-any-type": 1
+  },
+  "server/src/routes/plugins.ts": {
+    "explicit-any-cast": 2
+  },
+  "server/src/services/company-portability.ts": {
+    "explicit-any-cast": 12
+  },
+  "server/src/services/plugin-config-validator.ts": {
+    "explicit-any-cast": 2
+  },
+  "server/src/services/plugin-host-services.ts": {
+    "explicit-any-cast": 28
+  },
+  "server/src/services/plugin-registry.ts": {
+    "explicit-any-cast": 1
+  },
+  "server/src/services/plugin-worker-manager.ts": {
+    "explicit-any-cast": 1
+  }
+}
