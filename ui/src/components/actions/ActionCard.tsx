@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { EnforcementBanner } from "@/components/EnforcementBanner";
 import { CapabilityBadges, DecisionBadge, RiskBadge } from "@/pages/tools/shared";
-import { useTranslation } from "../../i18n";
+import { useTranslation, type TFunction } from "../../i18n";
 
 /**
  * Action approval card (PAP-10787 / PAP-10778, surfaces 11/12/99).
@@ -131,8 +131,9 @@ function initials(name: string): string {
     .toUpperCase();
 }
 
-function bindingRows(binding: ActionCardBinding, isStale: boolean): BindingRow[] {
-  const { t } = useTranslation();
+// `t` is passed in rather than resolved here: this is a plain helper, not a
+// component, so it must not call a hook.
+function bindingRows(binding: ActionCardBinding, isStale: boolean, t: TFunction): BindingRow[] {
   const catalogValue = isStale && binding.previousCatalogSha256 ? (
     <span className="inline-flex flex-wrap items-center gap-1.5">
       <span className="text-muted-foreground line-through decoration-amber-500" title={t("actionCard.title.previouscataloghash")}>
@@ -265,7 +266,7 @@ export function ActionCard({
         ) : null}
 
         {/* Bindings table */}
-        <BindingsTable rows={bindingRows(binding, isStale)} labelWidth={mobile ? 70 : 132} />
+        <BindingsTable rows={bindingRows(binding, isStale, t)} labelWidth={mobile ? 70 : 132} />
 
         {/* JSON input */}
         <div className="space-y-1">

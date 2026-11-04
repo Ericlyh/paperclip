@@ -3509,7 +3509,6 @@ function hasChildrenGate(stage: PipelineStage) {
 }
 
 function isTerminalChild(row: { case: PipelineCase; stage: PipelineStage }) {
-                                                                              const { t } = useTranslation();
   return Boolean(row.case.terminalKind) || row.stage.kind === "done" || row.stage.kind === "cancelled";
 }
 
@@ -3754,8 +3753,6 @@ function PipelineEventText({
      const { t } = useTranslation();
   const kind = event.type.startsWith("case.") ? event.type.slice("case.".length) : event.type;
   if (kind === "automation_executed" && event.automation) {
-                                                            const { t } = useTranslation();
-
     const routineName = event.automation.routine?.title ?? "the automation";
     const issue = event.automation.issue;
     return (
@@ -3869,7 +3866,6 @@ function OutputLink({
   children: ReactNode;
 }) {
   if (/^https?:\/\//i.test(to)) {
-                                  const { t } = useTranslation();
     return (
       <a href={to} target="_blank" rel="noreferrer" className={className} title={title} aria-label={ariaLabel}>
         {children}
