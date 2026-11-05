@@ -90,6 +90,31 @@ function readNonEmptyString(value: unknown) {
   return typeof value === "string" && value.trim().length > 0 ? value.trim() : null;
 }
 
+/**
+ * Resolve an actor run id against `heartbeat_runs` so an unknown or stale run
+ * id can never violate a foreign key on a run-id column.
+ *
+ * Run ids reach the server from the caller (`x-paperclip-run-id`), so they are
+ * not trustworthy: a synthetic or already-pruned run id must not 500 the write
+ * that carries it. Returning null drops the run attribution but keeps the write
+ * intact — the same rule the comment path applies to
+ * `issue_comments.created_by_run_id` (see `resolveCommentCreatedByRunId`).
+ */
+export async function resolveExistingRunId(
+  db: Db,
+  companyId: string,
+  runId: string | null | undefined,
+): Promise<string | null> {
+  const normalized = readNonEmptyString(runId);
+  if (!normalized || !isUuidLike(normalized)) return null;
+  const existing = await db
+    .select({ id: heartbeatRuns.id })
+    .from(heartbeatRuns)
+    .where(and(eq(heartbeatRuns.companyId, companyId), eq(heartbeatRuns.id, normalized)))
+    .then((rows) => rows[0] ?? null);
+  return existing?.id ?? null;
+}
+
 export async function resolveResponsibleUserIdForActivity(db: Db, input: LogActivityInput) {
   if (input.responsibleUserIdOverride !== undefined) {
     return readNonEmptyString(input.responsibleUserIdOverride);
@@ -159,7 +184,18 @@ export function publishActivity(publication: ActivityPublication) {
 
 export async function persistActivity(db: Db, input: LogActivityInput) {
   const redactedDetails = await redactActivityDetails(db, input.details ?? null);
-  const responsibleUserId = await resolveResponsibleUserIdForActivity(db, input);
+  // Invalid/stale run ids must not 500 the insert — null out unknowns. The
+  // caller supplies the run id, and `activity_log.run_id` is a foreign key to
+  // `heartbeat_runs`, so an unknown id would otherwise fail the write *after*
+  // the caller's own transaction already committed.
+  const runId = await resolveExistingRunId(db, input.companyId, input.runId);
+  if (input.runId && !runId) {
+    logger.warn(
+      { companyId: input.companyId, action: input.action, runId: input.runId },
+      "dropping unknown run id for activity log insert",
+    );
+  }
+  const responsibleUserId = await resolveResponsibleUserIdForActivity(db, { ...input, runId });
   const [activity] = await db.insert(activityLog).values({
     companyId: input.companyId,
     actorType: input.actorType,
@@ -168,7 +204,7 @@ export async function persistActivity(db: Db, input: LogActivityInput) {
     entityType: input.entityType,
     entityId: input.entityId,
     agentId: input.agentId ?? null,
-    runId: input.runId ?? null,
+    runId,
     responsibleUserId,
     details: redactedDetails,
   }).returning({ id: activityLog.id });
@@ -180,7 +216,7 @@ export async function persistActivity(db: Db, input: LogActivityInput) {
     entityType: input.entityType,
     entityId: input.entityId,
     agentId: input.agentId ?? null,
-    runId: input.runId ?? null,
+    runId,
     responsibleUserId,
     details: redactedDetails,
   };
@@ -198,7 +234,7 @@ export async function persistActivity(db: Db, input: LogActivityInput) {
         payload: {
           ...redactedDetails,
           agentId: input.agentId ?? null,
-          runId: input.runId ?? null,
+          runId,
           responsibleUserId,
         },
       }

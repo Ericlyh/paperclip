@@ -127,6 +127,7 @@ import {
   logActivity,
   persistActivity,
   publishActivity,
+  resolveExistingRunId,
   type ActivityPublication,
 } from "./activity-log.js";
 import { buildIssueChanges } from "./issue-change-receipt.js";
@@ -7429,7 +7430,8 @@ export function issueService(db: Db) {
             actor: {
               agentId: issueData.createdByAgentId ?? null,
               userId: issueData.createdByUserId ?? null,
-              runId: watchdogActorRunId ?? null,
+              // Invalid/stale run ids must not 500 the insert — null out unknowns.
+              runId: await resolveExistingRunId(tx as unknown as Db, companyId, watchdogActorRunId),
             },
           });
         }
