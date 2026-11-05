@@ -34,17 +34,41 @@ export const QUEUED_RUN_STARVATION_MS = 30 * 60 * 1000;
  * dependency gate.  The other staleness gates in `claimQueuedRun` (terminal
  * issue, changed assignee, ...) still apply to a promoted run, so an obsolete
  * overdue run is cancelled rather than executed.
+ *
+ * A routine execution gets its own tier (OOP-7265).  A cron fire has a fixed
+ * window -- the work it represents is only worth doing while that window is
+ * open -- whereas ad-hoc issue work has no window and can afford to wait.
+ * Measured 2026-11-01..2026-11-05 on this board: of 160 routine fires that
+ * reached a start, 24 (15%) waited more than 30 minutes for a slot and 12
+ * (7.5%) waited more than an hour, while the median was 0 minutes.  The queue
+ * was serving ad-hoc work by age, so a fresh routine fire sat behind an
+ * ad-hoc `todo` issue that had been queued far longer.
+ *
+ * `invocationSource` on the run row does NOT identify a routine fire: a
+ * routine execution is dispatched like any other assignment
+ * (`invocationSource: "assignment"`, `wakeReason: "issue_assigned"`), so
+ * reading it would rank issue-monitor and missing-comment wakes ahead of
+ * routine fires rather than the routine fires themselves.  The discriminator
+ * is the issue's origin: `issues.originKind === "routine_execution"`.
+ *
+ * Work already in flight still goes first (tier 0): the routine tier only
+ * decides between work that has not started yet.  Genuinely overdue work of
+ * any kind is still promoted ahead of everything by the starvation tier, so
+ * ad-hoc work that waits past `QUEUED_RUN_STARVATION_MS` overtakes a fresh
+ * routine fire and the worst-case ad-hoc delay is unchanged.
  */
 export function queuedRunPriorityRank(input: {
   hasIssueId: boolean;
   isDependencyReady: boolean;
   issueStatus: string | null | undefined;
   ageMs: number;
+  isRoutineExecution?: boolean;
 }): number {
   if (input.isDependencyReady && input.ageMs >= QUEUED_RUN_STARVATION_MS) {
     return -1 - Math.floor(input.ageMs / QUEUED_RUN_STARVATION_MS);
   }
-  if (!input.hasIssueId) return 2;
-  if (!input.isDependencyReady) return 3;
-  return input.issueStatus === "in_progress" ? 0 : 1;
+  if (!input.hasIssueId) return 3;
+  if (!input.isDependencyReady) return 4;
+  if (input.issueStatus === "in_progress") return 0;
+  return input.isRoutineExecution ? 1 : 2;
 }

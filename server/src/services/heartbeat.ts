@@ -14013,6 +14013,7 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
           id: issues.id,
           status: issues.status,
           priority: issues.priority,
+          originKind: issues.originKind,
         })
         .from(issues)
         .where(
@@ -14037,12 +14038,14 @@ export function heartbeatService(db: Db, options: HeartbeatServiceOptions = {}) 
           isDependencyReady: leftReady,
           issueStatus: leftIssue?.status,
           ageMs: nowMs - left.createdAt.getTime(),
+          isRoutineExecution: leftIssue?.originKind === "routine_execution",
         });
         const rightRank = queuedRunPriorityRank({
           hasIssueId: Boolean(rightIssueId),
           isDependencyReady: rightReady,
           issueStatus: rightIssue?.status,
           ageMs: nowMs - right.createdAt.getTime(),
+          isRoutineExecution: rightIssue?.originKind === "routine_execution",
         });
         if (leftRank !== rightRank) return leftRank - rightRank;
         const leftPriorityRank = issueRunPriorityRank(leftIssue?.priority);
