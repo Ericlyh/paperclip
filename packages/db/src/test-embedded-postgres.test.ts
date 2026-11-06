@@ -265,6 +265,49 @@ function useScratchTmpdir(prefix: string): { scratch: string; restore(): void } 
   };
 }
 
+// Removes the directory that holds a cluster's data directory.
+//
+// The template path nests the cluster at <root>/data, so the parent is the
+// dedicated per-cluster root and removing it clears the whole root. The fresh
+// path puts the cluster directly in the temp root, so there the parent IS
+// os.tmpdir(): removing it would delete the process-wide temporary directory
+// that every suite in the same vitest invocation shares.
+function removeEmbeddedPostgresClusterDir(databaseDir: string): void {
+  const parent = path.dirname(databaseDir);
+  const sharedRoot = path.resolve(os.tmpdir());
+  const target = path.resolve(parent) === sharedRoot ? databaseDir : parent;
+  fs.rmSync(target, { recursive: true, force: true });
+}
+
+describe("embedded Postgres cluster cleanup", () => {
+  it("removes a fresh cluster directory without removing the shared temp root", () => {
+    const { scratch, restore } = useScratchTmpdir("paperclip-cleanup-fresh-");
+    try {
+      const clusterDir = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-cluster-"));
+      removeEmbeddedPostgresClusterDir(clusterDir);
+      expect(fs.existsSync(clusterDir)).toBe(false);
+      // The shared temp root is still there for every other suite in the run.
+      expect(fs.existsSync(scratch)).toBe(true);
+    } finally {
+      restore();
+    }
+  });
+
+  it("removes the dedicated root that holds a nested cluster directory", () => {
+    const { scratch, restore } = useScratchTmpdir("paperclip-cleanup-nested-");
+    try {
+      const root = fs.mkdtempSync(path.join(os.tmpdir(), "paperclip-root-"));
+      const nested = path.join(root, "data");
+      fs.mkdirSync(nested, { recursive: true });
+      removeEmbeddedPostgresClusterDir(nested);
+      expect(fs.existsSync(root)).toBe(false);
+      expect(fs.existsSync(scratch)).toBe(true);
+    } finally {
+      restore();
+    }
+  });
+});
+
 describeWithPostgres("startEmbeddedPostgresTestDatabase template path", () => {
   const originalTemplateSetting = process.env.PAPERCLIP_TEST_POSTGRES_TEMPLATE;
 
@@ -292,7 +335,7 @@ describeWithPostgres("startEmbeddedPostgresTestDatabase template path", () => {
     } finally {
       await drainTestPostgresOwners();
       __setEmbeddedPostgresCtorProviderForTests(null);
-      for (const options of constructed) fs.rmSync(path.dirname(options.databaseDir), { recursive: true, force: true });
+      for (const options of constructed) removeEmbeddedPostgresClusterDir(options.databaseDir);
     }
   });
 
