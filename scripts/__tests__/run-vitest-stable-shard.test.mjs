@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { spawnSync } from "node:child_process";
-import { chmodSync, existsSync, mkdtempSync, readFileSync, rmSync, writeFileSync } from "node:fs";
+import { chmodSync, existsSync, mkdtempSync, readFileSync, readdirSync, rmSync, writeFileSync } from "node:fs";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -329,6 +329,13 @@ const restartRecoverySuitePath =
   "server/src/services/native-runtime/native-runner-restart-recovery.integration.test.ts";
 const restartWaitSuites = ["lease-renewal", "preparation", "checkpoint-cost", "diskless"]
   .map(name => `server/src/services/native-runtime/native-runner-restart-${name}.integration.test.ts`);
+const runnerBinaryGatedSuites = [
+  "server/src/services/native-runtime/native-session-resume.test.ts",
+  "server/src/__tests__/case-handoff-native.integration.test.ts",
+  "server/src/services/native-runtime/paperclip-runner-real-server.integration.test.ts",
+  "server/src/services/native-runtime/runner-api.integration.test.ts",
+  "server/src/services/native-runtime/runner-tool-results-prp.integration.test.ts",
+];
 
 // Mirrors pr-trusted.yml (12 shards, called by pr.yml so GITHUB_WORKFLOW is
 // "PR"): the chat suite runs in its dedicated lanes and the cargo-dependent
@@ -373,7 +380,8 @@ test("12 PR without-chat shards plus the dedicated chat and native-runner lanes 
   assert.ok(!files.includes(usageDeliverySuitePath));
   assert.ok(!files.includes(warmCheckpointOwnershipSuitePath));
   assert.ok(!files.includes(pluginWarmOwnerSuitePath));
-  assert.deepEqual([...files, chatSuitePath, nativeRunnerSuitePath, ingressRetrySuitePath, dotRunnerSuitePath, restartRecoverySuitePath, ...restartWaitSuites, usageDeliverySuitePath, warmCheckpointOwnershipSuitePath, pluginWarmOwnerSuitePath, "server/src/services/native-runtime/plugin-runner-probe.test.ts"].sort(), full.selectedGeneralServerSuites.sort());
+  for (const suite of runnerBinaryGatedSuites) assert.ok(!files.includes(suite));
+  assert.deepEqual([...files, chatSuitePath, nativeRunnerSuitePath, ingressRetrySuitePath, dotRunnerSuitePath, restartRecoverySuitePath, ...restartWaitSuites, usageDeliverySuitePath, warmCheckpointOwnershipSuitePath, pluginWarmOwnerSuitePath, "server/src/services/native-runtime/plugin-runner-probe.test.ts", ...runnerBinaryGatedSuites].sort(), full.selectedGeneralServerSuites.sort());
   assert.equal(new Set(files).size, files.length);
   const defaultRun = dryRunJson([], prEnv);
   assert.ok(defaultRun.generalServerSuiteCount === full.generalServerSuiteCount);
@@ -429,7 +437,29 @@ test("the native-runner lane runs exactly the cargo-dependent suites", () => {
     usageDeliverySuitePath,
     warmCheckpointOwnershipSuitePath,
     pluginWarmOwnerSuitePath,
+    ...runnerBinaryGatedSuites,
   ]);
+});
+
+test("every server suite that gates on the Runner binary runs in the native-runner lane", () => {
+  const lane = dryRunJson(["--mode", "general", "--group", "general-server-native-runner"]);
+  const gated = [];
+  const walk = (directory) => {
+    for (const entry of readdirSync(directory, { withFileTypes: true })) {
+      const full = path.join(directory, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (/\.test\.tsx?$/.test(entry.name)
+        && readFileSync(full, "utf8").includes("existsSync(defaultCapabilityRunnerdBinary")) {
+        gated.push(path.relative(repoRoot, full).split(path.sep).join("/"));
+      }
+    }
+  };
+  walk(path.join(repoRoot, "server", "src"));
+  assert.ok(gated.length > 0, "the scan must find the suites that gate on the Runner binary");
+  for (const file of gated) {
+    assert.ok(lane.selectedGeneralServerSuites.includes(file),
+      `${file} gates on the Runner binary but does not run in the native-runner lane`);
+  }
 });
 
 test("shard flags are rejected for the native-runner group", () => {
