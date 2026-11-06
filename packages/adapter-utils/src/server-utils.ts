@@ -4930,8 +4930,17 @@ export async function runChildProcess(
 
         const stdin = child.stdin;
         if (opts.stdin != null && stdin) {
+          // A write to a child stdin the child already closed only emits an
+          // `error` event on the socket. Without a listener that becomes an
+          // uncaught exception that takes the whole server down, so the socket
+          // gets a handler as soon as the child is spawned.
+          stdin.on("error", (err: Error) => {
+            const code = (err as NodeJS.ErrnoException).code;
+            if (code === "EPIPE" || code === "ECONNRESET") return;
+            onLogError(err, runId, "failed to write stdin to child");
+          });
           void spawnPersistPromise.finally(() => {
-            if (child.killed || stdin.destroyed) return;
+            if (child.killed || stdin.destroyed || !stdin.writable) return;
             stdin.write(opts.stdin as string);
             stdin.end();
           });
