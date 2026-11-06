@@ -292,7 +292,18 @@ describeWithPostgres("startEmbeddedPostgresTestDatabase template path", () => {
     } finally {
       await drainTestPostgresOwners();
       __setEmbeddedPostgresCtorProviderForTests(null);
-      for (const options of constructed) fs.rmSync(path.dirname(options.databaseDir), { recursive: true, force: true });
+      for (const options of constructed) {
+        // The template path nests the cluster at <root>/data, so the parent is
+        // the dedicated per-cluster root. The fresh path puts the cluster
+        // directly in the temp root, so there the parent is os.tmpdir() itself
+        // and must never be removed: every suite in the run shares it.
+        const parent = path.dirname(options.databaseDir);
+        const target =
+          path.basename(options.databaseDir) === "data" && parent !== os.tmpdir()
+            ? parent
+            : options.databaseDir;
+        fs.rmSync(target, { recursive: true, force: true });
+      }
     }
   });
 
