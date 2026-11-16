@@ -8,6 +8,70 @@ type ShutdownLogger = {
 };
 
 /**
+ * The teardown of the application services awaits the cancellation of every
+ * live session. A session whose underlying query is wedged never settles, and
+ * an unbounded await there keeps the process alive after it has given up the
+ * HTTP listener — the board then refuses connections while the server is still
+ * running (OOP-7541). The default deadline keeps the common case orderly and
+ * bounds the pathological one.
+ */
+export const DEFAULT_SHUTDOWN_DEADLINE_MS = 30_000;
+
+function positiveMsFromEnv(raw: string | undefined, fallback: number): number {
+  const trimmed = raw?.trim();
+  if (!trimmed) return fallback;
+  const parsed = Number(trimmed);
+  if (!Number.isFinite(parsed) || parsed <= 0) return fallback;
+  return parsed;
+}
+
+/** Deadline for the application-service teardown. */
+export function shutdownDeadlineMs(env: NodeJS.ProcessEnv = process.env): number {
+  return positiveMsFromEnv(env.PAPERCLIP_SHUTDOWN_DEADLINE_MS, DEFAULT_SHUTDOWN_DEADLINE_MS);
+}
+
+/**
+ * Deadline for the whole coordinated shutdown. When it expires the process
+ * exits anyway, so the listener is released and the supervisor can start a
+ * fresh instance.
+ */
+export function shutdownHardDeadlineMs(env: NodeJS.ProcessEnv = process.env): number {
+  return positiveMsFromEnv(env.PAPERCLIP_SHUTDOWN_HARD_DEADLINE_MS, 120_000);
+}
+
+export type ShutdownDeadlineResult<T> =
+  | { status: "completed"; value: T }
+  | { status: "timed_out" }
+  | { status: "failed"; error: unknown };
+
+/**
+ * Races a teardown step against a deadline. A step that overruns is reported
+ * as `timed_out` rather than thrown, so the caller continues with the rest of
+ * the ordered teardown instead of stalling the exit path.
+ *
+ * The step keeps running after the deadline; its rejection is captured by the
+ * `settled` branch, so a late failure can never surface as an unhandled
+ * rejection.
+ */
+export async function withShutdownDeadline<T>(input: {
+  task: Promise<T> | undefined;
+  deadlineMs: number;
+}): Promise<ShutdownDeadlineResult<T>> {
+  if (!input.task) return { status: "completed", value: undefined as T };
+
+  const settled = input.task.then(
+    (value) => ({ status: "completed" as const, value }),
+    (error: unknown) => ({ status: "failed" as const, error }),
+  );
+  const timedOut = new Promise<{ status: "timed_out" }>((resolve) => {
+    const timer = setTimeout(() => resolve({ status: "timed_out" }), input.deadlineMs);
+    timer.unref?.();
+  });
+
+  return Promise.race([settled, timedOut]);
+}
+
+/**
  * Runs the final, ordered teardown of the server. It awaits the application
  * service cleanup first, so a live setup-token login session stops and releases
  * its sandbox lease before the database and the provider stop. The caller runs
@@ -32,10 +96,19 @@ export async function finalizeServerShutdown(input: {
   // Await the application service cleanup, so a live setup-token login session
   // releases its sandbox lease before the database and the provider stop. A
   // rejected cleanup stays durable for the reaper; it does not block the exit.
-  try {
-    await input.shutdownAppServices?.();
-  } catch (err) {
-    input.log.error({ err, signal }, "Application service shutdown failed");
+  // A cleanup that never settles is bounded by the shutdown deadline, so a
+  // wedged session cannot keep the process alive with its listener closed.
+  const appServices = await withShutdownDeadline({
+    task: input.shutdownAppServices?.(),
+    deadlineMs: shutdownDeadlineMs(),
+  });
+  if (appServices.status === "timed_out") {
+    input.log.error(
+      { signal, deadlineMs: shutdownDeadlineMs() },
+      "Application service shutdown exceeded its deadline; continuing with the teardown",
+    );
+  } else if (appServices.status === "failed") {
+    input.log.error({ err: appServices.error, signal }, "Application service shutdown failed");
   }
 
   if (input.stopEmbeddedPostgres) {

@@ -79,7 +79,7 @@ import {
   reconcileAdapterAvailability,
 } from "./services/adapter-registry-bootstrap.js";
 import { createFeedbackTraceShareClientFromConfig } from "./services/feedback-share-client.js";
-import { buildRuntimeApiCandidateUrls, choosePrimaryRuntimeApiUrl } from "./runtime-api.js";
+import { buildRuntimeApiCandidateUrls, choosePrimaryRuntimeApiUrl, resolvePreferredApiUrl } from "./runtime-api.js";
 import { isLoopbackHost, rewriteLoopbackUrlPort } from "./url-utils.js";
 import { createPluginWorkerManager } from "./services/plugin-worker-manager.js";
 import { createStorageServiceFromConfig } from "./storage/index.js";
@@ -94,7 +94,9 @@ import {
   coordinateHeartbeatSchedulerShutdown,
   finalizeServerShutdown,
   loadWithoutCoordinatedShutdownSignalHooks,
+  shutdownHardDeadlineMs,
 } from "./shutdown.js";
+import { installUnhandledExceptionGuard } from "./unhandled-exception-guard.js";
 import { systemdNotify } from "./services/systemd-notify.js";
 import { flushInFlightRunLogMirrors } from "./services/run-log-store.js";
 import {
@@ -146,6 +148,9 @@ export async function startServer(): Promise<StartedServer> {
   // Tracing must be active (or have failed and logged) before the first DB
   // connection or the HTTP server exists — see instrumentation.ts.
   await instrumentationReady;
+  // A driver-level fault raised outside any awaited promise would otherwise
+  // take the whole control plane down with its listener closed (OOP-7541).
+  installUnhandledExceptionGuard(logger);
   ensureDecisionSigningSecret();
   let config = loadConfig();
   initTelemetry({ enabled: config.telemetryEnabled });
@@ -818,7 +823,22 @@ export async function startServer(): Promise<StartedServer> {
     bindHost: runtimeListenHost,
     port: listenPort,
   });
-  const configuredApiUrl = process.env.PAPERCLIP_API_URL?.trim() || runtimeApiUrl;
+  const preferredApiUrl = resolvePreferredApiUrl({
+    inheritedApiUrl: process.env.PAPERCLIP_API_URL,
+    runtimeApiUrl,
+    listenPort,
+  });
+  if (preferredApiUrl.replacedStaleLoopbackUrl) {
+    logger.warn(
+      {
+        inheritedApiUrl: process.env.PAPERCLIP_API_URL,
+        listenPort,
+        resolvedApiUrl: preferredApiUrl.url,
+      },
+      "inherited PAPERCLIP_API_URL names a port this server is not listening on; advertising the bound port",
+    );
+  }
+  const configuredApiUrl = preferredApiUrl.url;
   const runtimeApiCandidates = buildRuntimeApiCandidateUrls({
     preferredApiUrl: configuredApiUrl,
     authPublicBaseUrl: config.authPublicBaseUrl ?? null,
@@ -1681,6 +1701,20 @@ export async function startServer(): Promise<StartedServer> {
   
   {
     const shutdown = async (signal: "SIGINT" | "SIGTERM") => {
+      // A wedged session must not hold the process alive after it has given up
+      // the HTTP listener: the board then refuses connections while the server
+      // still runs, and only a human notices (OOP-7541). The hard deadline
+      // exits the process anyway, so the supervisor can start a fresh
+      // instance that binds the port.
+      const hardDeadlineMs = shutdownHardDeadlineMs();
+      const hardStop = setTimeout(() => {
+        logger.error(
+          { signal, hardDeadlineMs },
+          "Coordinated shutdown exceeded its hard deadline; exiting so the port can be rebound",
+        );
+        process.exit(0);
+      }, hardDeadlineMs);
+
       await systemdNotify(["--stopping", `--status=Stopping after ${signal}`]);
       heartbeatSchedulerStopped = true;
       if (heartbeatSchedulerInterval) {
@@ -1750,6 +1784,7 @@ export async function startServer(): Promise<StartedServer> {
         log: logger,
       });
 
+      clearTimeout(hardStop);
       process.exit(0);
     };
 

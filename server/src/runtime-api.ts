@@ -169,3 +169,49 @@ export function buildRuntimeApiCandidateUrls(input: {
 
   return candidates;
 }
+
+/**
+ * Resolves the API URL the server advertises to the agents it spawns and to
+ * the host watchdogs.
+ *
+ * When the canonical port is busy the server binds the next free port instead
+ * of failing (see `detectPort` in `index.ts`). An inherited
+ * `PAPERCLIP_API_URL` that still names the canonical port then points every
+ * client at a port nobody listens on: agents cannot write to the board and
+ * every watchdog reports the API as unreachable (OOP-7541).
+ *
+ * A loopback URL whose port disagrees with the port actually bound is stale,
+ * so the runtime URL — which carries the bound port — wins. A non-loopback
+ * URL is authoritative (a reverse proxy or a public origin) and is never
+ * rewritten.
+ */
+export function resolvePreferredApiUrl(input: {
+  inheritedApiUrl?: string | null;
+  runtimeApiUrl: string;
+  listenPort: number;
+}): { url: string; replacedStaleLoopbackUrl: boolean } {
+  const inherited = input.inheritedApiUrl?.trim();
+  if (!inherited) return { url: input.runtimeApiUrl, replacedStaleLoopbackUrl: false };
+
+  let parsed: URL;
+  try {
+    parsed = new URL(inherited);
+  } catch {
+    return { url: input.runtimeApiUrl, replacedStaleLoopbackUrl: false };
+  }
+
+  if (!isLoopbackHost(parsed.hostname)) {
+    return { url: inherited, replacedStaleLoopbackUrl: false };
+  }
+
+  const port = parsed.port
+    ? Number(parsed.port)
+    : parsed.protocol === "https:"
+      ? 443
+      : 80;
+  if (port === input.listenPort) {
+    return { url: inherited, replacedStaleLoopbackUrl: false };
+  }
+
+  return { url: input.runtimeApiUrl, replacedStaleLoopbackUrl: true };
+}
