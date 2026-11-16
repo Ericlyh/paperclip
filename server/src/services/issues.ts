@@ -134,6 +134,14 @@ import { buildIssueChanges } from "./issue-change-receipt.js";
 import { issueThreadInteractionAttentionAgentAllowed } from "./issue-thread-interaction-resolution.js";
 import { isRoutineExecutionUniqueViolation } from "./routine-execution-errors.js";
 
+/**
+ * The transaction handle `db.transaction()` hands to its callback.
+ *
+ * A caller that needs the issue row to commit inside *its own* transaction
+ * passes one of these to `issueService(db).create(companyId, data, { tx })`.
+ */
+export type DbTransaction = Parameters<Parameters<Db["transaction"]>[0]>[0];
+
 const ALL_ISSUE_STATUSES = ["backlog", "todo", "in_progress", "in_review", "blocked", "done", "cancelled"];
 const MAX_ISSUE_COMMENT_PAGE_LIMIT = 500;
 export const ISSUE_LIST_DEFAULT_LIMIT = 500;
@@ -7127,7 +7135,7 @@ export function issueService(db: Db) {
       });
     },
 
-    create: async (companyId: string, data: IssueCreateInput) => {
+    create: async (companyId: string, data: IssueCreateInput, opts?: { tx?: DbTransaction }) => {
       const {
         labelIds: inputLabelIds,
         blockedByIssueIds,
@@ -7161,7 +7169,7 @@ export function issueService(db: Db) {
       if (data.status === "in_progress" && !data.assigneeAgentId && !data.assigneeUserId) {
         throw unprocessable("in_progress issues require an assignee");
       }
-      return db.transaction(async (tx) => {
+      const createInTransaction = async (tx: DbTransaction) => {
         const idempotencyKey = rawIdempotencyKey?.trim() || null;
         const normalizedTitle = normalizeCreateIssueTitle(issueData.title);
         if (allowDuplicate === false) {
@@ -7453,7 +7461,13 @@ export function issueService(db: Db) {
         const [enriched] = await withIssueLabels(tx, [issue]);
         const [withRelations] = await withIssueRelationSummaries(companyId, [enriched], tx);
         return withRelations;
-      });
+      };
+      // A caller that supplies a transaction gets the issue row inside *that*
+      // transaction, so the insert commits or rolls back with it. The routine
+      // dispatch path relies on it: the execution issue and the `routine_runs`
+      // row have to commit together, otherwise the issue survives a rollback
+      // with an `origin_run_id` that points at a run nobody ever committed.
+      return opts?.tx ? createInTransaction(opts.tx) : db.transaction(createInTransaction);
     },
 
     /**

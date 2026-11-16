@@ -1,5 +1,5 @@
 import { createHmac, randomUUID } from "node:crypto";
-import { eq, isNotNull } from "drizzle-orm";
+import { eq, isNotNull, sql } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   activityLog,
@@ -2340,6 +2340,77 @@ describeEmbeddedPostgres("routine service live-execution coalescing", () => {
       .where(eq(issues.originId, routine.id));
 
     expect(routineIssues).toHaveLength(0);
+  });
+
+  it("commits the execution issue and the routine run row in one transaction", async () => {
+    // A no-op wakeup leaves the issue row untouched, so its `xmin` still names
+    // the transaction that inserted it.
+    const { routine, svc } = await seedFixture({ wakeup: async () => null });
+
+    const run = await svc.runRoutine(routine.id, { source: "manual" });
+
+    expect(run.status).toBe("issue_created");
+    expect(run.linkedIssueId).toBeTruthy();
+
+    // `xmin` is the id of the transaction that wrote the row. The issue row and
+    // the run row must carry the same one — that is what makes them commit
+    // together. Before the fix the issue was inserted by its own transaction, so
+    // a rollback of the run transaction left the issue behind with an
+    // `origin_run_id` pointing at a run that was never committed (OOP-7649).
+    const [issueRow] = await db
+      .select({ xmin: sql<string>`xmin::text` })
+      .from(issues)
+      .where(eq(issues.id, run.linkedIssueId!));
+    const [runRow] = await db
+      .select({ xmin: sql<string>`xmin::text` })
+      .from(routineRuns)
+      .where(eq(routineRuns.id, run.id));
+
+    expect(issueRow?.xmin).toBeTruthy();
+    expect(issueRow?.xmin).toBe(runRow?.xmin);
+
+    // And the id the issue points at resolves to a run row that exists.
+    const [issue] = await db
+      .select({ originRunId: issues.originRunId })
+      .from(issues)
+      .where(eq(issues.id, run.linkedIssueId!));
+    expect(issue?.originRunId).toBe(run.id);
+    const originRun = await db
+      .select({ id: routineRuns.id })
+      .from(routineRuns)
+      .where(eq(routineRuns.id, issue?.originRunId ?? ""))
+      .then((rows) => rows[0] ?? null);
+    expect(originRun).toEqual({ id: run.id });
+  });
+
+  it("dispatches the wakeup against the committed execution issue", async () => {
+    // The real heartbeat service reads the issue row from its own connection and
+    // skips the wakeup when it finds no row. Reproduce that here: the wakeup
+    // must see the issue, which only works if the issue is committed by the time
+    // the wakeup runs.
+    let issueSeenByWakeup: string | null = null;
+    const { routine, svc, wakeups } = await seedFixture({
+      wakeup: async (_wakeupAgentId, wakeupOpts) => {
+        const issueId =
+          (typeof wakeupOpts.payload?.issueId === "string" && wakeupOpts.payload.issueId) || null;
+        const issue = issueId
+          ? await db
+              .select({ id: issues.id })
+              .from(issues)
+              .where(eq(issues.id, issueId))
+              .then((rows) => rows[0] ?? null)
+          : null;
+        if (!issue) throw new Error("issue_execution_issue_not_found");
+        issueSeenByWakeup = issue.id;
+        return { id: randomUUID() };
+      },
+    });
+
+    const run = await svc.runRoutine(routine.id, { source: "manual" });
+
+    expect(wakeups).toHaveLength(1);
+    expect(issueSeenByWakeup).toBe(run.linkedIssueId);
+    expect(run.status).toBe("issue_created");
   });
 
   it("recognizes the wrapped postgres.js 23505 and coalesces the colliding dispatch", async () => {

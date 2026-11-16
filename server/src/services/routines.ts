@@ -1927,8 +1927,13 @@ export function routineService(
     });
     const run = await db.transaction(async (tx) => {
       const txDb = tx as unknown as Db;
+      // `for no key update` still serialises two fires of the same routine, but it does
+      // not conflict with the `for key share` lock that the `routine_runs` foreign-key
+      // check takes on the routine row. The dispatch transaction below inserts the run
+      // row from a second pooled connection while this transaction holds the routine
+      // lock; `for update` would deadlock against that check.
       await tx.execute(
-        sql`select id from ${routines} where ${routines.id} = ${input.routine.id} and ${routines.companyId} = ${input.routine.companyId} for update`,
+        sql`select id from ${routines} where ${routines.id} = ${input.routine.id} and ${routines.companyId} = ${input.routine.companyId} for no key update`,
       );
 
       if (input.idempotencyKey) {
@@ -1977,22 +1982,19 @@ export function routineService(
         : null;
       const responsibleUserId =
         manualRunnerUserId ?? latestRevisionResponsibleUserId ?? input.routine.responsibleUserId ?? null;
-      const [createdRun] = await txDb
-        .insert(routineRuns)
-        .values({
-          companyId: input.routine.companyId,
-          routineId: input.routine.id,
-          triggerId: input.trigger?.id ?? null,
-          source: input.source,
-          status: "received",
-          triggeredAt,
-          idempotencyKey: input.idempotencyKey ?? null,
-          triggerPayload,
-          dispatchFingerprint,
-          routineRevisionId: input.routine.latestRevisionId,
-          responsibleUserId,
-        })
-        .returning();
+      const runValues = {
+        companyId: input.routine.companyId,
+        routineId: input.routine.id,
+        triggerId: input.trigger?.id ?? null,
+        source: input.source,
+        status: "received",
+        triggeredAt,
+        idempotencyKey: input.idempotencyKey ?? null,
+        triggerPayload,
+        dispatchFingerprint,
+        routineRevisionId: input.routine.latestRevisionId,
+        responsibleUserId,
+      };
 
       const nextRunAt = input.nextRunAtOverride !== undefined
         ? input.nextRunAtOverride
@@ -2001,6 +2003,8 @@ export function routineService(
           : undefined;
 
       let createdIssue: Awaited<ReturnType<typeof issueSvc.create>> | null = null;
+      let committedRun: typeof routineRuns.$inferSelect | null = null;
+      let runRowId: string | null = null;
       try {
         const activeIssue = await findLiveExecutionIssue(input.routine, txDb, dispatchFingerprint, {
           kind: issueOriginKind,
@@ -2016,6 +2020,8 @@ export function routineService(
               touchedAt: triggeredAt,
             });
           }
+          const [createdRun] = await txDb.insert(routineRuns).values(runValues).returning();
+          runRowId = createdRun.id;
           const coalescedIntoRunId = await resolveCoalescedIntoRunId(
             activeIssue.originRunId,
             createdRun.id,
@@ -2038,36 +2044,57 @@ export function routineService(
           return updated ?? createdRun;
         }
 
+        // The execution issue and the `routine_runs` row have to commit together.
+        // `issueService(db).create` opens its own transaction on a second pooled
+        // connection, so the issue used to commit independently of the run row:
+        // whenever the run transaction rolled back — a lock-wait timeout, a killed
+        // process — the issue survived with an `origin_run_id` pointing at a run
+        // that was never committed (OOP-7649).
+        let dispatched: {
+          run: typeof routineRuns.$inferSelect;
+          issue: Awaited<ReturnType<typeof issueSvc.create>>;
+        };
         try {
-          createdIssue = await issueSvc.create(input.routine.companyId, {
-            projectId,
-            projectWorkspaceId,
-            goalId: input.routine.goalId,
-            parentId: input.routine.parentIssueId,
-            title,
-            description,
-            status: "todo",
-            priority: input.routine.priority,
-            assigneeAgentId,
-            assigneeAdapterOverrides: routineModelProfileAdapterOverrides(input.routine.modelProfile),
-            createdByAgentId: input.source === "manual" ? input.actor?.agentId ?? null : null,
-            createdByUserId: manualRunnerUserId,
-            responsibleUserId,
-            trustExplicitResponsibleUserId: true,
-            originKind: issueOriginKind,
-            originId: issueOriginId,
-            originRunId: createdRun.id,
-            originFingerprint: dispatchFingerprint,
-            billingCode: issueBillingCode,
-            executionWorkspaceId: input.executionWorkspaceId ?? null,
-            executionWorkspacePreference: input.executionWorkspacePreference ?? null,
-            executionWorkspaceSettings: input.executionWorkspaceSettings ?? null,
+          dispatched = await db.transaction(async (dispatchTx) => {
+            const dispatchDb = dispatchTx as unknown as Db;
+            const [createdRun] = await dispatchDb.insert(routineRuns).values(runValues).returning();
+            const newIssue = await issueSvc.create(input.routine.companyId, {
+              projectId,
+              projectWorkspaceId,
+              goalId: input.routine.goalId,
+              parentId: input.routine.parentIssueId,
+              title,
+              description,
+              status: "todo",
+              priority: input.routine.priority,
+              assigneeAgentId,
+              assigneeAdapterOverrides: routineModelProfileAdapterOverrides(input.routine.modelProfile),
+              createdByAgentId: input.source === "manual" ? input.actor?.agentId ?? null : null,
+              createdByUserId: manualRunnerUserId,
+              responsibleUserId,
+              trustExplicitResponsibleUserId: true,
+              originKind: issueOriginKind,
+              originId: issueOriginId,
+              originRunId: createdRun.id,
+              originFingerprint: dispatchFingerprint,
+              billingCode: issueBillingCode,
+              executionWorkspaceId: input.executionWorkspaceId ?? null,
+              executionWorkspacePreference: input.executionWorkspacePreference ?? null,
+              executionWorkspaceSettings: input.executionWorkspaceSettings ?? null,
+            }, { tx: dispatchTx });
+            const updatedRun = await finalizeRun(createdRun.id, {
+              status: "issue_created",
+              linkedIssueId: newIssue.id,
+            }, dispatchDb);
+            return { run: updatedRun ?? createdRun, issue: newIssue };
           });
         } catch (error) {
           if (!isRoutineExecutionUniqueViolation(error) || input.routine.concurrencyPolicy === "always_enqueue") {
             throw error;
           }
 
+          // The dispatch transaction rolled back, so it left no run row behind.
+          // Coalesce against the issue that won the race, on a run row of our own.
           const existingIssue = await findLiveExecutionIssue(input.routine, txDb, dispatchFingerprint, {
             kind: issueOriginKind,
             id: issueOriginId,
@@ -2082,6 +2109,8 @@ export function routineService(
               touchedAt: triggeredAt,
             });
           }
+          const [createdRun] = await txDb.insert(routineRuns).values(runValues).returning();
+          runRowId = createdRun.id;
           const coalescedIntoRunId = await resolveCoalescedIntoRunId(
             existingIssue.originRunId,
             createdRun.id,
@@ -2104,6 +2133,10 @@ export function routineService(
           return updated ?? createdRun;
         }
 
+        createdIssue = dispatched.issue;
+        committedRun = dispatched.run;
+        runRowId = dispatched.run.id;
+
         // Keep the dispatch lock until the issue is linked to a queued heartbeat run.
         await queueIssueAssignmentWakeup({
           heartbeat,
@@ -2114,10 +2147,6 @@ export function routineService(
           requestedByActorType: input.source === "schedule" ? "system" : undefined,
           rethrowOnError: true,
         });
-        const updated = await finalizeRun(createdRun.id, {
-          status: "issue_created",
-          linkedIssueId: createdIssue.id,
-        }, txDb);
         await updateRoutineTouchedState({
           routineId: input.routine.id,
           triggerId: input.trigger?.id ?? null,
@@ -2126,17 +2155,30 @@ export function routineService(
           issueId: createdIssue.id,
           nextRunAt,
         }, txDb);
-        return updated ?? createdRun;
+        return committedRun;
       } catch (error) {
+        const failureReason = error instanceof Error ? error.message : String(error);
         if (createdIssue) {
+          // The dispatch transaction committed the issue before the wakeup failed.
+          // Remove it here so a failed dispatch never leaves a live execution issue.
           await txDb.delete(issues).where(eq(issues.id, createdIssue.id));
         }
-        const failureReason = error instanceof Error ? error.message : String(error);
-        const failed = await finalizeRun(createdRun.id, {
-          status: "failed",
-          failureReason,
-          completedAt: new Date(),
-        }, txDb);
+        let failed: typeof routineRuns.$inferSelect | null = null;
+        if (runRowId) {
+          failed = await finalizeRun(runRowId, {
+            status: "failed",
+            failureReason,
+            completedAt: new Date(),
+          }, txDb);
+        } else {
+          // The dispatch transaction rolled back, so its run row is gone with it.
+          // Record the failure on a run row of our own so the fire stays visible.
+          const [failedRun] = await txDb
+            .insert(routineRuns)
+            .values({ ...runValues, status: "failed", failureReason, completedAt: new Date() })
+            .returning();
+          failed = failedRun;
+        }
         await updateRoutineTouchedState({
           routineId: input.routine.id,
           triggerId: input.trigger?.id ?? null,
@@ -2144,7 +2186,7 @@ export function routineService(
           status: "failed",
           nextRunAt,
         }, txDb);
-        return failed ?? createdRun;
+        return failed;
       }
     });
 
