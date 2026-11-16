@@ -85,6 +85,10 @@ const OPEN_ISSUE_STATUSES = ["backlog", "todo", "in_progress", "in_review", "blo
 const LIVE_HEARTBEAT_RUN_STATUSES = ["queued", "running", "scheduled_retry"];
 const MAX_CATCH_UP_RUNS = 25;
 const MAX_ROUTINE_REVISIONS = 100;
+// `routine_runs.id` is a uuid column, so a non-uuid `issues.origin_run_id` can never match a
+// row. Checking the shape first keeps the lookup from raising "invalid input syntax for type
+// uuid" on an `origin_run_id` that was never a run id.
+const ROUTINE_RUN_ID_UUID_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const EXECUTION_ISSUE_TRANSIENT_FAILURE_CODE = "execution_issue_status";
 const EXECUTION_ISSUE_TRANSIENT_FAILURE_STATUSES = ["blocked", "cancelled"] as const;
 // Issue states that terminate the routine run they belong to. `blocked` is included
@@ -1623,6 +1627,34 @@ export function routineService(
   }
 
   /**
+   * Resolve the run a coalesced fire points at.
+   *
+   * `activeIssue.originRunId` is the id of the run that created the issue, but that row can be
+   * missing: the execution issue is inserted by `issueService(db).create`, which opens its own
+   * transaction on a second pooled connection, so the issue row used to commit independently of
+   * the `routine_runs` row. Whenever the enclosing run transaction rolled back, the issue
+   * survived with an `origin_run_id` pointing at a run that was never committed, and copying that
+   * id verbatim into `coalesced_into_run_id` produced a reference to a nonexistent run (OOP-7628).
+   *
+   * Resolve the id against `routine_runs` and fall back to the coalescing run's own id — always
+   * live, since it is the row being finalized — so `coalesced_into_run_id` can never dangle.
+   */
+  async function resolveCoalescedIntoRunId(
+    originRunId: string | null | undefined,
+    fallbackRunId: string,
+    executor: Db = db,
+  ): Promise<string | null> {
+    if (!originRunId) return null;
+    if (!ROUTINE_RUN_ID_UUID_RE.test(originRunId)) return fallbackRunId;
+    const target = await executor
+      .select({ id: routineRuns.id })
+      .from(routineRuns)
+      .where(eq(routineRuns.id, originRunId))
+      .then((rows) => rows[0] ?? null);
+    return target?.id ?? fallbackRunId;
+  }
+
+  /**
    * Finalize a routine run from the status of its execution issue.
    *
    * Shared by the issue-driven `syncRunStatusForIssue` and the sweep-driven
@@ -1984,10 +2016,15 @@ export function routineService(
               touchedAt: triggeredAt,
             });
           }
+          const coalescedIntoRunId = await resolveCoalescedIntoRunId(
+            activeIssue.originRunId,
+            createdRun.id,
+            txDb,
+          );
           const updated = await finalizeRun(createdRun.id, {
             status,
             linkedIssueId: activeIssue.id,
-            coalescedIntoRunId: activeIssue.originRunId,
+            coalescedIntoRunId,
             completedAt: triggeredAt,
           }, txDb);
           await updateRoutineTouchedState({
@@ -2045,10 +2082,15 @@ export function routineService(
               touchedAt: triggeredAt,
             });
           }
+          const coalescedIntoRunId = await resolveCoalescedIntoRunId(
+            existingIssue.originRunId,
+            createdRun.id,
+            txDb,
+          );
           const updated = await finalizeRun(createdRun.id, {
             status,
             linkedIssueId: existingIssue.id,
-            coalescedIntoRunId: existingIssue.originRunId,
+            coalescedIntoRunId,
             completedAt: triggeredAt,
           }, txDb);
           await updateRoutineTouchedState({

@@ -1,5 +1,5 @@
 import { createHmac, randomUUID } from "node:crypto";
-import { eq } from "drizzle-orm";
+import { eq, isNotNull } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
 import {
   activityLog,
@@ -1560,6 +1560,71 @@ describeEmbeddedPostgres("routine service live-execution coalescing", () => {
 
     expect(routineIssues).toHaveLength(1);
     expect(routineIssues[0]?.id).toBe(previousIssue.id);
+  });
+
+  // OOP-7628: an execution issue can carry an `origin_run_id` whose `routine_runs` row was
+  // never committed — the issue is inserted on its own connection while the run row lives in
+  // the routine-run transaction, so the issue outlives the run whenever that transaction rolls
+  // back. Copying that id into `coalesced_into_run_id` produced a reference to a run that does
+  // not exist, which broke the OOP-7568 triage join. The coalesce must fall back to a live run.
+  it("never writes a dangling coalesced_into_run_id when the execution issue points at a missing run", async () => {
+    const { agentId, companyId, issueSvc, routine, svc } = await seedFixture();
+    const missingRunId = randomUUID();
+    const liveHeartbeatRunId = randomUUID();
+    const previousIssue = await issueSvc.create(companyId, {
+      projectId: routine.projectId,
+      title: routine.title,
+      description: routine.description,
+      status: "in_progress",
+      priority: routine.priority,
+      assigneeAgentId: routine.assigneeAgentId,
+      originKind: "routine_execution",
+      originId: routine.id,
+      originRunId: missingRunId,
+    });
+
+    // Deliberately no `routine_runs` row for `missingRunId` — that dangling state is the
+    // precondition under test.
+    await db.insert(heartbeatRuns).values({
+      id: liveHeartbeatRunId,
+      companyId,
+      agentId,
+      invocationSource: "assignment",
+      triggerDetail: "system",
+      status: "running",
+      contextSnapshot: { issueId: previousIssue.id },
+      startedAt: new Date("2026-03-20T12:01:00.000Z"),
+    });
+
+    await db
+      .update(issues)
+      .set({
+        checkoutRunId: liveHeartbeatRunId,
+        executionRunId: liveHeartbeatRunId,
+        executionLockedAt: new Date("2026-03-20T12:01:00.000Z"),
+      })
+      .where(eq(issues.id, previousIssue.id));
+
+    const run = await svc.runRoutine(routine.id, { source: "manual" });
+    expect(run.status).toBe("coalesced");
+    expect(run.linkedIssueId).toBe(previousIssue.id);
+
+    // The coalesce target must be a live run, never the missing one, and the documented
+    // fallback is the coalescing run's own id.
+    expect(run.coalescedIntoRunId).not.toBe(missingRunId);
+    expect(run.coalescedIntoRunId).toBe(run.id);
+
+    // And no run row anywhere may point at a run that does not exist.
+    const liveRunIds = new Set(
+      (await db.select({ id: routineRuns.id }).from(routineRuns)).map((row) => row.id),
+    );
+    const coalescedRuns = await db
+      .select({ coalescedIntoRunId: routineRuns.coalescedIntoRunId })
+      .from(routineRuns)
+      .where(isNotNull(routineRuns.coalescedIntoRunId));
+    for (const row of coalescedRuns) {
+      expect(liveRunIds.has(row.coalescedIntoRunId as string)).toBe(true);
+    }
   });
 
   it("touches a coalesced routine issue for the manual runner's inbox", async () => {
