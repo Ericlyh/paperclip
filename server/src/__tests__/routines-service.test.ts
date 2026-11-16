@@ -5,6 +5,7 @@ import {
   activityLog,
   agents,
   companies,
+  companyMemberships,
   companySecretBindings,
   companySecrets,
   companySecretVersions,
@@ -80,6 +81,7 @@ describeEmbeddedPostgres("routine service live-execution coalescing", () => {
     await db.delete(projectWorkspaces);
     await db.delete(projects);
     await db.delete(agents);
+    await db.delete(companyMemberships);
     await db.delete(companies);
     await db.delete(instanceSettings);
   });
@@ -204,7 +206,7 @@ describeEmbeddedPostgres("routine service live-execution coalescing", () => {
       {},
     );
 
-    return { companyId, agentId, issueSvc, projectId, routine, svc, wakeups };
+    return { companyId, agentId, defaultResponsibleUserId, issueSvc, projectId, routine, svc, wakeups };
   }
 
   async function armWorktreeExecution(cutoff: Date, instanceId = "worktree-routines-test") {
@@ -1447,6 +1449,17 @@ describeEmbeddedPostgres("routine service live-execution coalescing", () => {
     const { companyId, agentId, projectId, svc } = await seedFixture();
     const responsibleUserId = randomUUID();
     const driftUserId = randomUUID();
+    // The actor has to be a real member of the company: an actor user id with
+    // no active membership is not usable as a responsible user, because
+    // assertCompanyAccess resolves the responsible user through the company
+    // memberships and would deny the routine's own issues.
+    await db.insert(companyMemberships).values({
+      companyId,
+      principalType: "user",
+      principalId: responsibleUserId,
+      status: "active",
+      membershipRole: "member",
+    });
     const routine = await svc.create(
       companyId,
       {
@@ -1480,6 +1493,30 @@ describeEmbeddedPostgres("routine service live-execution coalescing", () => {
       .from(issues)
       .where(eq(issues.id, run.linkedIssueId!));
     expect(createdIssue?.responsibleUserId).toBe(responsibleUserId);
+  });
+
+  it("falls back to the company default when the actor is not a company member", async () => {
+    const { companyId, agentId, projectId, defaultResponsibleUserId, svc } = await seedFixture();
+    const nonMemberUserId = randomUUID();
+
+    const routine = await svc.create(
+      companyId,
+      {
+        projectId,
+        goalId: null,
+        parentIssueId: null,
+        title: "non-member owner routine",
+        description: null,
+        assigneeAgentId: agentId,
+        priority: "medium",
+        status: "active",
+        concurrencyPolicy: "coalesce_if_active",
+        catchUpPolicy: "skip_missed",
+      },
+      { userId: nonMemberUserId },
+    );
+
+    expect(routine.responsibleUserId).toBe(defaultResponsibleUserId);
   });
 
   it("waits for the assignee wakeup to be queued before returning the routine run", async () => {
