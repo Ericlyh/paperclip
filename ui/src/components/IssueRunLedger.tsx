@@ -528,14 +528,15 @@ export function IssueRunLedger({
     queryKey: queryKeys.issues.liveRuns(issueId),
     queryFn: () => heartbeatsApi.liveRunsForIssue(issueId),
     enabled: hasLiveRuns,
-    refetchInterval: 3000,
+    // Poll owner for this key lives in IssueDetail — a second timer on the
+    // same key means a second HTTP request per interval for the same bytes.
     placeholderData: keepPreviousDataForSameQueryTail<LiveRunForIssue[]>(issueId),
   });
   const { data: activeRun = null } = useQuery({
     queryKey: queryKeys.issues.activeRun(issueId),
     queryFn: () => heartbeatsApi.activeRunForIssue(issueId),
     enabled: hasLiveRuns || issueStatus === "in_progress",
-    refetchInterval: hasLiveRuns ? false : 3000,
+    // Poll owner for this key lives in IssueDetail — see the note above.
     placeholderData: keepPreviousDataForSameQueryTail<ActiveRunForIssue | null>(issueId),
   });
   const watchdogDecision = useMutation({

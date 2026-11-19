@@ -115,6 +115,7 @@ import { createCachedViteHtmlRenderer } from "./vite-html-renderer.js";
 import { DEFAULT_JSON_BODY_LIMIT, PORTABLE_JSON_BODY_LIMIT } from "./http/body-limits.js";
 import { COMPANY_IMPORT_API_PATH } from "./routes/company-import-paths.js";
 import { apiCompression } from "./middleware/api-compression.js";
+import { staticAssetCompression } from "./middleware/static-asset-compression.js";
 
 type UiMode = "none" | "static" | "vite-dev";
 const FEEDBACK_EXPORT_FLUSH_INTERVAL_MS = 5_000;
@@ -679,6 +680,11 @@ export async function createApp(
     if (uiDist) {
       // Hashed asset files (Vite emits them under /assets/<name>.<hash>.<ext>)
       // never change once built, so they can be cached aggressively.
+      //
+      // Compress them first: express.static does not negotiate Accept-Encoding,
+      // and the entry bundle is a few MB — uncompressed it dominated load time
+      // for clients on a slow link (a phone over Tailscale, for one).
+      app.use("/assets", staticAssetCompression(path.join(uiDist, "assets")));
       app.use(
         "/assets",
         express.static(path.join(uiDist, "assets"), {

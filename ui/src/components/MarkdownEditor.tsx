@@ -972,11 +972,25 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
     // also fires after typing (e.g. space to dismiss).
     const onInput = () => requestAnimationFrame(checkMention);
 
-    document.addEventListener("selectionchange", checkMention);
+    // `selectionchange` fires on every caret move — on iOS Safari that is
+    // every keystroke — and checkMention reads getBoundingClientRect(), which
+    // forces a synchronous layout. Coalesce to one frame so a burst of
+    // selection events costs one layout pass instead of one per event.
+    let selectionFrameId: number | null = null;
+    const onSelectionChange = () => {
+      if (selectionFrameId !== null) return;
+      selectionFrameId = requestAnimationFrame(() => {
+        selectionFrameId = null;
+        checkMention();
+      });
+    };
+
+    document.addEventListener("selectionchange", onSelectionChange);
     el?.addEventListener("input", onInput, true);
     return () => {
-      document.removeEventListener("selectionchange", checkMention);
+      document.removeEventListener("selectionchange", onSelectionChange);
       el?.removeEventListener("input", onInput, true);
+      if (selectionFrameId !== null) cancelAnimationFrame(selectionFrameId);
     };
   }, [checkMention, mentions, slashCommands.length]);
 

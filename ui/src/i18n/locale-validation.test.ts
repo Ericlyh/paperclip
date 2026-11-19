@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { t } from ".";
 import en from "./locales/en.json";
-import { localeMessages } from "./locales";
+import { allLocales, loadLocaleMessages, localeMessages } from "./locales";
 import { validateLocaleMessages } from "./locale-validation";
 
 describe("locale validation", () => {
@@ -11,9 +11,16 @@ describe("locale validation", () => {
     expect(t("app.missing")).toBe("app.missing");
   });
 
-  it("accepts registered locale files", () => {
+  it("accepts registered locale files", async () => {
     expect(Object.keys(localeMessages)).toContain("en");
     for (const [locale, messages] of Object.entries(localeMessages)) {
+      expect(validateLocaleMessages(messages), locale).toEqual([]);
+    }
+    // Locales outside the eagerly bundled set ship as separate chunks — load
+    // each one so they are validated as well.
+    for (const locale of allLocales) {
+      const messages = await loadLocaleMessages(locale);
+      expect(messages, locale).toBeDefined();
       expect(validateLocaleMessages(messages), locale).toEqual([]);
     }
   });

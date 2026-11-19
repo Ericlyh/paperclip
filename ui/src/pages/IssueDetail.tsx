@@ -1162,6 +1162,10 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
   const { data: liveRuns } = useQuery({
     queryKey: queryKeys.issues.liveRuns(issueId),
     queryFn: () => heartbeatsApi.liveRunsForIssue(issueId),
+    // This observer owns the 3s poll for these keys. Every observer on a query
+    // key runs its own timer, so the other two (the page-level observer and
+    // the run ledger) used to mean up to three requests per window for the
+    // same small payload. They read this observer's shared cache entry.
     refetchInterval: 3000,
     placeholderData: keepPreviousDataForSameQueryTail<LiveRunForIssue[]>(issueId),
   });
@@ -1171,6 +1175,7 @@ const IssueDetailChatTab = memo(function IssueDetailChatTab({
     queryKey: queryKeys.issues.activeRun(issueId),
     queryFn: () => heartbeatsApi.activeRunForIssue(issueId),
     enabled: !!executionRunId || issueStatus === "in_progress",
+    // Same owner as live-runs above — see the note there.
     refetchInterval: liveRunCount > 0 ? false : 3000,
     placeholderData: keepPreviousDataForSameQueryTail<ActiveRunForIssue | null>(issueId),
   });
@@ -1885,7 +1890,9 @@ export function IssueDetail() {
     queryKey: queryKeys.issues.liveRuns(issueId!),
     queryFn: () => heartbeatsApi.liveRunsForIssue(issueId!),
     enabled: !!issueId,
-    refetchInterval: 3000,
+    // No refetchInterval: the thread's observer in IssueDetailChatTab owns the
+    // poll for this key. This observer still updates — it shares the cache
+    // entry the owner refetches.
     select: (runs) => runs.length,
     placeholderData: keepPreviousDataForSameQueryTail<LiveRunForIssue[]>(issueId ?? "pending"),
   });
@@ -1894,7 +1901,7 @@ export function IssueDetail() {
     queryKey: queryKeys.issues.activeRun(issueId!),
     queryFn: () => heartbeatsApi.activeRunForIssue(issueId!),
     enabled: !!issueId && (!!issue?.executionRunId || issue?.status === "in_progress"),
-    refetchInterval: liveRunCount > 0 ? false : 3000,
+    // Poll owner for this key lives in IssueDetailChatTab — see the note above.
     select: (run) => !!run,
     placeholderData: keepPreviousDataForSameQueryTail<ActiveRunForIssue | null>(issueId ?? "pending"),
   });

@@ -45,6 +45,7 @@ const mockInstanceSettingsService = vi.hoisted(() => ({
 
 const mockRunSecretRedactionRegistry = vi.hoisted(() => ({
   redactForRun: vi.fn(async (_companyId: string, _runId: string, value: unknown) => value),
+  redactRuns: vi.fn(async (_companyId: string, runs: unknown[]) => runs),
 }));
 
 const routeAgentId = "11111111-1111-4111-8111-111111111111";

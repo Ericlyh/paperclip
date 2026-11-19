@@ -5039,7 +5039,7 @@ export function agentRoutes(
     const limit = limitParam ? Math.max(1, Math.min(1000, parseInt(limitParam, 10) || 200)) : 200;
     const summary = req.query.summary === "true" || req.query.summary === "1";
     const runs = await heartbeat.list(companyId, agentId, limit, { summary });
-    res.json(await Promise.all(runs.map((run) => runRedactions.redactForRun(companyId, run.id, run))));
+    res.json(await runRedactions.redactRuns(companyId, runs));
   });
 
   router.get("/companies/:companyId/live-runs", async (req, res) => {
@@ -5120,17 +5120,17 @@ export function agentRoutes(
         .limit(targetRunCount - liveRuns.length);
 
       const rows = [...liveRuns, ...recentRuns];
-      res.json(await Promise.all(rows.map(async (run) => runRedactions.redactForRun(companyId, run.id, {
+      res.json(await runRedactions.redactRuns(companyId, await Promise.all(rows.map(async (run) => ({
         ...heartbeat.decorateActiveRunStatus(run),
         outputSilence: await heartbeat.buildRunOutputSilence(run),
-      }))));
+      })))));
       return;
     }
 
-    res.json(await Promise.all(liveRuns.map(async (run) => runRedactions.redactForRun(companyId, run.id, {
+    res.json(await runRedactions.redactRuns(companyId, await Promise.all(liveRuns.map(async (run) => ({
       ...heartbeat.decorateActiveRunStatus(run),
       outputSilence: await heartbeat.buildRunOutputSilence(run),
-    }))));
+    })))));
   });
 
   router.get("/heartbeat-runs/:runId", async (req, res) => {

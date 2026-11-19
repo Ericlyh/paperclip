@@ -167,6 +167,19 @@ async function flush() {
   });
 }
 
+/**
+ * Wait for one animation frame.
+ *
+ * The editor coalesces `selectionchange` into a requestAnimationFrame, so
+ * mention detection lands on the next frame rather than synchronously with
+ * the event.
+ */
+async function flushFrame() {
+  await act(async () => {
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(null)));
+  });
+}
+
 function createFileDragEvent(type: string) {
   const event = (
     typeof DragEvent === "function"
@@ -883,6 +896,7 @@ describe("MarkdownEditor", () => {
     act(() => {
       document.dispatchEvent(new Event("selectionchange"));
     });
+    await flushFrame();
     await flush();
 
     const option = Array.from(document.body.querySelectorAll('button[type="button"]'))
@@ -1066,6 +1080,7 @@ describe("MarkdownEditor", () => {
     act(() => {
       document.dispatchEvent(new Event("selectionchange"));
     });
+    await flushFrame();
     await flush();
 
     const menu = document.body.querySelector('[data-testid="mention-autocomplete-menu"]');
