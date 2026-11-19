@@ -296,6 +296,115 @@ export function budgetService(db: Db, hooks: BudgetServiceHooks = {}) {
       .where(and(eq(companies.id, policy.scopeId), eq(companies.pauseReason, "budget")));
   }
 
+  // The hard-stop incident is where a budget pause records the window it
+  // happened in: the incident carries the window of the policy that tripped.
+  // The most recent one is the pause that is still in force.
+  async function findBudgetPauseRecord(policyIds: string[]) {
+    if (policyIds.length === 0) return null;
+    const rows = await db
+      .select({
+        policyId: budgetIncidents.policyId,
+        windowStart: budgetIncidents.windowStart,
+      })
+      .from(budgetIncidents)
+      .where(
+        and(
+          inArray(budgetIncidents.policyId, policyIds),
+          eq(budgetIncidents.thresholdType, "hard"),
+        ),
+      );
+
+    let latest: { policyId: string; windowStart: Date; at: number } | null = null;
+    for (const row of rows) {
+      const at = new Date(row.windowStart).getTime();
+      if (!latest || at > latest.at) {
+        latest = { policyId: row.policyId, windowStart: row.windowStart, at };
+      }
+    }
+    return latest;
+  }
+
+  // A hard stop raises a `budget_override_required` approval. Once the window
+  // rolls over and the scope resumes itself, that request is moot — leaving it
+  // pending would park a decision nobody can take in the approvals queue.
+  async function cancelMootBudgetApprovals(policyIds: string[]) {
+    if (policyIds.length === 0) return;
+    const openRows = await db
+      .select({ approvalId: budgetIncidents.approvalId })
+      .from(budgetIncidents)
+      .where(
+        and(
+          inArray(budgetIncidents.policyId, policyIds),
+          eq(budgetIncidents.status, "open"),
+        ),
+      );
+    const approvalIds = openRows
+      .map((row) => row.approvalId)
+      .filter((value): value is string => Boolean(value));
+    if (approvalIds.length === 0) return;
+    await db
+      .update(approvals)
+      .set({
+        status: "cancelled",
+        decisionNote: "Budget window rolled over; the scope resumed itself",
+        updatedAt: new Date(),
+      })
+      .where(and(inArray(approvals.id, approvalIds), eq(approvals.status, "pending")));
+  }
+
+  // A scope paused by a budget hard stop must lift that pause once the budget
+  // window which recorded it rolls over and the scope is back under every
+  // active cap. Without this a monthly cap is a one-way door: the spend
+  // resets to zero but the scope stays paused, and every later fire is
+  // refused at dispatch until a person intervenes.
+  async function resumeScopeAfterBudgetWindowRollover(
+    companyId: string,
+    scopeType: BudgetScopeType,
+    scopeId: string,
+  ): Promise<boolean> {
+    const scope = await resolveScopeRecord(db, scopeType, scopeId);
+    if (!scope.paused || scope.pauseReason !== "budget") return false;
+
+    const policies = await db
+      .select()
+      .from(budgetPolicies)
+      .where(
+        and(
+          eq(budgetPolicies.companyId, companyId),
+          eq(budgetPolicies.scopeType, scopeType),
+          eq(budgetPolicies.scopeId, scopeId),
+          eq(budgetPolicies.isActive, true),
+          eq(budgetPolicies.metric, "billed_cents"),
+        ),
+      );
+    const firstPolicy = policies[0];
+    if (!firstPolicy) return false;
+
+    // The rollover is not a free pass: every active cap for the scope has to
+    // be under its limit again before the scope may run.
+    for (const policy of policies) {
+      if (policy.amount <= 0) continue;
+      const observedAmount = await computeObservedAmount(db, policy);
+      if (observedAmount >= policy.amount) return false;
+    }
+
+    const pause = await findBudgetPauseRecord(policies.map((policy) => policy.id));
+    if (!pause) return false;
+    const pausePolicy = policies.find((policy) => policy.id === pause.policyId);
+    if (!pausePolicy) return false;
+    const { start } = resolveWindow(pausePolicy.windowKind as BudgetWindowKind);
+    if (start.getTime() <= new Date(pause.windowStart).getTime()) return false;
+
+    await resumeScopeFromBudget(firstPolicy);
+    // Cancels the now-moot override request before the incidents are closed
+    // out, so the approvals it is attached to are still open.
+    await cancelMootBudgetApprovals(policies.map((policy) => policy.id));
+    for (const policy of policies) {
+      await resolveOpenIncidentsForPolicy(policy.id, null, null);
+    }
+    return true;
+  }
+
   async function getPolicyRow(policyId: string) {
     const policy = await db
       .select()
@@ -644,6 +753,30 @@ export function budgetService(db: Db, hooks: BudgetServiceHooks = {}) {
         pausedProjectCount: policies.filter((policy) => policy.scopeType === "project" && policy.paused).length,
         pendingApprovalCount: activeIncidents.filter((incident) => incident.approvalStatus === "pending").length,
       };
+    },
+
+    // Sweep the scopes a budget hard stop paused, and lift the pause on the
+    // ones whose budget window has since rolled over. Called on the scheduler
+    // tick: a paused scope produces no cost events of its own, so nothing else
+    // would ever re-evaluate it and the pause would outlive its window.
+    evaluateWindowRollovers: async (companyId: string) => {
+      const rows = await listPolicyRows(companyId);
+      const resumedScopes: string[] = [];
+      const evaluated = new Set<string>();
+      for (const row of rows) {
+        // Only a calendar window rolls over — a lifetime cap never resets.
+        if (row.windowKind !== "calendar_month_utc") continue;
+        const key = `${row.scopeType}:${row.scopeId}`;
+        if (evaluated.has(key)) continue;
+        evaluated.add(key);
+        const resumed = await resumeScopeAfterBudgetWindowRollover(
+          companyId,
+          row.scopeType as BudgetScopeType,
+          row.scopeId,
+        );
+        if (resumed) resumedScopes.push(key);
+      }
+      return { resumedScopes };
     },
 
     evaluateCostEvent: async (event: typeof costEvents.$inferSelect) => {

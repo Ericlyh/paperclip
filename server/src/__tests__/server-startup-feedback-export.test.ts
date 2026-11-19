@@ -255,6 +255,9 @@ vi.mock("../services/index.js", () => ({
   attentionService: vi.fn(() => ({
     list: vi.fn(async () => ({ items: [], nextCursor: null })),
   })),
+  budgetService: vi.fn(() => ({
+    evaluateWindowRollovers: vi.fn(async () => ({ resumedScopes: [] })),
+  })),
   decisionService: vi.fn(() => ({
     sweepExpired: vi.fn(async () => ({ expired: 0 })),
   })),
@@ -352,6 +355,10 @@ vi.mock("../auth/better-auth.js", () => ({
 import { startServer } from "../index.ts";
 
 describe("startServer feedback export wiring", () => {
+  // The scheduler tick does async work before it reaches the individual
+  // sweeps, so drain the microtask queue instead of counting ticks.
+  const flushSchedulerTick = () => new Promise<void>((resolve) => setImmediate(resolve));
+
   beforeEach(() => {
     vi.clearAllMocks();
     process.env.PAPERCLIP_DECISION_SIGNING_SECRET = "fedcba9876543210fedcba9876543210";
@@ -494,8 +501,7 @@ describe("startServer feedback export wiring", () => {
 
       expect(intervalCallback).not.toBeNull();
       intervalCallback?.();
-      await Promise.resolve();
-      await Promise.resolve();
+      await flushSchedulerTick();
 
       expect(heartbeatServiceMock.tickTimers).not.toHaveBeenCalled();
       expect(externalObjectsServiceMock.refreshDueObjectsForActiveCompanies).toHaveBeenCalledTimes(1);
@@ -531,8 +537,7 @@ describe("startServer feedback export wiring", () => {
       expect(heartbeatServiceMock.sweepPendingCleanupLeases).toHaveBeenCalled();
       expect(intervalCallback).not.toBeNull();
       intervalCallback?.();
-      await Promise.resolve();
-      await Promise.resolve();
+      await flushSchedulerTick();
 
       expect(externalObjectsServiceMock.refreshDueObjectsForActiveCompanies).toHaveBeenCalledTimes(1);
       expect(routineServiceMock.tickScheduledTriggers).not.toHaveBeenCalled();

@@ -1,4 +1,5 @@
 import { randomUUID } from "node:crypto";
+import { eq } from "drizzle-orm";
 import { afterAll, afterEach, beforeAll, beforeEach, describe, expect, it, vi } from "vitest";
 import {
   agents,
@@ -338,6 +339,7 @@ describeEmbeddedPostgres("budgetService release gate enforcement", () => {
   }, 20_000);
 
   afterEach(async () => {
+    vi.useRealTimers();
     await db.delete(budgetIncidents);
     await db.delete(approvals);
     await db.delete(budgetPolicies);
@@ -636,5 +638,172 @@ describeEmbeddedPostgres("budgetService release gate enforcement", () => {
       pauseReason: null,
     });
     expect(overviewAfterResume.activeIncidents).toHaveLength(0);
+  });
+
+  async function insertAgentBudgetPolicy(input: { companyId: string; agentId: string; amount?: number }) {
+    const [policy] = await db
+      .insert(budgetPolicies)
+      .values({
+        companyId: input.companyId,
+        scopeType: "agent",
+        scopeId: input.agentId,
+        metric: "billed_cents",
+        windowKind: "calendar_month_utc",
+        amount: input.amount ?? 100,
+        warnPercent: 80,
+        hardStopEnabled: true,
+        notifyEnabled: true,
+        isActive: true,
+      })
+      .returning();
+    return policy!;
+  }
+
+  it("resumes a scope paused by a budget hard stop once the budget window rolls over", async () => {
+    const { companyId, agentId } = await createBudgetFixture();
+    const service = budgetService(db, { cancelWorkForScope: vi.fn().mockResolvedValue(undefined) });
+    const policy = await insertAgentBudgetPolicy({ companyId, agentId });
+
+    // Window N: the agent spends past its cap, so the hard stop pauses it.
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-06-15T12:00:00.000Z"));
+    const windowNEvent = await insertCostEvent({
+      companyId,
+      agentId,
+      costCents: 150,
+      occurredAt: new Date("2026-06-15T12:00:00.000Z"),
+    });
+    await service.evaluateCostEvent(windowNEvent);
+
+    const [pausedAgent] = await db
+      .select({ status: agents.status, pauseReason: agents.pauseReason })
+      .from(agents);
+    expect(pausedAgent).toMatchObject({ status: "paused", pauseReason: "budget" });
+
+    // Window N+1: the observed spend resets to zero, but the pause is still in force.
+    vi.setSystemTime(new Date("2026-07-15T12:00:00.000Z"));
+    expect(await service.evaluateWindowRollovers(companyId)).toEqual({
+      resumedScopes: [`agent:${agentId}`],
+    });
+
+    const [resumedAgent] = await db
+      .select({ status: agents.status, pauseReason: agents.pauseReason, pausedAt: agents.pausedAt })
+      .from(agents);
+    expect(resumedAgent).toMatchObject({ status: "idle", pauseReason: null });
+    expect(resumedAgent?.pausedAt).toBeNull();
+
+    const incidentRows = await db.select().from(budgetIncidents);
+    expect(incidentRows.find((incident) => incident.thresholdType === "hard")).toMatchObject({
+      policyId: policy.id,
+      status: "resolved",
+    });
+    const approvalRows = await db.select().from(approvals);
+    expect(approvalRows).toHaveLength(1);
+    expect(approvalRows[0]).toMatchObject({
+      type: "budget_override_required",
+      status: "cancelled",
+    });
+  });
+
+  it("keeps a scope paused when the new window's observed spend is already at the cap", async () => {
+    const { companyId, agentId } = await createBudgetFixture();
+    const service = budgetService(db, { cancelWorkForScope: vi.fn().mockResolvedValue(undefined) });
+    await insertAgentBudgetPolicy({ companyId, agentId });
+
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-06-15T12:00:00.000Z"));
+    const windowNEvent = await insertCostEvent({
+      companyId,
+      agentId,
+      costCents: 150,
+      occurredAt: new Date("2026-06-15T12:00:00.000Z"),
+    });
+    await service.evaluateCostEvent(windowNEvent);
+
+    // The next window is over the cap again. The spend is written straight to
+    // the ledger so the sweep sees it without a fresh hard-stop incident
+    // masking the rollover check.
+    vi.setSystemTime(new Date("2026-07-15T12:00:00.000Z"));
+    await insertCostEvent({
+      companyId,
+      agentId,
+      costCents: 150,
+      occurredAt: new Date("2026-07-02T00:00:00.000Z"),
+    });
+
+    expect(await service.evaluateWindowRollovers(companyId)).toEqual({ resumedScopes: [] });
+    const [stillPaused] = await db
+      .select({ status: agents.status, pauseReason: agents.pauseReason })
+      .from(agents);
+    expect(stillPaused).toMatchObject({ status: "paused", pauseReason: "budget" });
+    const incidentRows = await db.select().from(budgetIncidents);
+    expect(incidentRows.find((incident) => incident.thresholdType === "hard")).toMatchObject({
+      status: "open",
+    });
+  });
+
+  it("leaves a scope paused for a non-budget reason untouched when the budget window rolls over", async () => {
+    const { companyId, agentId } = await createBudgetFixture();
+    const service = budgetService(db, { cancelWorkForScope: vi.fn().mockResolvedValue(undefined) });
+    const policy = await insertAgentBudgetPolicy({ companyId, agentId });
+
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-06-15T12:00:00.000Z"));
+    await db
+      .update(agents)
+      .set({ status: "paused", pauseReason: "manual", pausedAt: new Date() })
+      .where(eq(agents.id, agentId));
+    // A stale hard incident from an earlier window: only the pause reason is
+    // keeping this scope paused, so the rollover check must not touch it.
+    await db.insert(budgetIncidents).values({
+      companyId,
+      policyId: policy.id,
+      scopeType: "agent",
+      scopeId: agentId,
+      metric: "billed_cents",
+      windowKind: "calendar_month_utc",
+      windowStart: new Date("2026-06-01T00:00:00.000Z"),
+      windowEnd: new Date("2026-07-01T00:00:00.000Z"),
+      thresholdType: "hard",
+      amountLimit: 100,
+      amountObserved: 150,
+      status: "open",
+      approvalId: null,
+    });
+
+    vi.setSystemTime(new Date("2026-07-15T12:00:00.000Z"));
+    expect(await service.evaluateWindowRollovers(companyId)).toEqual({ resumedScopes: [] });
+    const [manualPaused] = await db
+      .select({ status: agents.status, pauseReason: agents.pauseReason, pausedAt: agents.pausedAt })
+      .from(agents);
+    expect(manualPaused).toMatchObject({ status: "paused", pauseReason: "manual" });
+    expect(manualPaused?.pausedAt).toBeInstanceOf(Date);
+  });
+
+  it("leaves a scope paused inside the current budget window untouched", async () => {
+    const { companyId, agentId } = await createBudgetFixture();
+    const service = budgetService(db, { cancelWorkForScope: vi.fn().mockResolvedValue(undefined) });
+    await insertAgentBudgetPolicy({ companyId, agentId });
+
+    vi.useFakeTimers({ toFake: ["Date"] });
+    vi.setSystemTime(new Date("2026-06-15T12:00:00.000Z"));
+    const windowNEvent = await insertCostEvent({
+      companyId,
+      agentId,
+      costCents: 150,
+      occurredAt: new Date("2026-06-15T12:00:00.000Z"),
+    });
+    await service.evaluateCostEvent(windowNEvent);
+
+    // Same window: no window has elapsed, so the pause still stands.
+    expect(await service.evaluateWindowRollovers(companyId)).toEqual({ resumedScopes: [] });
+    const [stillPaused] = await db
+      .select({ status: agents.status, pauseReason: agents.pauseReason })
+      .from(agents);
+    expect(stillPaused).toMatchObject({ status: "paused", pauseReason: "budget" });
+    const incidentRows = await db.select().from(budgetIncidents);
+    expect(incidentRows.find((incident) => incident.thresholdType === "hard")).toMatchObject({
+      status: "open",
+    });
   });
 });

@@ -47,6 +47,7 @@ import {
   backfillPrincipalAccessCompatibility,
   backfillLegacyToolOAuthTokens,
   bootstrapExecutionPolicyFromEnv,
+  budgetService,
   environmentCustomImageService,
   decisionService,
   decisionRetentionService,
@@ -1393,12 +1394,41 @@ export async function startServer(): Promise<StartedServer> {
     };
     await runRetentionSweep();
 
+    // A budget hard stop pauses a scope for the rest of that budget window.
+    // The window rolls over on its own, so the pause has to be lifted on its
+    // own too — otherwise a monthly cap is a one-way door and the paused scope
+    // refuses every later fire until a person intervenes. A paused scope
+    // produces no cost events, so nothing else would ever re-evaluate it.
+    const budgetWindowRolloverSweep = async () => {
+      const activeCompanies = await db.select({ id: companies.id }).from(companies).where(eq(companies.status, "active"));
+      const resumedScopes: string[] = [];
+      for (const company of activeCompanies) {
+        const result = await budgetService(db).evaluateWindowRollovers(company.id);
+        for (const scope of result.resumedScopes) {
+          resumedScopes.push(`${company.id}:${scope}`);
+        }
+      }
+      if (resumedScopes.length > 0) {
+        logger.info(
+          { resumedScopes },
+          "budget window rollover sweep resumed scopes paused by an earlier window's hard stop",
+        );
+      }
+      return resumedScopes;
+    };
+
     startHeartbeatSchedulerInterval(() => {
       // Track the outer async callback as well as the work it starts. Shutdown
       // can then wait through an already-running suppression check before it
       // captures the authoritative set of running heartbeat rows.
       trackHeartbeatSchedulerWork((async () => {
         if (heartbeatSchedulerStopped) return;
+        // Runs before the timer and routine ticks: a scope resumed here is
+        // already un-paused in the database by the time a dispatch reads the
+        // agent row, so the wake is not refused as "not invokable".
+        await budgetWindowRolloverSweep().catch((err: unknown) => {
+          logger.error({ err }, "budget window rollover sweep failed");
+        });
         trackHeartbeatSchedulerWork(decisionExecutor.sweepExpired().catch((err: unknown) => {
           logger.error({ err }, "decision expiry sweep failed");
         }));
