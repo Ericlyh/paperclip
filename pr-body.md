@@ -23,11 +23,11 @@ Error: ENOENT: no such file or directory, scandir '<root>/authority-epochs'
 
 ### Correction to an earlier framing
 
-The defect is real, but upstream master is **not** red on its own CI — it is green at today's tip. The failing test is gated on `existsSync(defaultCapabilityRunnerdBinary())` (`packages/paperclip-runner/src/live/runnerd-codex-transport.ts`). That helper resolves to `packages/paperclip-runner/runner/target/debug/paperclip-runnerd`, and the `general-server` vitest lane does not build the Rust runner, so the test is **skipped** there. Upstream master's own check runs for `1355f9354` are green (187 successful, 158 skipped, 159 cancelled, **0 failing**). It fails in any checkout where the runner binary is built — a local dev tree, or a CI job that pre-builds the runner.
+The defect is real, but upstream master is **not** red on its own CI — it is green at today's tip. The failing test is gated on `existsSync(defaultCapabilityRunnerdBinary())` (`packages/paperclip-runner/src/live/runnerd-codex-transport.ts`). That helper resolves to `packages/paperclip-runner/runner/target/debug/paperclip-runnerd`, and the `general-server` vitest lane does not build the Rust runner, so the test is **skipped** there. Upstream master's own check runs are green: at `1355f9354` (187 successful, 158 skipped, 159 cancelled, **0 failing**) and at the current tip `24132dac1` (**0 failing** — 33 successful, 36 skipped and 16 still running when the check was read). It fails in any checkout where the runner binary is built — a local dev tree, or a CI job that pre-builds the runner.
 
 ### The fix
 
-Commit `19d3f9c4c0e92e5c9816fd6b9ba2f85774f1f5f9` on branch `fix/native-session-resume-continuity-archive-epoch`, rebased onto upstream master `1355f93546b44017bdf71212c437ae7a57f8b5e7` (2026-11-19). One file changed, 17 insertions and 5 deletions; the patched hunk is unchanged from the commit that was verified end to end below:
+Commit `457f8ac76bccee374be9d16bf10e74e090a8e59b` on branch `fix/native-session-resume-continuity-archive-epoch`, rebased onto upstream master `24132dac169fafc616615b4f3144e921aae8ad54` (2026-11-20). One file changed, 17 insertions and 5 deletions. The rebase is a semantic no-op: the patch id is identical (`bf4b4d4fca501cf7a6d1af471fde62e0ba9e68bc`) to the commit that was verified end to end below, because none of the 23 upstream commits in between touch this file:
 
 ```
 server/src/services/native-runtime/native-session-resume.test.ts
@@ -49,6 +49,7 @@ node ./node_modules/vitest/vitest.mjs run --project @paperclipai/server \
 | Upstream master content (2026-11-06, tree `4d49a3128`) | `Test Files 1 failed (1)` / `Tests 1 failed \| 56 passed (57)` — ENOENT at `native-session-resume.test.ts:950` |
 | This branch (same tree, same command) | `Test Files 1 passed (1)` / `Tests 57 passed (57)` |
 | Upstream master `1355f9354` (2026-11-19) | Defect still present; this branch rebases onto it cleanly (`git cherry-pick`, no conflict, no fuzz) |
+| Upstream master `24132dac1` (2026-11-20) | Defect still present (`native-session-root-entries.ts:23` still lists `authority-epochs`; `native-session-resume.test.ts:1057` still reads the epoch from the session root); this branch rebases onto it cleanly and is 1 commit ahead of it |
 
 On today's upstream master the defect and the fix's premise are unchanged:
 
@@ -66,7 +67,7 @@ ROOT_AUTHORITY_EPOCHS_EXISTS = false
 
 ### Duplicate search
 
-Searched upstream pull requests on 2026-11-19 for `native-session-resume` and `authority-epochs` (all states, then the open subset), and listed the changed files of every open candidate: **51 open pull requests matched, and none of them modifies `native-session-resume.test.ts` or `native-session-root-entries.ts`**. The related pull requests #19373 (origin of the change), #19806, #20146 and #19547 are closed.
+Searched upstream pull requests on 2026-11-20 for `native-session-resume`, `authority-epochs` and `continuity-breaks native` (open only), and listed the changed files of every open candidate: **102 open pull requests matched, and five of them touch the two files this PR touches** — #14474 (edits the environment fixture), #15389 (adds a hiring-prompt case), #15880 (pins the Codex command resolver), #18251 (targets the non-master base `codex/agent-budget-authorization`), #22152 (appends two entries to `NATIVE_SESSION_ROOT_HELD_ENTRIES`). **None of them changes the epoch read at the failing site, and no open pull request fixes this defect.** The related pull requests #19373 (origin of the change), #19806, #20146 and #19547 are closed.
 
 ---
 
@@ -112,7 +113,7 @@ After the break the epoch lives at `continuity-breaks/<archive>/authority-epochs
 
 **Why CI did not catch it**
 
-That test is gated on `existsSync(defaultCapabilityRunnerdBinary())`, which resolves to `packages/paperclip-runner/runner/target/debug/paperclip-runnerd`. The `general-server` vitest lane does not build the Rust runner, so the test is skipped there, and upstream master's own CI is green (187 successful, 158 skipped, 159 cancelled, 0 failing check runs at `1355f9354`). It fails in any checkout where the runner binary is built.
+That test is gated on `existsSync(defaultCapabilityRunnerdBinary())`, which resolves to `packages/paperclip-runner/runner/target/debug/paperclip-runnerd`. The `general-server` vitest lane does not build the Rust runner, so the test is skipped there, and upstream master's own CI is green (0 failing check runs at `1355f9354` and at the current tip `24132dac1`). It fails in any checkout where the runner binary is built.
 
 ## What Changed
 
@@ -143,7 +144,7 @@ node ./node_modules/vitest/vitest.mjs run --project @paperclipai/server \
   server/src/services/native-runtime/native-session-resume.test.ts
 ```
 
-The branch was then rebased onto upstream master `1355f9354` (2026-11-19). The rebased commit carries the same patched hunk — upstream's later edits to this file only moved the assertion to line 1057 — and it was re-checked on that tree: clean rebase with no conflict, the file still imports `existsSync` (so the added assertion compiles), the archive layout produced by `moveNativeContinuityState` is unchanged, and a path-level replay of the upstream rename semantics reproduces the ENOENT before the change and the correct read after it.
+The branch was then rebased onto upstream master `1355f9354` (2026-11-19) and again onto `24132dac1` (2026-11-20). Both rebased commits carry the same patched hunk — upstream's later edits to this file only moved the assertion to line 1057 — and the second rebase is a semantic no-op (identical patch id), because none of the 23 upstream commits in between touch this file. It was re-checked on that tree: clean rebase with no conflict, the file still imports `existsSync` (so the added assertion compiles), the archive layout produced by `moveNativeContinuityState` is unchanged, and a path-level replay of the upstream rename semantics reproduces the ENOENT before the change and the correct read after it.
 
 ## Risks
 
