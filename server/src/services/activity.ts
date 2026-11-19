@@ -38,6 +38,35 @@ export function normalizeActivityLimit(limit: number | undefined) {
 export function activityService(db: Db) {
   const scheduledLivenessBackfills = new Set<string>();
   const issueIdAsText = sql<string>`${issues.id}::text`;
+
+  // Run ids that have an issue activity_log row for the issue.
+  //
+  // The issue run set is "runs whose context_snapshot names the issue, or runs
+  // with an issue activity_log row". Written as one OR with an EXISTS
+  // subquery, Postgres cannot serve it with a BitmapOr: the EXISTS became a
+  // hashed SubPlan, so heartbeat_runs was seq-scanned (19,092 rows removed by
+  // filter, ~250 ms per call). Resolving the activity_log run ids first lets
+  // both branches of the OR be index-backed, and the planner then uses a
+  // BitmapOr over the context_snapshot expression index and the primary key
+  // (~0.1 ms on the live board).
+  async function activityLogRunIdsForIssue(companyId: string, issueId: string) {
+    const rows = await db
+      .select({ runId: activityLog.runId })
+      .from(activityLog)
+      .where(
+        and(
+          eq(activityLog.companyId, companyId),
+          eq(activityLog.entityType, "issue"),
+          eq(activityLog.entityId, issueId),
+        ),
+      );
+    return [
+      ...new Set(
+        rows.map((row) => row.runId).filter((runId): runId is string => typeof runId === "string"),
+      ),
+    ];
+  }
+
   const summarizedUsageJson = sql<Record<string, unknown> | null>`
     case
       when ${heartbeatRuns.usageJson} is null then null
@@ -146,6 +175,7 @@ export function activityService(db: Db) {
   }
 
   async function backfillMissingRunLivenessForIssue(companyId: string, issueId: string) {
+    const activityRunIds = await activityLogRunIdsForIssue(companyId, issueId);
     const runs = await db
       .select({
         id: heartbeatRuns.id,
@@ -167,14 +197,7 @@ export function activityService(db: Db) {
           sql`${heartbeatRuns.status} not in ('queued', 'running')`,
           or(
             sql`${heartbeatRuns.contextSnapshot} ->> 'issueId' = ${issueId}`,
-            sql`exists (
-              select 1
-              from ${activityLog}
-              where ${activityLog.companyId} = ${companyId}
-                and ${activityLog.entityType} = 'issue'
-                and ${activityLog.entityId} = ${issueId}
-                and ${activityLog.runId} = ${heartbeatRuns.id}
-            )`,
+            activityRunIds.length > 0 ? inArray(heartbeatRuns.id, activityRunIds) : undefined,
           ),
         ),
       )
@@ -378,6 +401,7 @@ export function activityService(db: Db) {
 
     runsForIssue: async (companyId: string, issueId: string) => {
       scheduleRunLivenessBackfill(companyId, issueId);
+      const activityRunIds = await activityLogRunIdsForIssue(companyId, issueId);
       const runs = await db
         .select({
           runId: heartbeatRuns.id,
@@ -416,14 +440,7 @@ export function activityService(db: Db) {
             eq(heartbeatRuns.companyId, companyId),
             or(
               sql`${heartbeatRuns.contextSnapshot} ->> 'issueId' = ${issueId}`,
-              sql`exists (
-                select 1
-                from ${activityLog}
-                where ${activityLog.companyId} = ${companyId}
-                  and ${activityLog.entityType} = 'issue'
-                  and ${activityLog.entityId} = ${issueId}
-                  and ${activityLog.runId} = ${heartbeatRuns.id}
-              )`,
+              activityRunIds.length > 0 ? inArray(heartbeatRuns.id, activityRunIds) : undefined,
             ),
           ),
         )
