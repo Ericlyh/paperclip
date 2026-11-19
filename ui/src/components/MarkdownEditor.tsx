@@ -812,6 +812,12 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
 
   // Stable ref for imageUploadHandler so plugins don't recreate on every render
   const imageUploadHandlerRef = useRef(imageUploadHandler);
+
+  /**
+   * The pending image-upload caret restore.  The editor cancels it when it
+   * unmounts, so the deferred callback never outlives the component.
+   */
+  const imageUploadTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   imageUploadHandlerRef.current = imageUploadHandler;
 
   // Mention state (ref kept in sync so callbacks always see the latest value)
@@ -989,6 +995,15 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
 
   const hasImageUpload = Boolean(imageUploadHandler);
 
+  useEffect(() => {
+    return () => {
+      if (imageUploadTimerRef.current !== null) {
+        clearTimeout(imageUploadTimerRef.current);
+        imageUploadTimerRef.current = null;
+      }
+    };
+  }, []);
+
   const plugins = useMemo<RealmPlugin[]>(() => {
     const imageHandler = hasImageUpload
       ? async (file: File) => {
@@ -999,7 +1014,9 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
             setUploadError(null);
             // After MDXEditor inserts the image, ensure two newlines follow it
             // so the cursor isn't stuck right next to the image.
-            setTimeout(() => {
+            if (imageUploadTimerRef.current !== null) clearTimeout(imageUploadTimerRef.current);
+            imageUploadTimerRef.current = setTimeout(() => {
+              imageUploadTimerRef.current = null;
               const current = latestValueRef.current;
               const escapedSrc = escapeRegExp(src);
               const updated = current.replace(
@@ -1013,6 +1030,10 @@ export const MarkdownEditor = forwardRef<MarkdownEditorRef, MarkdownEditorProps>
                 // `updated` derives from `latestValueRef`, which is editor
                 // space; the parent only ever sees stored space.
                 onChange(toStoredMarkdown(updated));
+                // `requestAnimationFrame` is a browser API: it does not exist
+                // in a non-DOM environment, and a throw from a timer that
+                // outlives its test file escapes as an unhandled error.
+                if (typeof requestAnimationFrame !== "function") return;
                 requestAnimationFrame(() => {
                   ref.current?.focus(undefined, { defaultSelection: "rootEnd" });
                 });

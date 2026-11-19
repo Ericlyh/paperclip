@@ -26,6 +26,8 @@ import { Dialog, DialogContent, DialogTitle } from "./ui/dialog";
 
 const mdxEditorMockState = vi.hoisted(() => ({
   linkValidator: null as ((url: string) => boolean) | null,
+  /** The options the editor handed to the image plugin. */
+  imagePluginOptions: null as { imageUploadHandler?: (file: File) => Promise<string> } | null,
   pluginDefinitions: [] as unknown[],
   emitMountEmptyReset: false,
   emitMountParseError: false,
@@ -205,7 +207,10 @@ vi.mock("@mdxeditor/editor", async () => {
     codeMirrorPlugin: () => ({}),
     createRootEditorSubscription$: Symbol("createRootEditorSubscription$"),
     headingsPlugin: () => ({}),
-    imagePlugin: () => ({}),
+    imagePlugin: (options: { imageUploadHandler?: (file: File) => Promise<string> }) => {
+      mdxEditorMockState.imagePluginOptions = options;
+      return {};
+    },
     linkDialogPlugin: () => ({}),
     linkPlugin: (options: { validateUrl: (url: string) => boolean }) => {
       mdxEditorMockState.linkValidator = options.validateUrl;
@@ -338,6 +343,7 @@ describe("MarkdownEditor", () => {
     vi.clearAllMocks();
     vi.unstubAllGlobals();
     mdxEditorMockState.linkValidator = null;
+    mdxEditorMockState.imagePluginOptions = null;
     mdxEditorMockState.pluginDefinitions = [];
     mdxEditorMockState.emitMountEmptyReset = false;
     mdxEditorMockState.emitMountParseError = false;
@@ -1409,6 +1415,44 @@ describe("MarkdownEditor", () => {
     await act(async () => {
       root.unmount();
     });
+  });
+
+  it("cancels the deferred image-upload caret restore when the editor unmounts first", async () => {
+    const root = createRoot(container);
+    const onChange = vi.fn();
+
+    await act(async () => {
+      root.render(
+        <MarkdownEditor
+          value="![image](https://example.com/image.png)"
+          onChange={onChange}
+          placeholder="Markdown body"
+          imageUploadHandler={async () => "https://example.com/image.png"}
+        />,
+      );
+    });
+
+    await flush();
+
+    const imageUploadHandler = mdxEditorMockState.imagePluginOptions?.imageUploadHandler;
+    expect(imageUploadHandler).toBeDefined();
+
+    onChange.mockClear();
+    await act(async () => {
+      await imageUploadHandler!(new File(["image"], "image.png", { type: "image/png" }));
+    });
+
+    // The editor is gone before the 100 ms caret restore fires, so the
+    // deferred callback must not run at all: it would call onChange on an
+    // unmounted component and call requestAnimationFrame, which does not
+    // exist outside a browser.
+    await act(async () => {
+      root.unmount();
+    });
+
+    await new Promise((resolve) => setTimeout(resolve, 250));
+
+    expect(onChange).not.toHaveBeenCalled();
   });
 
   it("shows the editor-scoped dropzone by default when files are dragged over it", async () => {
